@@ -121,8 +121,11 @@ void setFont(const char *fontData);
 
 ## Frame Transition Functions
 
+The Frane Transition functions are a set of functions on top of the basic library. They allow you to easily write frames which will be shifted in regular intervals. The frame animation (including the frame indicators) will only be activated if you define callback functions with setFrameCallacks(..). If no callback methods are defined no indicators will be displayed.
+
 ```C++
-// Sets the callback methods of the format void method(x,y)
+// Sets the callback methods of the format void method(x,y). As soon as you define the callbacks
+// the library is in "frame mode" and indicators will be drawn.
 void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(int x, int y));
 
 // Tells the framework to move to the next tick. The
