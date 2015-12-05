@@ -80,6 +80,13 @@ void SSD1306::clear(void) {
 }
 
 void SSD1306::display(void) {
+    sendCommand(COLUMNADDR);
+    sendCommand(0x0);
+    sendCommand(0x7F);
+
+    sendCommand(PAGEADDR);
+    sendCommand(0x0);
+    sendCommand(0x7);
 
     for (uint16_t i=0; i<(128*64/8); i++) {
       // send a bunch of data in one xmission
@@ -292,52 +299,34 @@ void SSD1306::sendCommand(unsigned char com)
 
 void SSD1306::sendInitCommands(void)
 {
-  // Init sequence from https://github.com/adafruit/Adafruit_SSD1306/blob/master/Adafruit_SSD1306.cpp
-  sendCommand(0xae);		        //display off
-  sendCommand(0xa6);            //Set Normal Display (default)
-                                // Init sequence for 128x64 OLED module
-  sendCommand(0xAE);            //DISPLAYOFF
-  sendCommand(0xD5);            //SETDISPLAYCLOCKDIV
-  sendCommand(0x80);            // the suggested ratio 0x80
-  sendCommand(0xA8);            //SSD1306_SETMULTIPLEX
-  sendCommand(0x3F);
-  sendCommand(0xD3);            //SETDISPLAYOFFSET
-  sendCommand(0x0);             //no offset
-  sendCommand(0x40 | 0x0);      //SETSTARTLINE
-  sendCommand(0x8D);            //CHARGEPUMP
-  sendCommand(0x14);
-  sendCommand(0x20);             //MEMORYMODE
-  sendCommand(0x00);             //0x0 act like ks0108
-  
-  //sendCommand(0xA0 | 0x1);      //SEGREMAP   //Rotate screen 180 deg
-  sendCommand(0xA0);
-  
-  //sendCommand(0xC8);            //COMSCANDEC  Rotate screen 180 Deg
-  sendCommand(0xC0);
-  
-  sendCommand(0xDA);            //0xDA
-  sendCommand(0x12);           //COMSCANDEC
-  sendCommand(0x81);           //SETCONTRAS
-  sendCommand(0xCF);           //
-  sendCommand(0xd9);          //SETPRECHARGE 
-  sendCommand(0xF1); 
-  sendCommand(0xDB);        //SETVCOMDETECT                
-  sendCommand(0x40);
-  sendCommand(0xA4);        //DISPLAYALLON_RESUME        
-  sendCommand(0xA6);        //NORMALDISPLAY             
 
+  sendCommand(DISPLAYOFF);
+  sendCommand(NORMALDISPLAY);
+  sendCommand(SETDISPLAYCLOCKDIV);
+  sendCommand(0x80);
+  sendCommand(SETMULTIPLEX);
+  sendCommand(0x3F);
+  sendCommand(SETDISPLAYOFFSET);
+  sendCommand(0x00);
+  sendCommand(SETSTARTLINE | 0x00);
+  sendCommand(CHARGEPUMP);
+  sendCommand(0x14);
+  sendCommand(MEMORYMODE);
+  sendCommand(0x00);
+  sendCommand(SEGREMAP);
+  sendCommand(COMSCANINC);
+  sendCommand(SETCOMPINS);
+  sendCommand(0x12);
+  sendCommand(SETCONTRAST);
+  sendCommand(0xCF);
+  sendCommand(SETPRECHARGE);
+  sendCommand(0xF1);
+  sendCommand(SETVCOMDETECT);
+  sendCommand(0x40);
+  sendCommand(DISPLAYALLON_RESUME);
+  sendCommand(NORMALDISPLAY);
   sendCommand(0x2e);            // stop scroll
-  //----------------------------REVERSE comments----------------------------//
-  //  sendCommand(0xa0);		//seg re-map 0->127(default)
-  //  sendCommand(0xa1);		//seg re-map 127->0
-  //  sendCommand(0xc8);
-  //  delay(1000);
-  //----------------------------REVERSE comments----------------------------//
-  // sendCommand(0xa7);  //Set Inverse Display  
-  // sendCommand(0xae);		//display off
-  sendCommand(0x20);            //Set Memory Addressing Mode
-  sendCommand(0x00);            //Set Memory Addressing Mode ab Horizontal addressing mode
-  //sendCommand(0x02);         // Set Memory Addressing Mode ab Page addressing mode(RESET)  
+  sendCommand(DISPLAYON);
   
 }
 
