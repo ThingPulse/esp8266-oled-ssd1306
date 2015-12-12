@@ -96,6 +96,7 @@ private:
    int myFrameTransitionTicks = 25;
    int myTextAlignment = TEXT_ALIGN_LEFT;
    int myColor = WHITE;
+   byte lastChar;
    const char *myFontData = ArialMT_Plain_10;
    void (**myFrameCallbacks)(int x, int y);
 
@@ -158,6 +159,14 @@ public:
 
    // Sets the color of all pixel operations
    void setColor(int color);
+
+   // converts utf8 characters to extended ascii
+   // taken from http://playground.arduino.cc/Main/Utf8ascii
+   byte utf8ascii(byte ascii);
+
+   // converts utf8 string to extended ascii
+   // taken from http://playground.arduino.cc/Main/Utf8ascii
+   String utf8ascii(String s);
 
    // Draws a string at the given location
    void drawString(int x, int y, String text);

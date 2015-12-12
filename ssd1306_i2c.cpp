@@ -88,6 +88,7 @@ void SSD1306::display(void) {
     sendCommand(0x0);
     sendCommand(0x7);
 
+    
     for (uint16_t i=0; i<(128*64/8); i++) {
       // send a bunch of data in one xmission
       //Wire.begin(mySda, mySdc);
@@ -101,6 +102,7 @@ void SSD1306::display(void) {
       yield();
       Wire.endTransmission();
     }
+    
 
 
 }
@@ -124,7 +126,40 @@ void SSD1306::setChar(int x, int y, unsigned char data) {
   }   
 }
 
+// Code form http://playground.arduino.cc/Main/Utf8ascii
+byte SSD1306::utf8ascii(byte ascii) {
+    if ( ascii<128 )   // Standard ASCII-set 0..0x7F handling  
+    {   lastChar=0; 
+        return( ascii ); 
+    }
+
+    // get previous input
+    byte last = lastChar;   // get last char
+    lastChar=ascii;         // remember actual character
+
+    switch (last)     // conversion depnding on first UTF8-character
+    {   case 0xC2: return  (ascii);  break;
+        case 0xC3: return  (ascii | 0xC0);  break;
+        case 0x82: if(ascii==0xAC) return(0x80);       // special case Euro-symbol
+    }
+
+    return  (0);                                     // otherwise: return zero, if character has to be ignored
+}
+
+// Code form http://playground.arduino.cc/Main/Utf8ascii
+String SSD1306::utf8ascii(String s) {       
+        String r= "";
+        char c;
+        for (int i=0; i<s.length(); i++)
+        {
+                c = utf8ascii(s.charAt(i));
+                if (c!=0) r+=c;
+        }
+        return r;
+}
+
 void SSD1306::drawString(int x, int y, String text) {
+  text = utf8ascii(text);
   unsigned char currentByte;
   int charX, charY;
   int currentBitCount;
@@ -219,6 +254,7 @@ void SSD1306::drawStringMaxWidth(int x, int y, int maxLineWidth, String text) {
 }
 
 int SSD1306::getStringWidth(String text) {
+  text = utf8ascii(text);
   int stringWidth = 0;
   char charCode;
   for (int j=0; j < text.length(); j++) {
@@ -266,7 +302,7 @@ void SSD1306::drawRect(int x, int y, int width, int height) {
 
 void SSD1306::fillRect(int x, int y, int width, int height) {
   for (int i = x; i < x + width; i++) {
-    for (int j = 0; j < y + height; j++) {
+    for (int j = y; j < y + height; j++) {
       setPixel(i, j);
     }
   }
