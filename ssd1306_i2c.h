@@ -29,20 +29,9 @@ Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 #include <Arduino.h>
 #include "SSD1306Fonts.h"
 
-#define active_width 8
-#define active_height 8
-const char active_bits[] PROGMEM = {
-   0x00, 0x18, 0x3c, 0x7e, 0x7e, 0x3c, 0x18, 0x00 };
-
-#define inactive_width 8
-#define inactive_height 8
-const char inactive_bits[] PROGMEM = {
-   0x00, 0x0, 0x0, 0x18, 0x18, 0x0, 0x0, 0x00 };
-
 #define BLACK 0
 #define WHITE 1
 #define INVERSE 2
-
 
 #define WIDTH_POS 0
 #define HEIGHT_POS 1
@@ -88,19 +77,9 @@ private:
    int mySda;
    int mySdc;
    uint8_t buffer[128 * 64 / 8];
-   int myFrameState = 0;
-   int myFrameTick = 0;
-   int myCurrentFrame = 0;
-   int myFrameCount = 0;
-   int myFrameWaitTicks = 100;
-   int myFrameTransitionTicks = 25;
    int myTextAlignment = TEXT_ALIGN_LEFT;
    int myColor = WHITE;
-   byte lastChar;
    const char *myFontData = ArialMT_Plain_10;
-   void (**myFrameCallbacks)(int x, int y);
-
-
 
 public:
    // Create the display object connected to pin sda and sdc
@@ -160,14 +139,6 @@ public:
    // Sets the color of all pixel operations
    void setColor(int color);
 
-   // converts utf8 characters to extended ascii
-   // taken from http://playground.arduino.cc/Main/Utf8ascii
-   byte utf8ascii(byte ascii);
-
-   // converts utf8 string to extended ascii
-   // taken from http://playground.arduino.cc/Main/Utf8ascii
-   String utf8ascii(String s);
-
    // Draws a string at the given location
    void drawString(int x, int y, String text);
 
@@ -189,33 +160,5 @@ public:
    // defined in SSD1306Fonts.h:
    // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
    void setFont(const char *fontData);
-
-   // Sets the callback methods of the format void method(x,y)
-   void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(int x, int y));
-
-   // Tells the framework to move to the next tick. The
-   // current visible frame callback will be called once
-   // per tick
-   void nextFrameTick(void);
-
-   // Draws the frame indicators. In a normal setup
-   // the framework does this for you
-   void drawIndicators(int frameCount, int activeFrame);
-
-   // defines how many ticks a frame should remain visible
-   // This does not include the transition
-   void setFrameWaitTicks(int frameWaitTicks);
-
-   // Defines how many ticks should be used for a transition
-   void setFrameTransitionTicks(int frameTransitionTicks);
-
-   // Returns the current state of the internal state machine
-   // Possible values: FRAME_STATE_FIX, FRAME_STATE_TRANSITION
-   // You can use this to detect when there is no transition
-   // on the way to execute operations that would
-   int getFrameState();
-
-   const int FRAME_STATE_FIX = 0;
-   const int FRAME_STATE_TRANSITION = 1;
 
 };
