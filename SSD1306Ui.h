@@ -26,7 +26,7 @@ Credits for parts of this code go to Daniel Eichhorn
 #pragma once
 
 #include <Arduino.h>
-#include "ssd1306_i2c.h"
+#include "SSD1306.h"
 
 enum AnimationDirection {
   SLIDE_UP,
