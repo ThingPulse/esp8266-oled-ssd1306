@@ -29,23 +29,20 @@ Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 #include <Wire.h>
 
 
-SSD1306::SSD1306(int i2cAddress, int sda, int sdc)
-{
+SSD1306::SSD1306(int i2cAddress, int sda, int sdc) {
   myI2cAddress = i2cAddress;
   mySda = sda;
   mySdc = sdc;
- 
 }
 
 void SSD1306::init() {
   Wire.begin(mySda, mySdc);
-  Wire.setClock(400000); 
+  Wire.setClock(400000);
   sendInitCommands();
   resetDisplay();
 }
 
-void SSD1306::resetDisplay(void)
-{
+void SSD1306::resetDisplay(void) {
   displayOff();
   clear();
   display();
@@ -53,30 +50,29 @@ void SSD1306::resetDisplay(void)
 }
 
 void SSD1306::reconnect() {
-  Wire.begin(mySda, mySdc);  
+  Wire.begin(mySda, mySdc);
 }
 
-void SSD1306::displayOn(void)
-{
+void SSD1306::displayOn(void) {
     sendCommand(0xaf);        //display on
 }
 
-void SSD1306::displayOff(void)
-{
-  sendCommand(0xae);		//display off
+void SSD1306::displayOff(void) {
+  sendCommand(0xae);          //display off
 }
 
 void SSD1306::setContrast(char contrast) {
   sendCommand(0x81);
-  sendCommand(contrast);  
+  sendCommand(contrast);
 }
+
 void SSD1306::flipScreenVertically() {
   sendCommand(0xA0 | 0x1);      //SEGREMAP   //Rotate screen 180 deg
-  
   sendCommand(0xC8);            //COMSCANDEC  Rotate screen 180 Deg
 }
+
 void SSD1306::clear(void) {
-    memset(buffer, 0, (128*64 / 8));
+    memset(buffer, 0, (128 * 64 / 8));
 }
 
 void SSD1306::display(void) {
@@ -88,10 +84,8 @@ void SSD1306::display(void) {
     sendCommand(0x0);
     sendCommand(0x7);
 
-    
     for (uint16_t i=0; i<(128*64/8); i++) {
       // send a bunch of data in one xmission
-      //Wire.begin(mySda, mySdc);
       Wire.beginTransmission(myI2cAddress);
       Wire.write(0x40);
       for (uint8_t x=0; x<16; x++) {
@@ -102,18 +96,17 @@ void SSD1306::display(void) {
       yield();
       Wire.endTransmission();
     }
-    
 
 
 }
 
 void SSD1306::setPixel(int x, int y) {
   if (x >= 0 && x < 128 && y >= 0 && y < 64) {
-     
+
      switch (myColor) {
-      case WHITE:   buffer[x+ (y/8)*128] |=  (1 << (y&7)); break;
-      case BLACK:   buffer[x+ (y/8)*128] &= ~(1 << (y&7)); break; 
-      case INVERSE: buffer[x+ (y/8)*128] ^=  (1 << (y&7)); break; 
+      case WHITE:   buffer[x + (y/8)*128] |=  (1 << (y&7)); break;
+      case BLACK:   buffer[x + (y/8)*128] &= ~(1 << (y&7)); break;
+      case INVERSE: buffer[x + (y/8)*128] ^=  (1 << (y&7)); break;
     }
   }
 }
@@ -122,15 +115,15 @@ void SSD1306::setChar(int x, int y, unsigned char data) {
   for (int i = 0; i < 8; i++) {
     if (bitRead(data, i)) {
      setPixel(x,y + i);
-    }   
-  }   
+    }
+  }
 }
 
 // Code form http://playground.arduino.cc/Main/Utf8ascii
 byte SSD1306::utf8ascii(byte ascii) {
-    if ( ascii<128 )   // Standard ASCII-set 0..0x7F handling  
-    {   lastChar=0; 
-        return( ascii ); 
+    if ( ascii<128 ) {   // Standard ASCII-set 0..0x7F handling
+       lastChar=0;
+       return( ascii );
     }
 
     // get previous input
@@ -147,7 +140,7 @@ byte SSD1306::utf8ascii(byte ascii) {
 }
 
 // Code form http://playground.arduino.cc/Main/Utf8ascii
-String SSD1306::utf8ascii(String s) {       
+String SSD1306::utf8ascii(String s) {
         String r= "";
         char c;
         for (int i=0; i<s.length(); i++)
@@ -192,7 +185,7 @@ void SSD1306::drawString(int x, int y, String text) {
     currentCharWidth = pgm_read_byte(myFontData + CHAR_WIDTH_START_POS + charCode);
     // Jump to font data beginning
     currentCharStartPos = CHAR_WIDTH_START_POS + numberOfChars;
-    
+
     for (int m = 0; m < charCode; m++) {
 
       currentCharStartPos += pgm_read_byte(myFontData + CHAR_WIDTH_START_POS + m)  * charHeight / 8 + 1;
@@ -201,26 +194,24 @@ void SSD1306::drawString(int x, int y, String text) {
     currentCharByteNum = ((charHeight * currentCharWidth) / 8) + 1;
     // iterate over all bytes of character
     for (int i = 0; i < currentCharByteNum; i++) {
-      
+
       currentByte = pgm_read_byte(myFontData + currentCharStartPos + i);
       //Serial.println(String(charCode) + ", " + String(currentCharWidth) + ", " + String(currentByte));
       // iterate over all bytes of character
       for(int bit = 0; bit < 8; bit++) {
          //int currentBit = bitRead(currentByte, bit);
-         
+
          currentBitCount = i * 8 + bit;
 
          charX = currentBitCount % currentCharWidth;
          charY = currentBitCount / currentCharWidth;
 
          if (bitRead(currentByte, bit)) {
-          //Serial.println(String(charX) + ", " + String(charY));
-          setPixel(startX + cursorX + charX, startY + charY); 
-          //setPixel(charX, charY);
+          setPixel(startX + cursorX + charX, startY + charY);
          }
 
-      } 
-      yield();     
+      }
+      yield();
     }
     cursorX += currentCharWidth;
 
@@ -248,7 +239,7 @@ void SSD1306::drawStringMaxWidth(int x, int y, int maxLineWidth, String text) {
         startsAt = endsAt + 1;
       }
     }
-    
+
   }
   drawString(x, y + lineNumber * lineHeight, text.substring(startsAt));
 }
@@ -275,28 +266,28 @@ void SSD1306::setFont(const char *fontData) {
 void SSD1306::drawBitmap(int x, int y, int width, int height, const char *bitmap) {
   for (int i = 0; i < width * height / 8; i++ ){
     unsigned char charColumn = 255 - pgm_read_byte(bitmap + i);
-    for (int j = 0; j < 8; j++) { 
+    for (int j = 0; j < 8; j++) {
       int targetX = i % width + x;
       int targetY = (i / (width)) * 8 + j + y;
       if (bitRead(charColumn, j)) {
-        setPixel(targetX, targetY);  
+        setPixel(targetX, targetY);
       }
     }
-  }  
+  }
 }
 
 void SSD1306::setColor(int color) {
-  myColor = color;  
+  myColor = color;
 }
 
 void SSD1306::drawRect(int x, int y, int width, int height) {
   for (int i = x; i < x + width; i++) {
     setPixel(i, y);
-    setPixel(i, y + height);    
+    setPixel(i, y + height);
   }
   for (int i = y; i < y + height; i++) {
     setPixel(x, i);
-    setPixel(x + width, i);  
+    setPixel(x + width, i);
   }
 }
 
@@ -314,28 +305,24 @@ void SSD1306::drawXbm(int x, int y, int width, int height, const char *xbm) {
   }
   for (int i = 0; i < width * height / 8; i++ ){
     unsigned char charColumn = pgm_read_byte(xbm + i);
-    for (int j = 0; j < 8; j++) { 
+    for (int j = 0; j < 8; j++) {
       int targetX = (i * 8 + j) % width + x;
       int targetY = (8 * i / (width)) + y;
       if (bitRead(charColumn, j)) {
-        setPixel(targetX, targetY);  
+        setPixel(targetX, targetY);
       }
     }
-  }    
+  }
 }
 
-void SSD1306::sendCommand(unsigned char com)
-{
-  //Wire.begin(mySda, mySdc);
+void SSD1306::sendCommand(unsigned char com) {
   Wire.beginTransmission(myI2cAddress);     //begin transmitting
   Wire.write(0x80);                          //command mode
   Wire.write(com);
   Wire.endTransmission();                    // stop transmitting
 }
 
-void SSD1306::sendInitCommands(void)
-{
-
+void SSD1306::sendInitCommands(void) {
   sendCommand(DISPLAYOFF);
   sendCommand(NORMALDISPLAY);
   sendCommand(SETDISPLAYCLOCKDIV);
@@ -363,53 +350,4 @@ void SSD1306::sendInitCommands(void)
   sendCommand(NORMALDISPLAY);
   sendCommand(0x2e);            // stop scroll
   sendCommand(DISPLAYON);
-  
-}
-
-void SSD1306::nextFrameTick() {
-    myFrameTick++;
-    if (myFrameTick==myFrameWaitTicks && myFrameState == 0 || myFrameTick==myFrameTransitionTicks && myFrameState == 1) {
-      myFrameState = (myFrameState + 1) %  2;
-      if (myFrameState==FRAME_STATE_FIX) {
-        myCurrentFrame = (myCurrentFrame + 1) % myFrameCount; 
-      } 
-      myFrameTick = 0; 
-    }
-    drawIndicators(myFrameCount, myCurrentFrame);
-    
-    switch(myFrameState) {
-    case 0:
-      (*myFrameCallbacks[myCurrentFrame])(0, 0);
-      break;
-    case 1:
-      (*myFrameCallbacks[myCurrentFrame])(-128 * myFrameTick / myFrameTransitionTicks, 0);
-      (*myFrameCallbacks[(myCurrentFrame + 1) % myFrameCount])(-128 * myFrameTick / myFrameTransitionTicks + 128, 0);
-      break;
-    }
-    
-}
-void SSD1306::drawIndicators(int frameCount, int activeFrame) {
-  for (int i = 0; i < frameCount; i++) {
-    const char *xbm;
-    if (activeFrame == i) {
-       xbm = active_bits;
-    } else {
-       xbm = inactive_bits;  
-    }
-    drawXbm(64 - (12 * frameCount / 2) + 12 * i,56, 8, 8, xbm);
-  }  
-}
-void SSD1306::setFrameCallbacks(int frameCount, void (*frameCallbacks[])(int x, int y)) {
-  myFrameCount = frameCount;
-  myFrameCallbacks = frameCallbacks;
-}
-
-void SSD1306::setFrameWaitTicks(int frameWaitTicks) {
-  myFrameWaitTicks = frameWaitTicks; 
-}
-void SSD1306::setFrameTransitionTicks(int frameTransitionTicks) {
-  myFrameTransitionTicks = frameTransitionTicks; 
-}
-int SSD1306::getFrameState() {
-  return myFrameState; 
 }
