@@ -23,7 +23,7 @@ SOFTWARE.
 See more at http://blog.squix.ch
 */
 #include <Wire.h>
-#include "ssd1306_i2c.h"
+#include "SSD1306.h"
 #include "SSD1306Ui.h"
 #include "images.h"
 

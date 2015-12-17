@@ -25,7 +25,7 @@ See more at http://blog.squix.ch
 Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 */
 
-#include "ssd1306_i2c.h"
+#include "SSD1306.h"
 #include <Wire.h>
 
 
