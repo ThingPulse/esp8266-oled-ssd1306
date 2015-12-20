@@ -10,8 +10,13 @@ void SSD1306Ui::init() {
 }
 
 void SSD1306Ui::setTargetFPS(byte fps){
+  int oldInterval = this->updateInterval;
   this->updateInterval = ((float) 1.0 / (float) fps) * 1000;
-  Serial.println(this->updateInterval);
+
+  // Calculate new ticksPerFrame
+  float changeRatio = oldInterval / this->updateInterval;
+  this->ticksPerFrame *= changeRatio;
+  this->ticksPerTransition *= changeRatio;
 }
 
 // -/------ Automatic controll ------\-
