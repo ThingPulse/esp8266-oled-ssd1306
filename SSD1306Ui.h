@@ -199,7 +199,7 @@ class SSD1306Ui {
     void  previousFrame();
 
     // State Info
-    FrameState getUiState();
+    SSD1306UiState getUiState();
 
     int update();
 };

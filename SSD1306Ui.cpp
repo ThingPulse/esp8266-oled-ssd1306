@@ -89,12 +89,8 @@ void SSD1306Ui::previousFrame() {
 
 
 // -/----- State information -----\-
-FrameState SSD1306Ui::getFrameState(){
-  return this->state.frameState;
-}
-
-int SSD1306Ui::getCurrentFrame(){
-  return this->state.currentFrame;
+SSD1306UiState SSD1306Ui::getUiState(){
+  return this->state;
 }
 
 
