@@ -22,10 +22,10 @@ void SSD1306Ui::setTargetFPS(byte fps){
 // -/------ Automatic controll ------\-
 
 void SSD1306Ui::enableAutoTransition(){
-  autoTransition = true;
+  this->autoTransition = true;
 }
 void SSD1306Ui::disableAutoTransition(){
-  autoTransition = false;
+  this->autoTransition = false;
 }
 void SSD1306Ui::setAutoTransitionForwards(){
   this->frameTransitionDirection = 1;
@@ -54,22 +54,22 @@ void SSD1306Ui::setActiveSymbole(const char* symbole) {
   this->dirty = true;
 }
 void SSD1306Ui::setInactiveSymbole(const char* symbole) {
-  this->inactiveSymbole = symbole; 
+  this->inactiveSymbole = symbole;
   this->dirty = true;
 }
 
 
 // -/----- Frame settings -----\-
-void SSD1306Ui::setFrameAnimation(AnimationDirection dir) {  
+void SSD1306Ui::setFrameAnimation(AnimationDirection dir) {
   this->frameAnimationDirection = dir;
 }
-void SSD1306Ui::setFrames(bool (*frameFunctions[])(SSD1306 *display, int x, int y), int frameCount) {
+void SSD1306Ui::setFrames(bool (*frameFunctions[])(SSD1306 *display, SSD1306UiState* state, int x, int y), int frameCount) {
   this->frameCount     = frameCount;
   this->frameFunctions = frameFunctions;
 }
 
 // -/----- Overlays ------\-
-void SSD1306Ui::setOverlays(bool (*overlayFunctions[])(SSD1306 *display), int overlayCount){
+void SSD1306Ui::setOverlays(bool (*overlayFunctions[])(SSD1306 *display,  SSD1306UiState* state), int overlayCount){
   this->overlayCount     = overlayCount;
   this->overlayFunctions = overlayFunctions;
 }
@@ -77,67 +77,67 @@ void SSD1306Ui::setOverlays(bool (*overlayFunctions[])(SSD1306 *display), int ov
 
 // -/----- Manuel control -----\-
 void SSD1306Ui::nextFrame() {
-  this->frameState = IN_TRANSITION;
-  this->ticksSinceLastStateSwitch = 0;
+  this->state.frameState = IN_TRANSITION;
+  this->state.ticksSinceLastStateSwitch = 0;
   this->frameTransitionDirection = 1;
 }
 void SSD1306Ui::previousFrame() {
-  this->frameState = IN_TRANSITION;
-  this->ticksSinceLastStateSwitch = 0;
+  this->state.frameState = IN_TRANSITION;
+  this->state.ticksSinceLastStateSwitch = 0;
   this->frameTransitionDirection = -1;
 }
 
 
 // -/----- State information -----\-
 FrameState SSD1306Ui::getFrameState(){
-  return this->frameState;
+  return this->state.frameState;
 }
+
 int SSD1306Ui::getCurrentFrame(){
-  return this->currentFrame;
+  return this->state.currentFrame;
 }
 
 
 int SSD1306Ui::update(){
-  int timeBudget = this->updateInterval - (millis() - this->lastUpdate);
+  int timeBudget = this->updateInterval - (millis() - this->state.lastUpdate);
   if ( timeBudget <= 0) {
-
     // Implement frame skipping to ensure time budget is keept
-    if (this->autoTransition && this->lastUpdate != 0) this->ticksSinceLastStateSwitch += abs(timeBudget) / this->updateInterval;
-    
-    this->lastUpdate = millis();
+    if (this->autoTransition && this->state.lastUpdate != 0) this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);
+
+    this->state.lastUpdate = millis();
     this->tick();
-  } 
+  }
   return timeBudget;
 }
 
 
 void SSD1306Ui::tick() {
-  this->ticksSinceLastStateSwitch++;
+  this->state.ticksSinceLastStateSwitch++;
 
-  switch (this->frameState) {
+  switch (this->state.frameState) {
     case IN_TRANSITION:
         this->dirty = true;
-        if (this->ticksSinceLastStateSwitch >= this->ticksPerTransition){
-          this->frameState = FIXED;
-          this->currentFrame = getNextFrameNumber();
-          this->ticksSinceLastStateSwitch = 0;
+        if (this->state.ticksSinceLastStateSwitch >= this->ticksPerTransition){
+          this->state.frameState = FIXED;
+          this->state.currentFrame = getNextFrameNumber();
+          this->state.ticksSinceLastStateSwitch = 0;
         }
       break;
     case FIXED:
-      if (this->ticksSinceLastStateSwitch >= this->ticksPerFrame){
+      if (this->state.ticksSinceLastStateSwitch >= this->ticksPerFrame){
           if (this->autoTransition){
-            this->frameState = IN_TRANSITION;
+            this->state.frameState = IN_TRANSITION;
             this->dirty = true;
           }
-          this->ticksSinceLastStateSwitch = 0;
+          this->state.ticksSinceLastStateSwitch = 0;
       }
       break;
   }
-  
+
   if (this->dirty) {
     this->dirty = false;
     this->display->clear();
-    this->drawIndicator();  
+    this->drawIndicator();
     this->drawFrame();
     this->drawOverlays();
     this->display->display();
@@ -145,9 +145,9 @@ void SSD1306Ui::tick() {
 }
 
 void SSD1306Ui::drawFrame(){
-  switch (this->frameState){
+  switch (this->state.frameState){
      case IN_TRANSITION: {
-       float progress = (float) this->ticksSinceLastStateSwitch / (float) this->ticksPerTransition;
+       float progress = (float) this->state.ticksSinceLastStateSwitch / (float) this->ticksPerTransition;
        int x, y, x1, y1;
        switch(this->frameAnimationDirection){
         case SLIDE_LEFT:
@@ -180,36 +180,36 @@ void SSD1306Ui::drawFrame(){
        int dir = frameTransitionDirection >= 0 ? 1 : -1;
        x *= dir; y *= dir; x1 *= dir; y1 *= dir;
 
-       this->dirty |= (*this->frameFunctions[this->currentFrame])(this->display, x, y);
-       this->dirty |= (*this->frameFunctions[this->getNextFrameNumber()])(this->display, x1, y1);
+       this->dirty |= (*this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y);
+       this->dirty |= (*this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
        break;
      }
      case FIXED:
-      this->dirty |= (*this->frameFunctions[this->currentFrame])(this->display, 0, 0);
+      this->dirty |= (*this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0);
       break;
   }
 }
 
 void SSD1306Ui::drawIndicator() {
-    byte posOfCurrentFrame; 
-    
+    byte posOfCurrentFrame;
+
     switch (this->indicatorDirection){
       case LEFT_RIGHT:
-        posOfCurrentFrame = this->currentFrame;
+        posOfCurrentFrame = this->state.currentFrame;
         break;
       case RIGHT_LEFT:
-        posOfCurrentFrame = (this->frameCount - 1) - this->currentFrame;
+        posOfCurrentFrame = (this->frameCount - 1) - this->state.currentFrame;
         break;
     }
-    
+
     for (byte i = 0; i < this->frameCount; i++) {
-      
+
       const char *xbm;
-      
+
       if (posOfCurrentFrame == i) {
          xbm = this->activeSymbole;
       } else {
-         xbm = this->inactiveSymbole;  
+         xbm = this->inactiveSymbole;
       }
 
       int x,y;
@@ -231,24 +231,23 @@ void SSD1306Ui::drawIndicator() {
           y = 32 - (12 * frameCount / 2) + 12 * i;
           break;
       }
-      
+
       this->display->drawXbm(x, y, 8, 8, xbm);
-    }  
+    }
 }
 
 void SSD1306Ui::drawOverlays() {
  for (int i=0;i<this->overlayCount;i++){
-    this->dirty |= (*this->overlayFunctions[i])(this->display);
+    this->dirty |= (*this->overlayFunctions[i])(this->display, &this->state);
  }
 }
 
 int SSD1306Ui::getNextFrameNumber(){
-  int nextFrame = (this->currentFrame + this->frameTransitionDirection) % this->frameCount;
+  int nextFrame = (this->state.currentFrame + this->frameTransitionDirection) % this->frameCount;
   if (nextFrame < 0){
     nextFrame = this->frameCount + nextFrame;
   }
-  return nextFrame;  
+  return nextFrame;
 }
-
 
 

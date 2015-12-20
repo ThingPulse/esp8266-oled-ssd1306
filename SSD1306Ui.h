@@ -60,6 +60,16 @@ const char ANIMATION_inactiveSymbole[] PROGMEM = {
   0x00, 0x0, 0x0, 0x18, 0x18, 0x0, 0x0, 0x00
 };
 
+
+// Structure of the UiState
+struct SSD1306UiState {
+  int           lastUpdate                = 0;
+  int           ticksSinceLastStateSwitch = 0;
+
+  FrameState    frameState                = FIXED;
+  int           currentFrame              = 0;
+};
+
 class SSD1306Ui {
   private:
     SSD1306             *display;
@@ -76,29 +86,26 @@ class SSD1306Ui {
 
     // Values for the Frames
     AnimationDirection  frameAnimationDirection   = SLIDE_RIGHT;
-    FrameState          frameState                = FIXED;
 
     int                 frameTransitionDirection  = 1;
 
-    int                 ticksPerFrame             = 313; // ~ 5000ms at 60 FPS
-    int                 ticksPerTransition        = 32;  // ~  500ms at 60 FPS
-    int                 ticksSinceLastStateSwitch = 0;
-    int                 currentFrame              = 0;
+    int                 ticksPerFrame             = 151; // ~ 5000ms at 30 FPS
+    int                 ticksPerTransition        = 15;  // ~  500ms at 30 FPS
 
     bool                autoTransition            = true;
 
-    bool                (**frameFunctions)(SSD1306 *display, int x, int y);
+    bool                (**frameFunctions)(SSD1306 *display, SSD1306UiState* state, int x, int y);
     int                 frameCount                = 0;
 
     // Values for Overlays
-    bool                (**overlayFunctions)(SSD1306 *display);
+    bool                (**overlayFunctions)(SSD1306 *display, SSD1306UiState* state);
     int                 overlayCount              = 0;
 
+    // UI State
+    SSD1306UiState      state;
 
     // Bookeeping for update
-    int                 updateInterval            = 16;
-    unsigned long       lastUpdate                = 0;
-
+    int                 updateInterval            = 33;
 
     int                 getNextFrameNumber();
     void                drawIndicator();
@@ -147,7 +154,7 @@ class SSD1306Ui {
      */
     void setTimePerTransition(int time);
 
-    // Customize Indicator Position and style
+    // Customize indicator position and style
     /**
      * Set the position of the indicator bar.
      */
@@ -178,25 +185,22 @@ class SSD1306Ui {
     /**
      * Add frame drawing functions
      */
-    void setFrames(bool (*frameFunctions[])(SSD1306 *display, int x, int y), int frameCount);
+    void setFrames(bool (*frameFunctions[])(SSD1306 *display, SSD1306UiState* state, int x, int y), int frameCount);
 
     // Overlay
 
     /**
      * Add overlays drawing functions that are draw independent of the Frames
      */
-    void setOverlays(bool (*overlayFunctions[])(SSD1306 *display), int overlayCount);
+    void setOverlays(bool (*overlayFunctions[])(SSD1306 *display, SSD1306UiState* state), int overlayCount);
 
     // Manuell Controll
     void  nextFrame();
     void  previousFrame();
 
     // State Info
-    FrameState getFrameState();
-    int        getCurrentFrame();
-
+    FrameState getUiState();
 
     int update();
 };
-
 
