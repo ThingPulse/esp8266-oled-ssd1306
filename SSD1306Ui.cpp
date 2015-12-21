@@ -63,13 +63,13 @@ void SSD1306Ui::setInactiveSymbole(const char* symbole) {
 void SSD1306Ui::setFrameAnimation(AnimationDirection dir) {
   this->frameAnimationDirection = dir;
 }
-void SSD1306Ui::setFrames(bool (*frameFunctions[])(SSD1306 *display, SSD1306UiState* state, int x, int y), int frameCount) {
+void SSD1306Ui::setFrames(FrameCallback* frameFunctions, int frameCount) {
   this->frameCount     = frameCount;
   this->frameFunctions = frameFunctions;
 }
 
 // -/----- Overlays ------\-
-void SSD1306Ui::setOverlays(bool (*overlayFunctions[])(SSD1306 *display,  SSD1306UiState* state), int overlayCount){
+void SSD1306Ui::setOverlays(OverlayCallback* overlayFunctions, int overlayCount){
   this->overlayCount     = overlayCount;
   this->overlayFunctions = overlayFunctions;
 }
@@ -176,12 +176,12 @@ void SSD1306Ui::drawFrame(){
        int dir = frameTransitionDirection >= 0 ? 1 : -1;
        x *= dir; y *= dir; x1 *= dir; y1 *= dir;
 
-       this->dirty |= (*this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y);
-       this->dirty |= (*this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
+       this->dirty |= (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y);
+       this->dirty |= (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
        break;
      }
      case FIXED:
-      this->dirty |= (*this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0);
+      this->dirty |= (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0);
       break;
   }
 }
@@ -200,12 +200,12 @@ void SSD1306Ui::drawIndicator() {
 
     for (byte i = 0; i < this->frameCount; i++) {
 
-      const char *xbm;
+      const char *image;
 
       if (posOfCurrentFrame == i) {
-         xbm = this->activeSymbole;
+         image = this->activeSymbole;
       } else {
-         xbm = this->inactiveSymbole;
+         image = this->inactiveSymbole;
       }
 
       int x,y;
@@ -228,13 +228,13 @@ void SSD1306Ui::drawIndicator() {
           break;
       }
 
-      this->display->drawXbm(x, y, 8, 8, xbm);
+      this->display->drawFastImage(x, y, 8, 8, image);
     }
 }
 
 void SSD1306Ui::drawOverlays() {
  for (int i=0;i<this->overlayCount;i++){
-    this->dirty |= (*this->overlayFunctions[i])(this->display, &this->state);
+    this->dirty |= (this->overlayFunctions[i])(this->display, &this->state);
  }
 }
 

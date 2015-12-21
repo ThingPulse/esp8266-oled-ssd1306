@@ -70,6 +70,9 @@ struct SSD1306UiState {
   int           currentFrame              = 0;
 };
 
+typedef bool (*FrameCallback)(SSD1306 *display,  SSD1306UiState* state, int x, int y);
+typedef bool (*OverlayCallback)(SSD1306 *display,  SSD1306UiState* state);
+
 class SSD1306Ui {
   private:
     SSD1306             *display;
@@ -94,11 +97,11 @@ class SSD1306Ui {
 
     bool                autoTransition            = true;
 
-    bool                (**frameFunctions)(SSD1306 *display, SSD1306UiState* state, int x, int y);
+    FrameCallback*      frameFunctions;
     int                 frameCount                = 0;
 
     // Values for Overlays
-    bool                (**overlayFunctions)(SSD1306 *display, SSD1306UiState* state);
+    OverlayCallback*    overlayFunctions;
     int                 overlayCount              = 0;
 
     // UI State
@@ -185,14 +188,14 @@ class SSD1306Ui {
     /**
      * Add frame drawing functions
      */
-    void setFrames(bool (*frameFunctions[])(SSD1306 *display, SSD1306UiState* state, int x, int y), int frameCount);
+    void setFrames(FrameCallback* frameFunctions, int frameCount);
 
     // Overlay
 
     /**
      * Add overlays drawing functions that are draw independent of the Frames
      */
-    void setOverlays(bool (*overlayFunctions[])(SSD1306 *display, SSD1306UiState* state), int overlayCount);
+    void setOverlays(OverlayCallback* overlayFunctions, int overlayCount);
 
     // Manuell Controll
     void  nextFrame();
