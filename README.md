@@ -4,6 +4,10 @@ This is a driver for the SSD1306 based 128x64 pixel OLED display running on the 
 
 You can either download this library as a zip file and unpack it to your Arduino/libraries folder or (once it has been added) choose it from the Arduino library manager.
 
+## Credits
+Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring the UI library.
+The init sequence for the SSD1306 was inspired by Adafruits library for the same display.
+
 ## Usage
 
 The SSD1306Demo is a very comprehensive example demonstrating the most important features of the library.
@@ -24,7 +28,12 @@ The SSD1306Demo is a very comprehensive example demonstrating the most important
 
 ## Fonts
 
-Fonts are defined in a proprietary but open format. I wrote a  program that converts any TrueType font into this format. Once the code is useful enough I will publish it or make it available as Webapplication (SaaS), where you can make any font you like available to the library.
+Fonts are defined in a proprietary but open format. You can create new font files by choosing from a given list
+of open sourced Fonts from this web app: http://oleddisplay.squix.ch
+Choose the font family, style and size, check the preview image and if you like what you see click the "Create" button. This will create the font array in a text area form where you can copy and paste it into a new or existing header file.
+
+![FontTool](https://github.com/squix78/esp8266-oled-ssd1306/raw/master/resources/FontTool.png)
+
 
 ## API
 
@@ -116,17 +125,18 @@ void setTextAlignment(int textAlignment);
 // Sets the current font. Available default fonts
 // defined in SSD1306Fonts.h:
 // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
+// Or create one with the font tool at http://oleddisplay.squix.ch
 void setFont(const char *fontData);
 ```
 
 ## Frame Transition Functions
 
-The Frane Transition functions are a set of functions on top of the basic library. They allow you to easily write frames which will be shifted in regular intervals. The frame animation (including the frame indicators) will only be activated if you define callback functions with setFrameCallacks(..). If no callback methods are defined no indicators will be displayed.
+The Frame Transition functions are a set of functions on top of the basic library. They allow you to easily write frames which will be shifted in regular intervals. The frame animation (including the frame indicators) will only be activated if you define callback functions with setFrameCallacks(..). If no callback methods are defined no indicators will be displayed.
 
 ```C++
 // Sets the callback methods of the format void method(x,y). As soon as you define the callbacks
 // the library is in "frame mode" and indicators will be drawn.
-void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(int x, int y));
+void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(SSD1306 *display, SSD1306UiState* state,int x, int y));
 
 // Tells the framework to move to the next tick. The
 // current visible frame callback will be called once

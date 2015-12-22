@@ -27,37 +27,19 @@ See more at http://blog.squix.ch
 #include "SSD1306Ui.h"
 #include "images.h"
 
-// if you are using a ESP8266 module with NodeMCU
-// pin labels, you can use this list to keep
-// your code and the lables in-sync
-#define NODEMCU_D0 16
-#define NODEMCU_D1 5
-#define NODEMCU_D2 4
-#define NODEMCU_D3 0
-#define NODEMCU_D4 2
-#define NODEMCU_D5 14
-#define NODEMCU_D6 12
-#define NODEMCU_D7 13
-#define NODEMCU_D8 15
-#define NODEMCU_D9 3
-#define NODEMCU_D10 1
-#define NODEMCU_D12 10
-
-
-
 // Initialize the oled display for address 0x3c
 // sda-pin=14 and sdc-pin=12
-SSD1306   display(0x3c, NODEMCU_D6, NODEMCU_D5);
+SSD1306   display(0x3c, D3, D4);
 SSD1306Ui ui     ( &display );
 
 // this array keeps function pointers to all frames
 // frames are the single views that slide from right to left
-bool (*frames[])(SSD1306 *display, int x, int y) = { drawFrame1, drawFrame2, drawFrame3, drawFrame4 };
+bool (*frames[])(SSD1306 *display, SSD1306UiState* state, int x, int y) = { drawFrame1, drawFrame2, drawFrame3, drawFrame4 };
 
 // how many frames are there?
 int frameCount = 4;
 
-bool (*overlays[])(SSD1306 *display)             = { msOverlay };
+bool (*overlays[])(SSD1306 *display, SSD1306UiState* state)             = { msOverlay };
 int overlaysCount = 1;
 
 void setup() {
@@ -106,14 +88,14 @@ void loop() {
   }
 }
 
-bool msOverlay(SSD1306 *display) {
+bool msOverlay(SSD1306 *display, SSD1306UiState* state) {
   display->setTextAlignment(TEXT_ALIGN_RIGHT);
   display->setFont(ArialMT_Plain_10);
   display->drawString(128, 0, String(millis()));
   return true;
 }
 
-bool drawFrame1(SSD1306 *display, int x, int y) {
+bool drawFrame1(SSD1306 *display, SSD1306UiState* state, int x, int y) {
   // draw an xbm image.
   // Please note that everything that should be transitioned
   // needs to be drawn relative to x and y
@@ -124,7 +106,7 @@ bool drawFrame1(SSD1306 *display, int x, int y) {
   return false;
 }
 
-bool drawFrame2(SSD1306 *display, int x, int y) {
+bool drawFrame2(SSD1306 *display, SSD1306UiState* state, int x, int y) {
   // Demonstrates the 3 included default sizes. The fonts come from SSD1306Fonts.h file
   // Besides the default fonts there will be a program to convert TrueType fonts into this format
   display->setTextAlignment(TEXT_ALIGN_LEFT);
@@ -140,7 +122,7 @@ bool drawFrame2(SSD1306 *display, int x, int y) {
   return false;
 }
 
-bool drawFrame3(SSD1306 *display, int x, int y) {
+bool drawFrame3(SSD1306 *display, SSD1306UiState* state, int x, int y) {
   // Text alignment demo
   display->setFont(ArialMT_Plain_10);
 
@@ -158,7 +140,7 @@ bool drawFrame3(SSD1306 *display, int x, int y) {
   return false;
 }
 
-bool drawFrame4(SSD1306 *display, int x, int y) {
+bool drawFrame4(SSD1306 *display, SSD1306UiState* state, int x, int y) {
   // Demo for drawStringMaxWidth:
   // with the third parameter you can define the width after which words will be wrapped.
   // Currently only spaces and "-" are allowed for wrapping
@@ -167,6 +149,3 @@ bool drawFrame4(SSD1306 *display, int x, int y) {
   display->drawStringMaxWidth(0 + x, 10 + y, 128, "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.");
   return false;
 }
-
-
-
