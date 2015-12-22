@@ -92,10 +92,10 @@ void drawRect(int x, int y, int width, int height);
 void fillRect(int x, int y, int width, int height);
 
 // Draw a bitmap with the given dimensions
-void drawBitmap(int x, int y, int width, int height, const char \*bitmap);
+void drawBitmap(int x, int y, int width, int height, const char *bitmap);
 
 // Draw an XBM image with the given dimensions
-void drawXbm(int x, int y, int width, int height, const char \*xbm);
+void drawXbm(int x, int y, int width, int height, const char *xbm);
 
 // Sets the color of all pixel operations
 void setColor(int color);
@@ -125,7 +125,7 @@ void setTextAlignment(int textAlignment);
 // defined in SSD1306Fonts.h:
 // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
 // Or create one with the font tool at http://oleddisplay.squix.ch
-void setFont(const char \*fontData);
+void setFont(const char *fontData);
 ```
 
 ## Frame Transition Functions
@@ -135,7 +135,7 @@ The Frame Transition functions are a set of functions on top of the basic librar
 ```C++
 // Sets the callback methods of the format void method(x,y). As soon as you define the callbacks
 // the library is in "frame mode" and indicators will be drawn.
-void setFrameCallbacks(int frameCount, void (\*frameCallbacks[])(SSD1306 \*display, SSD1306UiState\* state,int x, int y));
+void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(SSD1306 *display, SSD1306UiState* state,int x, int y));
 
 // Tells the framework to move to the next tick. The
 // current visible frame callback will be called once
