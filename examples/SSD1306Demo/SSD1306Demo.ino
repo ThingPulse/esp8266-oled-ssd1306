@@ -34,12 +34,12 @@ SSD1306Ui ui     ( &display );
 
 // this array keeps function pointers to all frames
 // frames are the single views that slide from right to left
-bool (*frames[])(SSD1306 *display, SSD1306UiState* state, int x, int y) = { drawFrame1, drawFrame2, drawFrame3, drawFrame4 };
+FrameCallback frames[] = { drawFrame1, drawFrame2, drawFrame3, drawFrame4 };
 
 // how many frames are there?
 int frameCount = 4;
 
-bool (*overlays[])(SSD1306 *display, SSD1306UiState* state)             = { msOverlay };
+OverlayCallback overlays[] = { msOverlay };
 int overlaysCount = 1;
 
 void setup() {
