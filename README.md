@@ -129,36 +129,69 @@ void setTextAlignment(int textAlignment);
 void setFont(const char *fontData);
 ```
 
-## Frame Transition Functions
+## Ui Library (SSD1306Ui)
 
-The Frame Transition functions are a set of functions on top of the basic library. They allow you to easily write frames which will be shifted in regular intervals. The frame animation (including the frame indicators) will only be activated if you define callback functions with setFrameCallacks(..). If no callback methods are defined no indicators will be displayed.
+The Ui Library is used to provide a basic set of Ui elements called, `Frames` and `Overlays`. A `Frame` is used to provide
+information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a pieces of information (e.g. a clock) that is displayed always at the same position. 
+
 
 ```C++
-// Sets the callback methods of the format void method(x,y). As soon as you define the callbacks
-// the library is in "frame mode" and indicators will be drawn.
-void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(SSD1306 *display, SSD1306UiState* state,int x, int y));
+  // Initialize the library should be called in `begin()`
+  void init();
+  
+  // Configure the internal used target FPS
+  void setTargetFPS(byte fps);
 
-// Tells the framework to move to the next tick. The
-// current visible frame callback will be called once
-// per tick
-void nextFrameTick(void);
+  // Enable automatic transition to next frame,
+  // time can be configured with `setTimePerFrame` and `setTimePerTransition`.
+  void enableAutoTransition();
 
-// Draws the frame indicators. In a normal setup
-// the framework does this for you
-void drawIndicators(int frameCount, int activeFrame);
+  // Disable automatic transition to next frame.
+  void disableAutoTransition();
 
-// defines how many ticks a frame should remain visible
-// This does not include the transition
-void setFrameWaitTicks(int frameWaitTicks);
+  // Set the direction of the automatic transitioning
+  void setAutoTransitionForwards();
+  void setAutoTransitionBackwards();
 
-// Defines how many ticks should be used for a transition
-void setFrameTransitionTicks(int frameTransitionTicks);
+  // Set the approx. time a frame is displayed
+  void setTimePerFrame(int time);
 
-// Returns the current state of the internal state machine
-// Possible values: FRAME_STATE_FIX, FRAME_STATE_TRANSITION
-// You can use this to detect when there is no transition
-// on the way to execute operations that would
-int getFrameState();
+  // Set the approx. time a transition will take
+  void setTimePerTransition(int time);
+
+  // Set the position of the indicator bar.
+  // TOP, RIGHT, BOTTOM, LEFT
+  void setIndicatorPosition(IndicatorPosition pos);
+
+  // Set the direction of the indicator bar. Defining the order of frames ASCENDING / DESCENDING
+  void setIndicatorDirection(IndicatorDirection dir);
+
+  // Set the symbole to indicate an active frame in the indicator bar.
+  void setActiveSymbole(const char* symbole);
+
+  // Set the symbole to indicate an inactive frame in the indicator bar.
+  void setInactiveSymbole(const char* symbole);
+
+  // Configure what animation is used to transition from one frame to another
+  void setFrameAnimation(AnimationDirection dir);
+
+  // Add frame drawing functions
+  void setFrames(FrameCallback* frameFunctions, int frameCount);
+
+  //Add overlays drawing functions that are draw independent of the Frames
+  void setOverlays(OverlayCallback* overlayFunctions, int overlayCount);
+
+  // Manuell Controll
+  void  nextFrame();
+  void  previousFrame();
+
+  // State Info
+  SSD1306UiState getUiState();
+
+  // This needs to be called in your main loop 
+  // will return the "remaining" time you have to keep the
+  // target FPS
+  int update();
 ```
 
 ## Example: SSD1306Demo
