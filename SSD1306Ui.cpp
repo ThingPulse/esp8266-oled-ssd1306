@@ -228,7 +228,7 @@ void SSD1306Ui::drawIndicator() {
           break;
       }
 
-      this->display->drawXbm(x, y, 8, 8, image);
+      this->display->drawFastImage(x, y, 8, 8, image);
     }
 }
 

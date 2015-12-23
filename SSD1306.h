@@ -33,15 +33,28 @@ Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 #define WHITE 1
 #define INVERSE 2
 
+// Display settings
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+#define DISPLAY_BUFFER_SIZE 1024
+
+// Header Values
+#define JUMPTABLE_BYTES 4
+#define JUMPTABLE_LSB   1
+#define JUMPTABLE_SIZE  2
+#define JUMPTABLE_WIDTH 3
+
+#define JUMPTABLE_START 4
+
 #define WIDTH_POS 0
 #define HEIGHT_POS 1
 #define FIRST_CHAR_POS 2
 #define CHAR_NUM_POS 3
-#define CHAR_WIDTH_START_POS 4
 
 #define TEXT_ALIGN_LEFT 0
 #define TEXT_ALIGN_CENTER 1
 #define TEXT_ALIGN_RIGHT 2
+#define TEXT_ALIGN_CENTER_BOTH  3
 
 #define CHARGEPUMP 0x8D
 #define COLUMNADDR 0x21
@@ -76,11 +89,13 @@ private:
    int myI2cAddress;
    int mySda;
    int mySdc;
-   uint8_t buffer[128 * 64 / 8];
+   uint8_t buffer[DISPLAY_BUFFER_SIZE];
    int myTextAlignment = TEXT_ALIGN_LEFT;
    int myColor = WHITE;
    byte lastChar;
    const char *myFontData = ArialMT_Plain_10;
+
+   void drawInternal(int xMove, int yMove, int width, int height, const char *data, uint16_t offset, uint16_t bytesInData);
 
 public:
    // Create the display object connected to pin sda and sdc
@@ -100,6 +115,12 @@ public:
 
    // Turn the display offs
    void displayOff(void);
+
+   // Inverted display mode
+   void invertDisplay(void);
+
+   // Normal display mode
+   void normalDisplay(void);
 
    // Clear the local pixel buffer
    void clear(void);
@@ -133,6 +154,9 @@ public:
 
    // Draw a bitmap with the given dimensions
    void drawBitmap(int x, int y, int width, int height, const char *bitmap);
+
+   // Draw a bitmap in the internal image format
+   void drawFastImage(int x, int y, int width, int height, const char *image);
 
    // Draw an XBM image with the given dimensions
    void drawXbm(int x, int y, int width, int height, const char *xbm);
