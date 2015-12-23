@@ -54,25 +54,34 @@ void SSD1306::reconnect() {
 }
 
 void SSD1306::displayOn(void) {
-    sendCommand(0xaf);        //display on
+  sendCommand(DISPLAYON);
 }
 
 void SSD1306::displayOff(void) {
-  sendCommand(0xae);          //display off
+  sendCommand(DISPLAYOFF);
 }
 
+void SSD1306::invertDisplay(void) {
+  sendCommand(INVERTDISPLAY);
+}
+
+void SSD1306::normalDisplay(void) {
+  sendCommand(NORMALDISPLAY);
+}
+
+
 void SSD1306::setContrast(char contrast) {
-  sendCommand(0x81);
+  sendCommand(SETCONTRAST);
   sendCommand(contrast);
 }
 
 void SSD1306::flipScreenVertically() {
-  sendCommand(0xA0 | 0x1);      //SEGREMAP   //Rotate screen 180 deg
-  sendCommand(0xC8);            //COMSCANDEC  Rotate screen 180 Deg
+  sendCommand(SEGREMAP | 0x1);      //SEGREMAP   //Rotate screen 180 deg
+  sendCommand(COMSCANDEC);            //COMSCANDEC  Rotate screen 180 Deg
 }
 
 void SSD1306::clear(void) {
-    memset(buffer, 0, (128 * 64 / 8));
+    memset(buffer, 0, DISPLAY_BUFFER_SIZE);
 }
 
 void SSD1306::display(void) {
@@ -84,7 +93,7 @@ void SSD1306::display(void) {
     sendCommand(0x0);
     sendCommand(0x7);
 
-    for (uint16_t i=0; i<(128*64/8); i++) {
+    for (uint16_t i=0; i<DISPLAY_BUFFER_SIZE; i++) {
       // send a bunch of data in one xmission
       Wire.beginTransmission(myI2cAddress);
       Wire.write(0x40);
@@ -101,12 +110,11 @@ void SSD1306::display(void) {
 }
 
 void SSD1306::setPixel(int x, int y) {
-  if (x >= 0 && x < 128 && y >= 0 && y < 64) {
-
+  if (x >= 0 && x < DISPLAY_WIDTH && y >= 0 && y < DISPLAY_HEIGHT) {
      switch (myColor) {
-      case WHITE:   buffer[x + (y/8)*128] |=  (1 << (y&7)); break;
-      case BLACK:   buffer[x + (y/8)*128] &= ~(1 << (y&7)); break;
-      case INVERSE: buffer[x + (y/8)*128] ^=  (1 << (y&7)); break;
+      case WHITE:   buffer[x + (y/8)*DISPLAY_WIDTH] |=  (1 << (y&7)); break;
+      case BLACK:   buffer[x + (y/8)*DISPLAY_WIDTH] &= ~(1 << (y&7)); break;
+      case INVERSE: buffer[x + (y/8)*DISPLAY_WIDTH] ^=  (1 << (y&7)); break;
     }
   }
 }
@@ -151,70 +159,55 @@ String SSD1306::utf8ascii(String s) {
         return r;
 }
 
-void SSD1306::drawString(int x, int y, String text) {
-  text = utf8ascii(text);
-  unsigned char currentByte;
-  int charX, charY;
-  int currentBitCount;
-  int charCode;
-  int currentCharWidth;
-  int currentCharStartPos;
-  int cursorX = 0;
-  int numberOfChars = pgm_read_byte(myFontData + CHAR_NUM_POS);
-  // iterate over string
-  int firstChar = pgm_read_byte(myFontData + FIRST_CHAR_POS);
-  int charHeight = pgm_read_byte(myFontData + HEIGHT_POS);
-  int currentCharByteNum = 0;
-  int startX = 0;
-  int startY = y;
+void SSD1306::drawString(int xMove, int yMove, String text) {
 
-  if (myTextAlignment == TEXT_ALIGN_LEFT) {
-    startX = x;
-  } else if (myTextAlignment == TEXT_ALIGN_CENTER) {
-    int width = getStringWidth(text);
-    startX = x - width / 2;
-  } else if (myTextAlignment == TEXT_ALIGN_RIGHT) {
-    int width = getStringWidth(text);
-    startX = x - width;
+  text = utf8ascii(text);
+
+  uint16_t textHeight       = pgm_read_byte(myFontData + HEIGHT_POS);
+  uint16_t sizeOfJumpTable  = pgm_read_byte(myFontData + CHAR_NUM_POS)  * JUMPTABLE_BYTES;
+  uint16_t firstChar        = pgm_read_byte(myFontData + FIRST_CHAR_POS);
+
+  uint16_t textWidth        = getStringWidth(text);
+
+  uint16_t cursorX          = 0;
+
+  switch (myTextAlignment) {
+    case TEXT_ALIGN_CENTER_BOTH:
+      yMove -= textHeight >> 1;
+    // Fallthrough
+    case TEXT_ALIGN_CENTER:
+      xMove -= textWidth >> 1; // divide by 2
+      break;
+    case TEXT_ALIGN_RIGHT:
+      xMove -= textWidth;
+      break;
   }
 
-  for (int j=0; j < text.length(); j++) {
 
-    charCode = text.charAt(j)-0x20;
+  // Don't draw anything if it is not on the screen.
+  if (xMove + textWidth  < 0 || xMove > DISPLAY_WIDTH )  return;
+  if (yMove + textHeight < 0 || yMove > DISPLAY_HEIGHT)  return;
 
-    currentCharWidth = pgm_read_byte(myFontData + CHAR_WIDTH_START_POS + charCode);
-    // Jump to font data beginning
-    currentCharStartPos = CHAR_WIDTH_START_POS + numberOfChars;
+  uint16_t length = text.length();
 
-    for (int m = 0; m < charCode; m++) {
+  for (uint16_t j = 0; j < length; j++) {
 
-      currentCharStartPos += pgm_read_byte(myFontData + CHAR_WIDTH_START_POS + m)  * charHeight / 8 + 1;
+    byte charCode = text.charAt(j) - firstChar;
+
+    // 4 Bytes per char code
+    byte msbJumpToChar    = pgm_read_byte( myFontData + JUMPTABLE_START + charCode * JUMPTABLE_BYTES );                  // MSB  \ JumpAddress
+    byte lsbJumpToChar    = pgm_read_byte( myFontData + JUMPTABLE_START + charCode * JUMPTABLE_BYTES + JUMPTABLE_LSB);   // LSB /
+    byte charByteSize     = pgm_read_byte( myFontData + JUMPTABLE_START + charCode * JUMPTABLE_BYTES + JUMPTABLE_SIZE);  // Size
+    byte currentCharWidth = pgm_read_byte( myFontData + JUMPTABLE_START + charCode * JUMPTABLE_BYTES + JUMPTABLE_WIDTH); // Width
+
+    // Test if the char is drawable
+    if (msbJumpToChar != 255 && lsbJumpToChar != 255) {
+      // Get the position of the char data
+      uint16_t charDataPosition = JUMPTABLE_START + sizeOfJumpTable + ((msbJumpToChar << 8) + lsbJumpToChar);
+      drawInternal(xMove + cursorX, yMove, currentCharWidth, textHeight, myFontData, charDataPosition, charByteSize);
     }
 
-    currentCharByteNum = ((charHeight * currentCharWidth) / 8) + 1;
-    // iterate over all bytes of character
-    for (int i = 0; i < currentCharByteNum; i++) {
-
-      currentByte = pgm_read_byte(myFontData + currentCharStartPos + i);
-      //Serial.println(String(charCode) + ", " + String(currentCharWidth) + ", " + String(currentByte));
-      // iterate over all bytes of character
-      for(int bit = 0; bit < 8; bit++) {
-         //int currentBit = bitRead(currentByte, bit);
-
-         currentBitCount = i * 8 + bit;
-
-         charX = currentBitCount % currentCharWidth;
-         charY = currentBitCount / currentCharWidth;
-
-         if (bitRead(currentByte, bit)) {
-          setPixel(startX + cursorX + charX, startY + charY);
-         }
-
-      }
-      yield();
-    }
     cursorX += currentCharWidth;
-
   }
 }
 
@@ -246,11 +239,11 @@ void SSD1306::drawStringMaxWidth(int x, int y, int maxLineWidth, String text) {
 
 int SSD1306::getStringWidth(String text) {
   text = utf8ascii(text);
-  int stringWidth = 0;
-  char charCode;
-  for (int j=0; j < text.length(); j++) {
-    charCode = text.charAt(j)-0x20;
-    stringWidth += pgm_read_byte(myFontData + CHAR_WIDTH_START_POS + charCode);
+  int stringWidth      = 0;
+  int firstChar        = pgm_read_byte(myFontData + FIRST_CHAR_POS);
+  int length           = text.length();
+  for (int j = 0; j < length; j++) {
+    stringWidth += pgm_read_byte(myFontData + JUMPTABLE_START +  (text.charAt(j) - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
   }
   return stringWidth;
 }
@@ -299,6 +292,79 @@ void SSD1306::fillRect(int x, int y, int width, int height) {
   }
 }
 
+void SSD1306::drawFastImage(int xMove, int yMove, int width, int height, const char *image) {
+  drawInternal(xMove, yMove, width, height, image, 0, 0);
+}
+
+void SSD1306::drawInternal(int xMove, int yMove, int width, int height, const char *data, uint16_t offset, uint16_t bytesInData) {
+  if (width < 0 || height < 0) return;
+  if (yMove + height < 0 || yMove > DISPLAY_HEIGHT)  return;
+  if (xMove + width  < 0 || xMove > DISPLAY_WIDTH)   return;
+
+
+  uint8_t  rasterHeight = 1 + ((height - 1) >> 3); // fast ceil(height / 8.0)
+  int      yOffset      = yMove & 7;
+
+  bytesInData = bytesInData == 0 ? width * rasterHeight : bytesInData;
+
+  int initYMove   = yMove;
+  int initYOffset = yOffset;
+
+
+  for (int i = 0; i < bytesInData; i++) {
+
+    // Reset if next horizontal drawing phase is started.
+    if ( i % rasterHeight == 0) {
+      yMove   = initYMove;
+      yOffset = initYOffset;
+    }
+
+    byte currentByte = pgm_read_byte(data + offset + i);
+
+    int xPos = xMove + (i / rasterHeight);
+    int yPos = ((yMove >> 3) + (i % rasterHeight)) * DISPLAY_WIDTH;
+
+    int yScreenPos = yMove + yOffset;
+    int dataPos    = xPos  + yPos;
+
+    if (dataPos >=  0  && dataPos < DISPLAY_BUFFER_SIZE &&
+        xPos    >=  0  && xPos    < DISPLAY_WIDTH ) {
+
+      if (yOffset >= 0) {
+        switch (myColor) {
+          case WHITE:   buffer[dataPos] |= currentByte << yOffset; break;
+          case BLACK:   buffer[dataPos] &= currentByte << yOffset; break;
+          case INVERSE: buffer[dataPos] ^= currentByte << yOffset; break;
+        }
+        if (dataPos < (DISPLAY_BUFFER_SIZE - DISPLAY_WIDTH)) {
+          switch (myColor) { // Double code to not cause performance hit
+            case WHITE:   buffer[dataPos + DISPLAY_WIDTH] |= currentByte >> (8 - yOffset); break;
+            case BLACK:   buffer[dataPos + DISPLAY_WIDTH] &= currentByte >> (8 - yOffset); break;
+            case INVERSE: buffer[dataPos + DISPLAY_WIDTH] ^= currentByte >> (8 - yOffset); break;
+          }
+        }
+      } else {
+        // Make new offset position
+        yOffset = -yOffset;
+
+        switch (myColor) {
+          case WHITE:   buffer[dataPos] |= currentByte >> yOffset; break;
+          case BLACK:   buffer[dataPos] &= currentByte >> yOffset; break;
+          case INVERSE: buffer[dataPos] ^= currentByte >> yOffset; break;
+        }
+
+        // Prepare for next iteration by moving one block up
+        yMove -= 8;
+
+        // and setting the new yOffset
+        yOffset = 8 - yOffset;
+      }
+
+      yield();
+    }
+  }
+}
+
 void SSD1306::drawXbm(int x, int y, int width, int height, const char *xbm) {
   if (width % 8 != 0) {
     width =  ((width / 8) + 1) * 8;
@@ -324,14 +390,13 @@ void SSD1306::sendCommand(unsigned char com) {
 
 void SSD1306::sendInitCommands(void) {
   sendCommand(DISPLAYOFF);
-  sendCommand(NORMALDISPLAY);
   sendCommand(SETDISPLAYCLOCKDIV);
   sendCommand(0x80);
   sendCommand(SETMULTIPLEX);
   sendCommand(0x3F);
   sendCommand(SETDISPLAYOFFSET);
   sendCommand(0x00);
-  sendCommand(SETSTARTLINE | 0x00);
+  sendCommand(SETSTARTLINE);
   sendCommand(CHARGEPUMP);
   sendCommand(0x14);
   sendCommand(MEMORYMODE);
@@ -344,8 +409,6 @@ void SSD1306::sendInitCommands(void) {
   sendCommand(0xCF);
   sendCommand(SETPRECHARGE);
   sendCommand(0xF1);
-  sendCommand(SETVCOMDETECT);
-  sendCommand(0x40);
   sendCommand(DISPLAYALLON_RESUME);
   sendCommand(NORMALDISPLAY);
   sendCommand(0x2e);            // stop scroll
