@@ -303,7 +303,7 @@ void SSD1306Ui::drawIndicator() {
         posOfHighlightFrame = frameToHighlight;
         break;
       case RIGHT_LEFT:
-        posOfHighlightFrame = (this->frameCount - 1) - frameToHighlight;
+        posOfHighlightFrame = this->frameCount - frameToHighlight;
         break;
     }
 
@@ -359,7 +359,7 @@ void SSD1306Ui::drawOverlays() {
 }
 
 uint8_t SSD1306Ui::getNextFrameNumber(){
-  uint8_t nextFrame = (this->state.currentFrame + this->state.frameTransitionDirection) % this->frameCount;
+  int8_t nextFrame = (this->state.currentFrame + this->state.frameTransitionDirection) % this->frameCount;
   if (nextFrame < 0){
     nextFrame = this->frameCount + nextFrame;
   }

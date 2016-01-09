@@ -29,6 +29,12 @@
 #include <Arduino.h>
 #include "SSD1306.h"
 
+//#define DEBUG_SSD1306Ui(...) Serial.printf( __VA_ARGS__ )
+
+#ifndef DEBUG_SSD1306Ui
+#define DEBUG_SSD1306Ui(...)
+#endif
+
 enum AnimationDirection {
   SLIDE_UP,
   SLIDE_DOWN,
