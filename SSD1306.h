@@ -101,7 +101,7 @@ enum SSD1306_TEXT_ALIGNMENT {
   TEXT_ALIGN_LEFT = 0,
   TEXT_ALIGN_RIGHT = 1,
   TEXT_ALIGN_CENTER = 2,
-	TEXT_ALIGN_CENTER_BOTH = 3
+  TEXT_ALIGN_CENTER_BOTH = 3
 };
 
 class SSD1306 {
@@ -111,16 +111,16 @@ class SSD1306 {
     uint8_t             sda;
     uint8_t             sdc;
 
-    uint8_t       		 *buffer;
+    uint8_t            *buffer;
 
     #ifdef SSD1306_DOUBLE_BUFFER
-    uint8_t        		 *buffer_back;
+    uint8_t            *buffer_back;
     #endif
 
-    SSD1306_TEXT_ALIGNMENT 	textAlignment = TEXT_ALIGN_LEFT;
-    SSD1306_COLOR  		 			color         = WHITE;
+    SSD1306_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
+    SSD1306_COLOR            color         = WHITE;
 
-    const char     		 *fontData      = ArialMT_Plain_10;
+    const char          *fontData      = ArialMT_Plain_10;
 
     // Send a command to the display (low level function)
     void sendCommand(unsigned char com);

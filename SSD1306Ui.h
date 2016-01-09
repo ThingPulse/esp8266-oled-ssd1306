@@ -192,9 +192,9 @@ class SSD1306Ui {
 
     /**
      * Draw the indicator.
-		 * This is the defaut state for all frames if
-		 * the indicator was hidden on the previous frame
-		 * it will be slided in.
+     * This is the defaut state for all frames if
+     * the indicator was hidden on the previous frame
+     * it will be slided in.
      */
     void enableIndicator();
 
@@ -247,17 +247,22 @@ class SSD1306Ui {
 
 
     // Loading animation
-		/**
-		 * Set the function that will draw each step
-		 * in the loading animation
-		 */
+    /**
+     * Set the function that will draw each step
+     * in the loading animation
+     */
     void setLoadingDrawFunction(LoadingDrawFunction stage);
+
+
+    /**
+     * Run the loading process
+     */
     void runLoadingProcess(LoadingStage* stages, uint8_t stagesCount);
 
 
     // Manuell Controll
-    void  nextFrame();
-    void  previousFrame();
+    void nextFrame();
+    void previousFrame();
 
     // State Info
     SSD1306UiState* getUiState();
