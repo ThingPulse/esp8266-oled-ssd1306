@@ -355,12 +355,20 @@ void SSD1306::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineW
 }
 
 uint16_t SSD1306::getStringWidth(const char* text, uint16_t length) {
-  uint16_t stringWidth = 0;
   uint16_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
+
+  uint16_t stringWidth = 0;
+  uint16_t maxWidth = 0;
+
   while (length--) {
     stringWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[length] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
+    if (text[length] == 10) {
+      maxWidth = max(maxWidth, stringWidth);
+      stringWidth = 0;
+    }
   }
-  return stringWidth;
+
+  return max(maxWidth, stringWidth);
 }
 
 void SSD1306::setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment) {
