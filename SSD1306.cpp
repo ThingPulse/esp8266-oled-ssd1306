@@ -297,29 +297,45 @@ void SSD1306::drawString(int16_t xMove, int16_t yMove, String strUser) {
   free(text);
 }
 
-void SSD1306::drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text) {
-  uint16_t startsAt = 0;
-  uint16_t endsAt = 0;
-  uint16_t lineNumber = 0;
+void SSD1306::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineWidth, String strUser) {
+  uint16_t firstChar  = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
-  String currentLine = "";
-  uint16_t length = text.length();
+
+  char* text = utf8ascii(strUser);
+
+  uint16_t length = strlen(text);
+  uint16_t lastDrawnPos = 0;
+  uint16_t lineNumber = 0;
+  uint16_t strWidth = 0;
+
+  uint16_t preferredBreakpoint = 0;
+  uint16_t widthAtBreakpoint = 0;
+
   for (uint16_t i = 0; i < length; i++) {
-    char currentChar = text.charAt(i);
-    if (currentChar == ' ' || currentChar == '-') {
-      String lineCandidate = text.substring(startsAt, i);
-      if (getStringWidth(lineCandidate.c_str()) <= maxLineWidth) {
-        endsAt = i;
-      } else {
-        drawString(x, y + lineNumber * lineHeight, text.substring(startsAt, endsAt));
-        lineNumber++;
-        startsAt = endsAt + 1;
-      }
+    strWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[i] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
+
+    // Always try to break on a space or dash
+    if (text[i] == ' ' || text[i]== '-') {
+      preferredBreakpoint = i;
+      widthAtBreakpoint = strWidth;
     }
 
+    if (strWidth >= maxLineWidth) {
+      preferredBreakpoint = preferredBreakpoint ? preferredBreakpoint : i;
+      widthAtBreakpoint = preferredBreakpoint ? widthAtBreakpoint : strWidth;
+
+      drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint);
+
+      lastDrawnPos = preferredBreakpoint + 1; strWidth = 0; preferredBreakpoint = 0;
+    }
   }
 
-  drawString(x, y + lineNumber * lineHeight, text.substring(startsAt));
+  // Draw last part if needed
+  if (lastDrawnPos < length) {
+    drawStringInternal(xMove, yMove + lineNumber * lineHeight , &text[lastDrawnPos], length - lastDrawnPos, getStringWidth(&text[lastDrawnPos], length - lastDrawnPos));
+  }
+
+  free(text);
 }
 
 uint16_t SSD1306::getStringWidth(const char* text, uint16_t length) {

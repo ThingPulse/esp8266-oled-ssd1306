@@ -132,7 +132,7 @@ class SSD1306 {
     byte utf8ascii(byte ascii);
     char* utf8ascii(String s);
 
-    void drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData);
+    void drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
   public:
@@ -186,11 +186,7 @@ class SSD1306 {
     // Draws a String with a maximum width at the given location.
     // If the given String is wider than the specified width
     // The text will be wrapped to the next line at a space or dash
-    void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text);
-
-    // Returns the width of the const char* with the current
-    // font settings
-    uint16_t getStringWidth(const char* text);
+    void drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, String text);
 
     // Specifies relative to which anchor point
     // the text is rendered. Available constants:
