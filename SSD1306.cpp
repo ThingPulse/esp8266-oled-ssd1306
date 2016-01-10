@@ -280,20 +280,37 @@ void SSD1306::drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint1
       }
 
       cursorX += currentCharWidth;
-    } else if (code == 10) {
-      // Support line breaks (\n) in String
-      cursorY += pgm_read_byte(fontData + HEIGHT_POS);
-      cursorX = 0;
     }
   }
 }
 
 
 void SSD1306::drawString(int16_t xMove, int16_t yMove, String strUser) {
+  uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
+
   // char* text must be freed!
   char* text = utf8ascii(strUser);
-  uint16_t length = strlen(text);
-  drawStringInternal(xMove, yMove, text, length, getStringWidth(text, length));
+
+  uint16_t xOffset = 0;
+  // If the string should be centered vertically too
+  // we need to now how heigh the string is.
+  if (textAlignment == TEXT_ALIGN_CENTER_BOTH) {
+    uint16_t lb;
+    // Find number of linebreaks in text
+    for (uint16_t i=0, lb=0; text[i]; i++) {
+      lb += (text[i] == '\n');
+    }
+    // Calculate center
+    xOffset = (lb * lineHeight) / 2;
+  }
+
+  uint16_t line = 0;
+  char* textPart = strtok(text,"\n");
+  while (textPart != NULL) {
+    uint16_t length = strlen(textPart);
+    drawStringInternal(xMove - xOffset, yMove + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
+    textPart = strtok(NULL, "\n");
+  }
   free(text);
 }
 
@@ -325,7 +342,6 @@ void SSD1306::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineW
       widthAtBreakpoint = preferredBreakpoint ? widthAtBreakpoint : strWidth;
 
       drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint);
-
       lastDrawnPos = preferredBreakpoint + 1; strWidth = 0; preferredBreakpoint = 0;
     }
   }
