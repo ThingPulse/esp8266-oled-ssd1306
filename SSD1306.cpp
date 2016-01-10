@@ -234,17 +234,13 @@ void SSD1306::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t heigh
   }
 }
 
-void SSD1306::drawString(int16_t xMove, int16_t yMove, String t) {
-  // char* text must be freed!
-  char* text = utf8ascii(t);
-
+void SSD1306::drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth) {
   uint8_t textHeight       = pgm_read_byte(fontData + HEIGHT_POS);
   uint8_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t sizeOfJumpTable = pgm_read_byte(fontData + CHAR_NUM_POS)  * JUMPTABLE_BYTES;
 
-  uint8_t textWidth        = getStringWidth(text);
-
   uint8_t cursorX         = 0;
+  uint8_t cursorY         = 0;
 
   switch (textAlignment) {
     case TEXT_ALIGN_CENTER_BOTH:
@@ -259,12 +255,13 @@ void SSD1306::drawString(int16_t xMove, int16_t yMove, String t) {
   }
 
   // Don't draw anything if it is not on the screen.
-  if (xMove + textWidth  < 0 || xMove > DISPLAY_WIDTH ) {free(text); return;}
-  if (yMove + textHeight < 0 || yMove > DISPLAY_HEIGHT) {free(text); return;}
+  if (xMove + textWidth  < 0 || xMove > DISPLAY_WIDTH ) {return;}
+  if (yMove + textHeight < 0 || yMove > DISPLAY_HEIGHT) {return;}
 
-  uint16_t length = strlen(text);
+  for (uint16_t j = 0; j < textLength; j++) {
+    int16_t xPos = xMove + cursorX;
+    int16_t yPos = yMove + cursorY;
 
-  for (uint16_t j = 0; j < length; j++) {
     byte code = text[j];
     if (code >= firstChar) {
       byte charCode = code - firstChar;
@@ -279,13 +276,24 @@ void SSD1306::drawString(int16_t xMove, int16_t yMove, String t) {
       if (msbJumpToChar != 255 && lsbJumpToChar != 255) {
         // Get the position of the char data
         uint16_t charDataPosition = JUMPTABLE_START + sizeOfJumpTable + ((msbJumpToChar << 8) + lsbJumpToChar);
-        drawInternal(xMove + cursorX, yMove, currentCharWidth, textHeight, fontData, charDataPosition, charByteSize);
+        drawInternal(xPos, yPos, currentCharWidth, textHeight, fontData, charDataPosition, charByteSize);
       }
 
       cursorX += currentCharWidth;
+    } else if (code == 10) {
+      // Support line breaks (\n) in String
+      cursorY += pgm_read_byte(fontData + HEIGHT_POS);
+      cursorX = 0;
     }
   }
+}
 
+
+void SSD1306::drawString(int16_t xMove, int16_t yMove, String strUser) {
+  // char* text must be freed!
+  char* text = utf8ascii(strUser);
+  uint16_t length = strlen(text);
+  drawStringInternal(xMove, yMove, text, length, getStringWidth(text, length));
   free(text);
 }
 
@@ -314,10 +322,9 @@ void SSD1306::drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, Str
   drawString(x, y + lineNumber * lineHeight, text.substring(startsAt));
 }
 
-uint16_t SSD1306::getStringWidth(const char* text) {
+uint16_t SSD1306::getStringWidth(const char* text, uint16_t length) {
   uint16_t stringWidth = 0;
   uint16_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
-  uint16_t length           = strlen(text);
   while (length--) {
     stringWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[length] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
   }
