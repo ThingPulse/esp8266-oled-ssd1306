@@ -120,7 +120,7 @@ void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text)
 
 // Returns the width of the const char* with the current
 // font settings
-uint16_t getStringWidth(const char* text);
+uint16_t getStringWidth(const char* text, uint16_t length);
 
 // Specifies relative to which anchor point
 // the text is rendered. Available constants:
