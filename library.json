@@ -17,5 +17,6 @@
   }
   ],
   "frameworks": "arduino",
-  "platforms": "espressif"
+  "platforms": "espressif",
+  "version": "2.0.1"
 }
