@@ -1,6 +1,6 @@
 {
-  "name": "ESP8266 Oled Driver for SSD1306 display",
-  "keywords": "Display, ssd1306, arduino, esp8266",
+  "name": "SSD1306",
+  "keywords": "display, oled",
   "description": "SSD1306 Oled driver which offers scrolling frames, custom fonts, etc",
   "repository": {
     "type": "git",
