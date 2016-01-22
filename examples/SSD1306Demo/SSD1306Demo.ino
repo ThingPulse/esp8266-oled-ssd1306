@@ -66,7 +66,7 @@ void setup() {
   ui.setIndicatorDirection(LEFT_RIGHT);
 
   // You can change the transition that is used
-  // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_TOP, SLIDE_DOWN
+  // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_UP, SLIDE_DOWN
   ui.setFrameAnimation(SLIDE_LEFT);
 
   // Add frames
@@ -131,11 +131,11 @@ void drawFrame3(SSD1306 *display, SSD1306UiState* state, int16_t x, int16_t y) {
 
   // The coordinates define the center of the text
   display->setTextAlignment(TEXT_ALIGN_CENTER);
-  display->drawString(64 + x, 22, "Center aligned (64,22)");
+  display->drawString(64 + x, 22 + y, "Center aligned (64,22)");
 
   // The coordinates define the right end of the text
   display->setTextAlignment(TEXT_ALIGN_RIGHT);
-  display->drawString(128 + x, 33, "Right aligned (128,33)");
+  display->drawString(128 + x, 33 + y, "Right aligned (128,33)");
 }
 
 void drawFrame4(SSD1306 *display, SSD1306UiState* state, int16_t x, int16_t y) {
@@ -144,5 +144,5 @@ void drawFrame4(SSD1306 *display, SSD1306UiState* state, int16_t x, int16_t y) {
   // Currently only spaces and "-" are allowed for wrapping
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
-  display->drawStringMaxWidth(0 + x, 10 + y, 128, "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.");
+  display->drawStringMaxWidth(0 + x, 10 + y, 128, "Lorem ipsum\n dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.");
 }
