@@ -26,10 +26,14 @@ See more at http://blog.squix.ch
 #include "SSD1306.h"
 #include "SSD1306Ui.h"
 #include "images.h"
+#include "prototypes.h"
+
+// Defaulting the OLED connection to GPIO0 and GPIO2 pins
+#define SDA_PIN 0
+#define SDC_PIN 2
 
 // Initialize the oled display for address 0x3c
-// sda-pin=14 and sdc-pin=12
-SSD1306   display(0x3c, D3, D4);
+SSD1306   display(0x3c, SDA_PIN, SDC_PIN);
 SSD1306Ui ui     ( &display );
 
 // this array keeps function pointers to all frames
