@@ -48,8 +48,8 @@ See more at http://blog.squix.ch
 #define OLED_CS     D8  // Chip select
 
 // Uncomment one of the following based on OLED type
-SSD1306 display(true, OLED_RESET, OLED_DC, OLED_CS); // FOR SPI
-// SSD1306   display(OLED_ADDR, OLED_SDA, OLED_SDC);    // For I2C
+// SSD1306 display(true, OLED_RESET, OLED_DC, OLED_CS); // FOR SPI
+SSD1306   display(OLED_ADDR, OLED_SDA, OLED_SDC);    // For I2C
 SSD1306Ui ui     ( &display );
 
 // this array keeps function pointers to all frames
