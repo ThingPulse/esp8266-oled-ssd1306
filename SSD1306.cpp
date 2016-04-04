@@ -23,21 +23,48 @@ SOFTWARE.
 See more at http://blog.squix.ch
 
 Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
+
+SPI additions by Neptune2
 */
 
 #include "SSD1306.h"
-#include <Wire.h>
 
-
+// constructor for I2C - we indicate i2cAddress, sda and sdc
 SSD1306::SSD1306(int i2cAddress, int sda, int sdc) {
   myI2cAddress = i2cAddress;
   mySda = sda;
   mySdc = sdc;
+  I2C_io = true;
+}
+
+// constructor for hardware SPI - we indicate Reset, DataCommand and ChipSelect 
+// (HW_SPI used to differentiate constructor - reserved for future use)
+SSD1306::SSD1306(bool HW_SPI, int rst, int dc, int cs ) {
+  myRST = rst;
+  myDC = dc;
+  myCS = cs;
+  I2C_io = false;
 }
 
 void SSD1306::init() {
-  Wire.begin(mySda, mySdc);
-  Wire.setClock(400000);
+  if (I2C_io){
+   Wire.begin(mySda, mySdc);
+   Wire.setClock(400000);
+  } else {
+   pinMode(myDC, OUTPUT);
+   pinMode(myCS, OUTPUT);
+
+   SPI.begin ();
+   SPI.setClockDivider (SPI_CLOCK_DIV2);
+
+   pinMode(myRST, OUTPUT);
+   // Pulse Reset low for 10ms
+   digitalWrite(myRST, HIGH);
+   delay(1);
+   digitalWrite(myRST, LOW);
+   delay(10);
+   digitalWrite(myRST, HIGH);
+  }
   sendInitCommands();
   resetDisplay();
 }
@@ -50,7 +77,11 @@ void SSD1306::resetDisplay(void) {
 }
 
 void SSD1306::reconnect() {
-  Wire.begin(mySda, mySdc);
+  if (I2C_io){
+   Wire.begin(mySda, mySdc);
+  } else {
+   SPI.begin ();
+  }
 }
 
 void SSD1306::displayOn(void) {
@@ -84,6 +115,8 @@ void SSD1306::display(void) {
     sendCommand(0x0);
     sendCommand(0x7);
 
+	
+  if (I2C_io) {
     for (uint16_t i=0; i<(128*64/8); i++) {
       // send a bunch of data in one xmission
       Wire.beginTransmission(myI2cAddress);
@@ -96,8 +129,15 @@ void SSD1306::display(void) {
       yield();
       Wire.endTransmission();
     }
-
-
+  }	else {
+	digitalWrite(myCS, HIGH);
+    digitalWrite(myDC, HIGH);   // data mode
+    digitalWrite(myCS, LOW);
+	for (uint16_t i=0; i<(128*64/8); i++) {
+	 SPI.transfer(buffer[i]);
+	}
+	digitalWrite(myCS, HIGH);	
+  }
 }
 
 void SSD1306::setPixel(int x, int y) {
@@ -316,10 +356,18 @@ void SSD1306::drawXbm(int x, int y, int width, int height, const char *xbm) {
 }
 
 void SSD1306::sendCommand(unsigned char com) {
-  Wire.beginTransmission(myI2cAddress);     //begin transmitting
-  Wire.write(0x80);                          //command mode
-  Wire.write(com);
-  Wire.endTransmission();                    // stop transmitting
+  if (I2C_io) {
+   Wire.beginTransmission(myI2cAddress);      //begin transmitting
+   Wire.write(0x80);                          //command mode
+   Wire.write(com);
+   Wire.endTransmission();                    // stop transmitting
+  } else {
+   digitalWrite(myCS, HIGH);
+   digitalWrite(myDC, LOW);                     //command mode
+   digitalWrite(myCS, LOW);
+   SPI.transfer(com);
+   digitalWrite(myCS, HIGH);
+  }
 }
 
 void SSD1306::sendInitCommands(void) {
