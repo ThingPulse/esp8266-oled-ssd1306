@@ -27,6 +27,8 @@ Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 #pragma once
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <SPI.h>
 #include "SSD1306Fonts.h"
 
 #define BLACK 0
@@ -73,9 +75,15 @@ Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 class SSD1306 {
 
 private:
+   // I2C
    int myI2cAddress;
    int mySda;
    int mySdc;
+   bool I2C_io;
+
+   // SPI
+   int  myDC, myRST, myCS;
+   
    uint8_t buffer[128 * 64 / 8];
    int myTextAlignment = TEXT_ALIGN_LEFT;
    int myColor = WHITE;
@@ -83,9 +91,12 @@ private:
    const char *myFontData = ArialMT_Plain_10;
 
 public:
-   // Create the display object connected to pin sda and sdc
+   // Create the display object connected to I2C pins pin sda and sdc
    SSD1306(int i2cAddress, int sda, int sdc);
 
+   // Create the display object connected to SPI pins and rst, dc and cs (HW_SPI reserved for future use)
+   SSD1306(bool HW_SPI, int rst, int dc, int cs );
+   
    // Initialize the display
    void init();
 

@@ -23,13 +23,33 @@ SOFTWARE.
 See more at http://blog.squix.ch
 */
 #include <Wire.h>
+#include <SPI.h>
 #include "SSD1306.h"
 #include "SSD1306Ui.h"
 #include "images.h"
 
-// Initialize the oled display for address 0x3c
-// sda-pin=14 and sdc-pin=12
-SSD1306   display(0x3c, D3, D4);
+// Pin definitions for I2C
+#define OLED_SDA    D2  // pin 14
+#define OLED_SDC    D4  // pin 12
+#define OLED_ADDR   0x3C
+
+/* Hardware Wemos D1 mini SPI pins
+ D5 GPIO14   CLK         - D0 pin OLED display
+ D6 GPIO12   MISO (DIN)  - not connected
+ D7 GPIO13   MOSI (DOUT) - D1 pin OLED display
+ D8 GPIO15   CS / SS     - CS pin OLED display
+ D0 GPIO16   RST         - RST pin OLED display
+ D2 GPIO4    DC          - DC pin OLED
+*/
+
+// Pin definitions for SPI
+#define OLED_RESET  D0  // RESET
+#define OLED_DC     D2  // Data/Command
+#define OLED_CS     D8  // Chip select
+
+// Uncomment one of the following based on OLED type
+// SSD1306 display(true, OLED_RESET, OLED_DC, OLED_CS); // FOR SPI
+SSD1306   display(OLED_ADDR, OLED_SDA, OLED_SDC);    // For I2C
 SSD1306Ui ui     ( &display );
 
 // this array keeps function pointers to all frames
