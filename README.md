@@ -47,6 +47,9 @@ SSD1306(int i2cAddress, int sda, int sdc);
 // Initialize the display
 void init();
 
+// Free the memory used by the display
+void end();
+
 // Cycle through the initialization
 void resetDisplay(void);
 
@@ -65,101 +68,187 @@ void clear(void);
 // Write the buffer to the display memory
 void display(void);
 
+// Inverted display mode
+void invertDisplay(void);
+
+// Normal display mode
+void normalDisplay(void);
+
 // Set display contrast
 void setContrast(char contrast);
 
 // Turn the display upside down
 void flipScreenVertically();
-
-// Send a command to the display (low level function)
-void sendCommand(unsigned char com);
-
-// Send all the init commands
-void sendInitCommands(void);
 ```
 
 ## Pixel drawing
 
 ```C++
-// Draw a pixel at given position
-void setPixel(int x, int y);
+void setColor(SSD1306_COLOR color);
 
-// Draw 8 bits at the given position
-void setChar(int x, int y, unsigned char data);
+// Draw a pixel at given position
+void setPixel(int16_t x, int16_t y);
 
 // Draw the border of a rectangle at the given location
-void drawRect(int x, int y, int width, int height);
+void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
 // Fill the rectangle
-void fillRect(int x, int y, int width, int height);
+void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
-// Draw a bitmap with the given dimensions
-void drawBitmap(int x, int y, int width, int height, const char *bitmap);
+// Draw a line horizontally
+void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
-// Draw an XBM image with the given dimensions
-void drawXbm(int x, int y, int width, int height, const char *xbm);
+// Draw a line vertically
+void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
-// Sets the color of all pixel operations
-void setColor(int color);
+// Draw a bitmap in the internal image format
+void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char* image);
+
+// Draw a XBM
+void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char* xbm);
 ```
 
 ## Text operations
 
 ``` C++
-// Draws a string at the given location
-void drawString(int x, int y, String text);
+void drawString(int16_t x, int16_t y, String text);
 
 // Draws a String with a maximum width at the given location.
 // If the given String is wider than the specified width
 // The text will be wrapped to the next line at a space or dash
-void drawStringMaxWidth(int x, int y, int maxLineWidth, String text);
+void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text);
 
-// Returns the width of the String with the current
+// Returns the width of the const char* with the current
 // font settings
-int getStringWidth(String text);
+uint16_t getStringWidth(const char* text, uint16_t length);
 
 // Specifies relative to which anchor point
 // the text is rendered. Available constants:
-// TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT
-void setTextAlignment(int textAlignment);
+// TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER_BOTH
+void setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment);
 
 // Sets the current font. Available default fonts
-// defined in SSD1306Fonts.h:
 // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
 // Or create one with the font tool at http://oleddisplay.squix.ch
-void setFont(const char *fontData);
+void setFont(const char* fontData);
 ```
 
-## Frame Transition Functions
+## Ui Library (SSD1306Ui)
 
-The Frame Transition functions are a set of functions on top of the basic library. They allow you to easily write frames which will be shifted in regular intervals. The frame animation (including the frame indicators) will only be activated if you define callback functions with setFrameCallacks(..). If no callback methods are defined no indicators will be displayed.
+The Ui Library is used to provide a basic set of Ui elements called, `Frames` and `Overlays`. A `Frame` is used to provide
+information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a pieces of information (e.g. a clock) that is displayed always at the same position.
+
 
 ```C++
-// Sets the callback methods of the format void method(x,y). As soon as you define the callbacks
-// the library is in "frame mode" and indicators will be drawn.
-void setFrameCallbacks(int frameCount, void (*frameCallbacks[])(SSD1306 *display, SSD1306UiState* state,int x, int y));
+/**
+ * Initialise the display
+ */
+void init();
 
-// Tells the framework to move to the next tick. The
-// current visible frame callback will be called once
-// per tick
-void nextFrameTick(void);
+/**
+ * Configure the internal used target FPS
+ */
+void setTargetFPS(uint8_t fps);
 
-// Draws the frame indicators. In a normal setup
-// the framework does this for you
-void drawIndicators(int frameCount, int activeFrame);
+/**
+ * Enable automatic transition to next frame after the some time can be configured with
+ * `setTimePerFrame` and `setTimePerTransition`.
+ */
+void enableAutoTransition();
 
-// defines how many ticks a frame should remain visible
-// This does not include the transition
-void setFrameWaitTicks(int frameWaitTicks);
+/**
+ * Disable automatic transition to next frame.
+ */
+void disableAutoTransition();
 
-// Defines how many ticks should be used for a transition
-void setFrameTransitionTicks(int frameTransitionTicks);
+/**
+ * Set the direction if the automatic transitioning
+ */
+void setAutoTransitionForwards();
+void setAutoTransitionBackwards();
 
-// Returns the current state of the internal state machine
-// Possible values: FRAME_STATE_FIX, FRAME_STATE_TRANSITION
-// You can use this to detect when there is no transition
-// on the way to execute operations that would
-int getFrameState();
+/**
+ *  Set the approx. time a frame is displayed
+ */
+void setTimePerFrame(uint16_t time);
+
+/**
+ * Set the approx. time a transition will take
+ */
+void setTimePerTransition(uint16_t time);
+
+/**
+ * Draw the indicator.
+ * This is the default state for all frames if
+ * the indicator was hidden on the previous frame
+ * it will be slided in.
+ */
+void enableIndicator();
+
+/**
+ * Don't draw the indicator.
+ * This will slide out the indicator
+ * when transitioning to the next frame.
+ */
+void disableIndicator();
+
+/**
+ * Set the position of the indicator bar.
+ */
+void setIndicatorPosition(IndicatorPosition pos);
+
+/**
+ * Set the direction of the indicator bar. Defining the order of frames ASCENDING / DESCENDING
+ */
+void setIndicatorDirection(IndicatorDirection dir);
+
+/**
+ * Set the symbol to indicate an active frame in the indicator bar.
+ */
+void setActiveSymbol(const char* symbol);
+
+/**
+ * Set the symbol to indicate an inactive frame in the indicator bar.
+ */
+void setInactiveSymbol(const char* symbol);
+
+/**
+ * Configure what animation is used to transition from one frame to another
+ */
+void setFrameAnimation(AnimationDirection dir);
+
+/**
+ * Add frame drawing functions
+ */
+void setFrames(FrameCallback* frameFunctions, uint8_t frameCount);
+
+/**
+ * Add overlays drawing functions that are draw independent of the Frames
+ */
+void setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount);
+
+/**
+ * Set the function that will draw each step
+ * in the loading animation
+ */
+void setLoadingDrawFunction(LoadingDrawFunction stage);
+
+/**
+ * Run the loading process
+ */
+void runLoadingProcess(LoadingStage* stages, uint8_t stagesCount);
+
+// Manuell Controll
+void nextFrame();
+void previousFrame();
+
+// State Info
+SSD1306UiState* getUiState();
+
+// This needs to be called in the main loop
+// the returned value it the remaining time (in ms)
+// you have to draw after drawing to keep the frame budget.
+int8_t update();
 ```
 
 ## Example: SSD1306Demo
