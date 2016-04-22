@@ -31,7 +31,7 @@ void SSD1306Ui::setAutoTransitionForwards(){
   this->frameTransitionDirection = 1;
 }
 void SSD1306Ui::setAutoTransitionBackwards(){
-  this->frameTransitionDirection = 1;
+  this->frameTransitionDirection = -1;
 }
 void SSD1306Ui::setTimePerFrame(int time){
   this->ticksPerFrame = (int) ( (float) time / (float) updateInterval);
@@ -239,9 +239,6 @@ void SSD1306Ui::drawOverlays() {
 }
 
 int SSD1306Ui::getNextFrameNumber(){
-  int nextFrame = (this->state.currentFrame + this->frameTransitionDirection) % this->frameCount;
-  if (nextFrame < 0){
-    nextFrame = this->frameCount + nextFrame;
-  }
+  int nextFrame = (this->state.currentFrame + this->frameCount + this->frameTransitionDirection) % this->frameCount;
   return nextFrame;
 }
