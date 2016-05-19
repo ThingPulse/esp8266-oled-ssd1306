@@ -1,48 +1,69 @@
-/**The MIT License (MIT)
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 by Daniel Eichhorn
+ * Copyright (c) 2016 by Fabrice Weinberg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
+ */
 
-Copyright (c) 2015 by Daniel Eichhorn
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-See more at http://blog.squix.ch
-
-Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
-*/
 #pragma once
 
 #include <Arduino.h>
+#include <Wire.h>
+
 #include "SSD1306Fonts.h"
 
-#define BLACK 0
-#define WHITE 1
-#define INVERSE 2
+//#define DEBUG_SSD1306(...) Serial.printf( __VA_ARGS__ )
+
+#ifndef DEBUG_SSD1306
+#define DEBUG_SSD1306(...)
+#endif
+
+// Use DOUBLE BUFFERING by default
+#ifndef SSD1306_REDUCE_MEMORY
+#define SSD1306_DOUBLE_BUFFER
+#endif
+
+
+// Display settings
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+#define DISPLAY_BUFFER_SIZE 1024
+
+// Header Values
+#define JUMPTABLE_BYTES 4
+
+#define JUMPTABLE_LSB   1
+#define JUMPTABLE_SIZE  2
+#define JUMPTABLE_WIDTH 3
+#define JUMPTABLE_START 4
 
 #define WIDTH_POS 0
 #define HEIGHT_POS 1
 #define FIRST_CHAR_POS 2
 #define CHAR_NUM_POS 3
-#define CHAR_WIDTH_START_POS 4
 
-#define TEXT_ALIGN_LEFT 0
-#define TEXT_ALIGN_CENTER 1
-#define TEXT_ALIGN_RIGHT 2
 
+// Display commands
 #define CHARGEPUMP 0x8D
 #define COLUMNADDR 0x21
 #define COMSCANDEC 0xC8
@@ -70,104 +91,140 @@ Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
 #define SETVCOMDETECT 0xDB
 #define SWITCHCAPVCC 0x2
 
+enum SSD1306_COLOR {
+  BLACK = 0,
+  WHITE = 1,
+  INVERSE = 2
+};
+
+enum SSD1306_TEXT_ALIGNMENT {
+  TEXT_ALIGN_LEFT = 0,
+  TEXT_ALIGN_RIGHT = 1,
+  TEXT_ALIGN_CENTER = 2,
+  TEXT_ALIGN_CENTER_BOTH = 3
+};
+
 class SSD1306 {
+  private:
 
-private:
-   int myI2cAddress;
-   int mySda;
-   int mySdc;
-   uint8_t buffer[128 * 64 / 8];
-   int myTextAlignment = TEXT_ALIGN_LEFT;
-   int myColor = WHITE;
-   byte lastChar;
-   const char *myFontData = ArialMT_Plain_10;
+    uint8_t             i2cAddress;
+    uint8_t             sda;
+    uint8_t             sdc;
 
-public:
-   // Create the display object connected to pin sda and sdc
-   SSD1306(int i2cAddress, int sda, int sdc);
+    uint8_t            *buffer;
 
-   // Initialize the display
-   void init();
+    #ifdef SSD1306_DOUBLE_BUFFER
+    uint8_t            *buffer_back;
+    #endif
 
-   // Cycle through the initialization
-   void resetDisplay(void);
+    SSD1306_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
+    SSD1306_COLOR            color         = WHITE;
 
-   // Connect again to the display through I2C
-   void reconnect(void);
+    const char          *fontData      = ArialMT_Plain_10;
 
-   // Turn the display on
-   void displayOn(void);
+    // Send a command to the display (low level function)
+    void sendCommand(unsigned char com);
 
-   // Turn the display offs
-   void displayOff(void);
+    // Send all the init commands
+    void sendInitCommands(void);
 
-   // Clear the local pixel buffer
-   void clear(void);
+    // converts utf8 characters to extended ascii
+    byte utf8ascii(byte ascii);
+    char* utf8ascii(String s);
 
-   // Write the buffer to the display memory
-   void display(void);
+    void drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
-   // Set display contrast
-   void setContrast(char contrast);
+    void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
+  public:
 
-   // Turn the display upside down
-   void flipScreenVertically();
+    // Create the display object connected to pin sda and sdc
+    SSD1306(uint8_t i2cAddress, uint8_t sda, uint8_t sdc);
 
-   // Send a command to the display (low level function)
-   void sendCommand(unsigned char com);
+    // Initialize the display
+    bool init();
 
-   // Send all the init commands
-   void sendInitCommands(void);
+    // Free the memory used by the display
+    void end();
 
-   // Draw a pixel at given position
-   void setPixel(int x, int y);
+    // Cycle through the initialization
+    void resetDisplay(void);
 
-   // Draw 8 bits at the given position
-   void setChar(int x, int y, unsigned char data);
+    // Connect again to the display through I2C
+    void reconnect(void);
 
-   // Draw the border of a rectangle at the given location
-   void drawRect(int x, int y, int width, int height);
+    /* Drawing functions */
 
-   // Fill the rectangle
-   void fillRect(int x, int y, int width, int height);
+    // Sets the color of all pixel operations
+    void setColor(SSD1306_COLOR color);
 
-   // Draw a bitmap with the given dimensions
-   void drawBitmap(int x, int y, int width, int height, const char *bitmap);
+    // Draw a pixel at given position
+    void setPixel(int16_t x, int16_t y);
 
-   // Draw an XBM image with the given dimensions
-   void drawXbm(int x, int y, int width, int height, const char *xbm);
+    // Draw the border of a rectangle at the given location
+    void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
-   // Sets the color of all pixel operations
-   void setColor(int color);
+    // Fill the rectangle
+    void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
-   // converts utf8 characters to extended ascii
-   // taken from http://playground.arduino.cc/Main/Utf8ascii
-   byte utf8ascii(byte ascii);
+    // Draw a line horizontally
+    void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
-   // converts utf8 string to extended ascii
-   // taken from http://playground.arduino.cc/Main/Utf8ascii
-   String utf8ascii(String s);
+    // Draw a lin vertically
+    void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
-   // Draws a string at the given location
-   void drawString(int x, int y, String text);
+    // Draw a bitmap in the internal image format
+    void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
 
-   // Draws a String with a maximum width at the given location.
-   // If the given String is wider than the specified width
-   // The text will be wrapped to the next line at a space or dash
-   void drawStringMaxWidth(int x, int y, int maxLineWidth, String text);
+    // Draw a XBM
+    void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char *xbm);
 
-   // Returns the width of the String with the current
-   // font settings
-   int getStringWidth(String text);
+    /* Text functions */
 
-   // Specifies relative to which anchor point
-   // the text is rendered. Available constants:
-   // TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT
-   void setTextAlignment(int textAlignment);
+    // Draws a string at the given location
+    void drawString(int16_t x, int16_t y, String text);
 
-   // Sets the current font. Available default fonts
-   // defined in SSD1306Fonts.h:
-   // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
-   void setFont(const char *fontData);
+    // Draws a String with a maximum width at the given location.
+    // If the given String is wider than the specified width
+    // The text will be wrapped to the next line at a space or dash
+    void drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, String text);
+
+    // Returns the width of the const char* with the current
+    // font settings
+    uint16_t getStringWidth(const char* text, uint16_t length);
+
+    // Specifies relative to which anchor point
+    // the text is rendered. Available constants:
+    // TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER_BOTH
+    void setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment);
+
+    // Sets the current font. Available default fonts
+    // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
+    void setFont(const char *fontData);
+
+    /* Display functions */
+
+    // Turn the display on
+    void displayOn(void);
+
+    // Turn the display offs
+    void displayOff(void);
+
+    // Inverted display mode
+    void invertDisplay(void);
+
+    // Normal display mode
+    void normalDisplay(void);
+
+    // Set display contrast
+    void setContrast(char contrast);
+
+    // Turn the display upside down
+    void flipScreenVertically();
+
+    // Write the buffer to the display memory
+    void display(void);
+
+    // Clear the local pixel buffer
+    void clear(void);
 
 };
