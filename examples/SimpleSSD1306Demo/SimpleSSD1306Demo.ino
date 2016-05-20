@@ -27,8 +27,7 @@
 #include "SSD1306.h"
 #include "images.h"
 
-#define DEMO_SPEED 500
-#define NUMBER_OF_DEMOS 5
+#define DEMO_DURATION 3000
 typedef void (*Demo)(void);
 
 // Initialize the OLED display on address 0x3c
@@ -54,7 +53,7 @@ void setup() {
 
 }
 
-void fontFaceDemo() {
+void drawFontFaceDemo() {
     // Font Demo1
     // create more fonts at http://oleddisplay.squix.ch/
     display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -66,13 +65,14 @@ void fontFaceDemo() {
     display.drawString(0, 26, "Hello world");
 }
 
-void textFlowDemo() {
+void drawTextFlowDemo() {
     display.setFont(ArialMT_Plain_10);
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
     display.drawStringMaxWidth(0, 0, 128, 
       "Lorem ipsum\n dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore." );
 }
 
-void textAlignmentDemo() {
+void drawTextAlignmentDemo() {
     // Text alignment demo
   display.setFont(ArialMT_Plain_10);
 
@@ -105,12 +105,9 @@ void drawRectDemo() {
 
     // Draw a line horizontally
     display.drawVerticalLine(40, 0, 20);
-
-    // this demo is too fast otherwise
-    delay(10);
 } 
 
-void circleDemo() {
+void drawCircleDemo() {
   for (int i=1; i < 8; i++) {
     display.setColor(WHITE);
     display.drawCircle(32, 32, i*3);
@@ -119,28 +116,44 @@ void circleDemo() {
     }
     display.fillCircle(96, 32, 32 - i* 3);
   }
-  delay(25);
 }
 
-void progressBarDemo() {
-  display.drawProgressBar(0, 32, 120, 16, (counter / 5) % 100);
+void drawProgressBarDemo() {
+  int progress = (counter / 5) % 100;
+  // draw the progress bar
+  display.drawProgressBar(0, 32, 120, 10, progress);
+
+  // draw the percentage as String
+  display.setTextAlignment(TEXT_ALIGN_CENTER);
+  display.drawString(64, 15, String(progress) + "%");
 }
 
-Demo demos[] = {progressBarDemo, /*fontFaceDemo, textFlowDemo, textAlignmentDemo, drawRectDemo, circleDemo*/};
+void drawImageDemo() {
+    // see http://blog.squix.org/2015/05/esp8266-nodemcu-how-to-create-xbm.html
+    // on how to create xbm files
+    display.drawXbm(34, 14, WiFi_Logo_width, WiFi_Logo_height, WiFi_Logo_bits);
+}
+
+Demo demos[] = {drawFontFaceDemo, drawTextFlowDemo, drawTextAlignmentDemo, drawRectDemo, drawCircleDemo, drawProgressBarDemo, drawImageDemo};
 int demoLength = (sizeof(demos) / sizeof(Demo));
+long timeSinceLastModeSwitch = 0;
 
 void loop() {
   // clear the display
   display.clear();
   // draw the current demo method
   demos[demoMode]();
+  
+  display.setTextAlignment(TEXT_ALIGN_RIGHT);
+  display.drawString(10, 128, String(millis()));
   // write the buffer to the display
   display.display();
 
-  if (counter % DEMO_SPEED == 0) {
+  if (millis() - timeSinceLastModeSwitch > DEMO_DURATION) {
     demoMode = (demoMode + 1)  % demoLength;
-    Serial.println(String(counter) + ": " + String(demoMode));
+    timeSinceLastModeSwitch = millis();
   }
   counter++;
+  delay(10);
 }
 
