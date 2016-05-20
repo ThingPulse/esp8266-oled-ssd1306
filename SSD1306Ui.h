@@ -231,7 +231,6 @@ class SSD1306Ui {
      */
     void setInactiveSymbol(const char* symbol);
 
-
     // Frame settings
 
     /**

@@ -89,7 +89,6 @@ void SSD1306Ui::setInactiveSymbol(const char* symbol) {
   this->inactiveSymbol = symbol;
 }
 
-
 // -/----- Frame settings -----\-
 void SSD1306Ui::setFrameAnimation(AnimationDirection dir) {
   this->frameAnimationDirection = dir;

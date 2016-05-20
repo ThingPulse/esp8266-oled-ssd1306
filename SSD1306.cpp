@@ -109,6 +109,44 @@ void SSD1306::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t heig
   }
 }
 
+void SSD1306::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
+  int16_t x = 0, y = radius;
+	int16_t dp = 1 - radius;
+	do {
+		if (dp < 0)
+			dp = dp + 2 * (++x) + 3;
+		else
+			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+
+		setPixel(x0 + x, y0 + y);     //For the 8 octants
+		setPixel(x0 - x, y0 + y);
+		setPixel(x0 + x, y0 - y);
+		setPixel(x0 - x, y0 - y);
+		setPixel(x0 + y, y0 + x);
+		setPixel(x0 - y, y0 + x);
+		setPixel(x0 + y, y0 - x);
+		setPixel(x0 - y, y0 - x);
+
+	} while (x < y);
+
+  setPixel(x0 + radius, y0);
+  setPixel(x0, y0 + radius);
+  setPixel(x0 - radius, y0);
+  setPixel(x0, y0 - radius);
+}
+
+void SSD1306::fillCircle(int16_t x, int16_t y, int16_t radius) {
+  int sqrRadius = radius * radius;
+  for (int xv = -radius; xv < radius; xv++) {
+    for (int yv = -radius; yv < radius; yv++) {
+      int currentSqrRadius = xv * xv + yv * yv;
+      if (currentSqrRadius <= sqrRadius) {
+        setPixel(x + xv, y + yv);
+      }
+    }
+  }
+}
+
 void SSD1306::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
   if (y < 0 || y >= DISPLAY_HEIGHT) { return; }
 
@@ -209,6 +247,23 @@ void SSD1306::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
       case INVERSE: *bufferPtr ^= drawBit; break;
     }
   }
+}
+
+void SSD1306::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress) {
+  uint16_t radius = height / 2;
+  uint16_t innerRadius = radius - 3;
+  setColor(WHITE);
+  drawCircle(x + radius, y + radius, radius);
+  drawRect(x+radius, y, width - 2*radius, height);
+  drawCircle(x + width - radius, y + radius, radius);
+  setColor(BLACK);
+  fillRect(x+radius, y+1, width - 2*radius + 1, height - 1);
+  setColor(WHITE);
+  uint16_t maxProgressWidth = (width - 2 * radius) * progress / 100;
+  for (uint16_t i = 0; i < maxProgressWidth; i++) {
+    fillCircle(x + radius + i, y + radius, innerRadius);
+  }
+
 }
 
 void SSD1306::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {

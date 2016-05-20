@@ -166,11 +166,22 @@ class SSD1306 {
     // Fill the rectangle
     void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
+    // Draw the border of a circle
+    void drawCircle(int16_t x, int16_t y, int16_t radius);
+
+    // Fill circle
+    void fillCircle(int16_t x, int16_t y, int16_t radius);
+
     // Draw a line horizontally
     void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
     // Draw a lin vertically
     void drawVerticalLine(int16_t x, int16_t y, int16_t length);
+
+    /**
+     * Draws a rounded progress bar with the outer dimensions given by width and height.
+     */
+    void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
 
     // Draw a bitmap in the internal image format
     void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
