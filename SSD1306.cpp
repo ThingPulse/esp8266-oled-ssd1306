@@ -135,16 +135,24 @@ void SSD1306::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
   setPixel(x0, y0 - radius);
 }
 
-void SSD1306::fillCircle(int16_t x, int16_t y, int16_t radius) {
-  int sqrRadius = radius * radius;
-  for (int xv = -radius; xv < radius; xv++) {
-    for (int yv = -radius; yv < radius; yv++) {
-      int currentSqrRadius = xv * xv + yv * yv;
-      if (currentSqrRadius <= sqrRadius) {
-        setPixel(x + xv, y + yv);
-      }
-    }
-  }
+void SSD1306::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
+  int16_t x = 0, y = radius;
+	int16_t dp = 1 - radius;
+	do {
+		if (dp < 0)
+			dp = dp + 2 * (++x) + 3;
+		else
+			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+
+    drawHorizontalLine(x0 - x, y0 - y, 2*x);
+    drawHorizontalLine(x0 - x, y0 + y, 2*x);
+    drawHorizontalLine(x0 - y, y0 - x, 2*y);
+    drawHorizontalLine(x0 - y, y0 + x, 2*y);
+
+
+	} while (x < y);
+  drawHorizontalLine(x0 - radius, y0, 2 * radius);
+
 }
 
 void SSD1306::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
