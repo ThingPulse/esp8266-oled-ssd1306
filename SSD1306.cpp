@@ -434,6 +434,14 @@ uint16_t SSD1306::getStringWidth(const char* text, uint16_t length) {
   return max(maxWidth, stringWidth);
 }
 
+uint16_t SSD1306::getStringWidth(String strUser) {
+  char* text = utf8ascii(strUser);
+  uint16_t length = strlen(text);
+  uint16_t width = getStringWidth(text, length);
+  free(text);
+  return width;
+}
+
 void SSD1306::setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment) {
   this->textAlignment = textAlignment;
 }
