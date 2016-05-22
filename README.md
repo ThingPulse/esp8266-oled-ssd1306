@@ -1,3 +1,5 @@
+Build Status: [![Build Status](https://travis-ci.org/squix78/esp8266-oled-ssd1306.svg?branch=dev-branch-3.0.0)](https://travis-ci.org/squix78/esp8266-oled-ssd1306)
+
 # esp8266-oled-ssd1306
 
 This is a driver for the SSD1306 based 128x64 pixel OLED display running on the Arduino/ESP8266 platform.
