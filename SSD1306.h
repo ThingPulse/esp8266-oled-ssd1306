@@ -91,6 +91,10 @@
 #define SETVCOMDETECT 0xDB
 #define SWITCHCAPVCC 0x2
 
+#ifndef _swap_int16_t
+#define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
+#endif
+
 enum SSD1306_COLOR {
   BLACK = 0,
   WHITE = 1,
@@ -159,6 +163,9 @@ class SSD1306 {
 
     // Draw a pixel at given position
     void setPixel(int16_t x, int16_t y);
+    
+    // Draw a line from position 0 to position 1
+    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 
     // Draw the border of a rectangle at the given location
     void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);

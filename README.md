@@ -15,6 +15,7 @@ The SSD1306Demo is a very comprehensive example demonstrating the most important
 ## Features
 
 * Draw pixels at given coordinates
+* Draw lines from given coordinates to given coordinates
 * Draw or fill a rectangle with given dimensions
 * Draw Text at given coordinates:
  * Define Alignment: Left, Right and Center
@@ -88,6 +89,9 @@ void setColor(SSD1306_COLOR color);
 
 // Draw a pixel at given position
 void setPixel(int16_t x, int16_t y);
+
+// Draw a line from position 0 to position 1
+void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 
 // Draw the border of a rectangle at the given location
 void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);
