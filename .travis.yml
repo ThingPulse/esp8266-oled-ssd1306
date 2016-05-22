@@ -9,8 +9,8 @@ cache:
         - "~/.platformio"
 
 env:
-    - PLATFORMIO_CI_SRC=examples/SSD1306UiDemo/SSD1306UiDemo.ino
-    - PLATFORMIO_CI_SRC=examples/SSD1306SimpleDemo/SSD1306SimpleDemo.ino
+    - PLATFORMIO_CI_SRC=examples/SSD1306UiDemo
+    - PLATFORMIO_CI_SRC=examples/SSD1306SimpleDemo
 
 
 install:
