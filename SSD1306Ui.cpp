@@ -96,6 +96,7 @@ void SSD1306Ui::setFrameAnimation(AnimationDirection dir) {
 void SSD1306Ui::setFrames(FrameCallback* frameFunctions, uint8_t frameCount) {
   this->frameCount     = frameCount;
   this->frameFunctions = frameFunctions;
+  this->state.currentFrame = 0;
 }
 
 // -/----- Overlays ------\-
