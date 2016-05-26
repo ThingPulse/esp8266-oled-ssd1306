@@ -28,9 +28,21 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Wire.h>
-
 #include "SSD1306Fonts.h"
+
+#ifdef SSD1306_USE_BRZO
+  #include "brzo_i2c.h"
+  // Brzo can handle 1Mhz in ESP8266 160Mhz mode
+  // and 800KHz in 80Mhz mode
+  #if F_CPU == 160000000L
+    #define BRZO_I2C_SPEED 1000
+  #else
+    #define BRZO_I2C_SPEED 800
+  #endif
+#else // Default use Wire
+  #include <Wire.h>
+#endif
+
 
 //#define DEBUG_SSD1306(...) Serial.printf( __VA_ARGS__ )
 

@@ -50,14 +50,8 @@ bool SSD1306::init() {
   }
   #endif
 
-  Wire.begin(this->sda, this->sdc);
-
-  // Let's use ~700khz if ESP8266 is in 160Mhz mode
-  // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
-  Wire.setClock(700000);
-
+  reconnect();
   sendInitCommands();
-
   resetDisplay();
 
   return true;
@@ -72,14 +66,15 @@ void SSD1306::end() {
 
 void SSD1306::resetDisplay(void) {
   clear();
-  #ifdef SSD1306_DOUBLE_BUFFER
-  memset(buffer_back, 1, DISPLAY_BUFFER_SIZE);
-  #endif
   display();
 }
 
 void SSD1306::reconnect() {
-  Wire.begin(this->sda, this->sdc);
+  #ifdef SSD1306_USE_BRZO
+    brzo_i2c_setup(this->sda, this->sdc, 2000);
+  #else
+    Wire.begin(this->sda, this->sdc);
+  #endif
 }
 
 void SSD1306::setColor(SSD1306_COLOR color) {
@@ -518,100 +513,155 @@ void SSD1306::flipScreenVertically() {
 
 void SSD1306::display(void) {
   #ifdef SSD1306_DOUBLE_BUFFER
-  uint16_t minBoundY = 8;
-  uint16_t maxBoundY = 0;
+    uint16_t minBoundY = ~0;
+    uint16_t maxBoundY = 0;
 
-  uint16_t minBoundX = 129;
-  uint16_t maxBoundX = 0;
+    uint16_t minBoundX = ~0;
+    uint16_t maxBoundX = 0;
 
-  uint16_t x, y;
+    uint16_t x, y;
 
-  // Calculate the Y bounding box of changes
-  // and copy buffer[pos] to buffer_back[pos];
-  for (y = 0; y < 8; y++) {
-     for (x = 0; x < DISPLAY_WIDTH; x++) {
-      uint16_t pos = x + y * DISPLAY_WIDTH;
-      if (buffer[pos] != buffer_back[pos]) {
-        minBoundY = min(minBoundY, y);
-        maxBoundY = max(maxBoundY, y);
-        minBoundX = min(minBoundX, x);
-        maxBoundX = max(maxBoundX, x);
-      }
-      buffer_back[pos] = buffer[pos];
+    // Calculate the Y bounding box of changes
+    // and copy buffer[pos] to buffer_back[pos];
+    for (y = 0; y < 8; y++) {
+      for (x = 0; x < DISPLAY_WIDTH; x++) {
+       uint16_t pos = x + y * DISPLAY_WIDTH;
+       if (buffer[pos] != buffer_back[pos]) {
+         minBoundY = min(minBoundY, y);
+         maxBoundY = max(maxBoundY, y);
+         minBoundX = min(minBoundX, x);
+         maxBoundX = max(maxBoundX, x);
+       }
+       buffer_back[pos] = buffer[pos];
+     }
+     yield();
     }
-    yield();
-  }
 
-  // If the minBoundY wasn't updated
-  // we can savely assume that buffer_back[pos] == buffer[pos]
-  // holdes true for all values of pos
-  if (minBoundY == 8) return;
+    // If the minBoundY wasn't updated
+    // we can savely assume that buffer_back[pos] == buffer[pos]
+    // holdes true for all values of pos
+    if (minBoundY == ~0) return;
 
-  sendCommand(COLUMNADDR);
-  sendCommand(minBoundX);
-  sendCommand(maxBoundX);
+    sendCommand(COLUMNADDR);
+    sendCommand(minBoundX);
+    sendCommand(maxBoundX);
 
-  sendCommand(PAGEADDR);
-  sendCommand(minBoundY);
-  sendCommand(maxBoundY);
+    sendCommand(PAGEADDR);
+    sendCommand(minBoundY);
+    sendCommand(maxBoundY);
 
-  byte k = 0;
-  for (y = minBoundY; y <= maxBoundY; y++) {
-      for (x = minBoundX; x <= maxBoundX; x++) {
-          if (k == 0) {
-            Wire.beginTransmission(this->i2cAddress);
-            Wire.write(0x40);
+    byte k = 0;
+    #ifdef SSD1306_USE_BRZO
+      uint8_t sendBuffer[17];
+      sendBuffer[0] = 0x40;
+      brzo_i2c_start_transaction(this->i2cAddress, BRZO_I2C_SPEED);
+      for (y = minBoundY; y <= maxBoundY; y++) {
+          for (x = minBoundX; x <= maxBoundX; x++) {
+              k++;
+              sendBuffer[k] = buffer[x + y * DISPLAY_WIDTH];
+              if (k == 16)  {
+                brzo_i2c_write(sendBuffer, 17, true);
+                k = 0;
+              }
           }
-          Wire.write(buffer[x + y * DISPLAY_WIDTH]);
-          k++;
-          if (k == 16)  {
-            Wire.endTransmission();
-            k = 0;
-          }
+          yield();
       }
-      yield();
-  }
+      brzo_i2c_write(sendBuffer, k + 1, true);
+      brzo_i2c_end_transaction();
+    #else
+      for (y = minBoundY; y <= maxBoundY; y++) {
+          for (x = minBoundX; x <= maxBoundX; x++) {
+              if (k == 0) {
+                Wire.beginTransmission(this->i2cAddress);
+                Wire.write(0x40);
+              }
+              Wire.write(buffer[x + y * DISPLAY_WIDTH]);
+              k++;
+              if (k == 16)  {
+                Wire.endTransmission();
+                k = 0;
+              }
+          }
+          yield();
+      }
 
-  if (k != 0) {
-    Wire.endTransmission();
-  }
+      if (k != 0) {
+        Wire.endTransmission();
+      }
+    #endif
 
   #else
   // No double buffering
-  sendCommand(COLUMNADDR);
-  sendCommand(0x0);
-  sendCommand(0x7F);
+    sendCommand(COLUMNADDR);
+    sendCommand(0x0);
+    sendCommand(0x7F);
 
-  sendCommand(PAGEADDR);
-  sendCommand(0x0);
-  sendCommand(0x7);
+    sendCommand(PAGEADDR);
+    sendCommand(0x0);
+    sendCommand(0x7);
 
-  for (uint16_t i=0; i < DISPLAY_BUFFER_SIZE; i++) {
-    Wire.beginTransmission(this->i2cAddress);
-    Wire.write(0x40);
-    for (uint8_t x = 0; x < 16; x++) {
-      Wire.write(buffer[i]);
-      i++;
-    }
-    i--;
-    Wire.endTransmission();
-  }
+    #ifdef SSD1306_USE_BRZO
+      uint8_t sendBuffer[17];
+      sendBuffer[0] = 0x40;
+      brzo_i2c_start_transaction(this->i2cAddress, BRZO_I2C_SPEED);
+      for (uint16_t i=0; i<DISPLAY_BUFFER_SIZE; i++) {
+        for (uint8_t x=1; x<17; x++) {
+          sendBuffer[x] = buffer[i];
+          i++;
+        }
+        i--;
+        brzo_i2c_write(sendBuffer,  17,  true);
+        yield();
+      }
+      brzo_i2c_end_transaction();
+    #else
+      byte k = 0;
+      for (y = minBoundY; y <= maxBoundY; y++) {
+          for (x = minBoundX; x <= maxBoundX; x++) {
+              if (k == 0) {
+                Wire.beginTransmission(this->i2cAddress);
+                Wire.write(0x40);
+              }
+              Wire.write(buffer[x + y * DISPLAY_WIDTH]);
+              k++;
+              if (k == 16)  {
+                Wire.endTransmission();
+                k = 0;
+              }
+          }
+          yield();
+      }
+
+      if (k != 0) {
+        Wire.endTransmission();
+      }
+    #endif
   #endif
 }
 
 
 void SSD1306::clear(void) {
   memset(buffer, 0, DISPLAY_BUFFER_SIZE);
+  #ifdef SSD1306_DOUBLE_BUFFER
+  memset(buffer_back, 1, DISPLAY_BUFFER_SIZE);
+  #endif
 }
 
 
 // Private functions
 
 void SSD1306::sendCommand(unsigned char com) {
-  Wire.beginTransmission(this->i2cAddress);  //begin transmitting
-  Wire.write(0x80);                          //command mode
-  Wire.write(com);
-  Wire.endTransmission();                    // stop transmitting
+  #ifdef SSD1306_USE_BRZO
+    uint8_t command[2] = {0x80 /* command mode */, com};
+    brzo_i2c_start_transaction(this->i2cAddress, BRZO_I2C_SPEED);
+    brzo_i2c_write(command, 2, true);
+    brzo_i2c_end_transaction();
+  #else
+    Wire.beginTransmission(this->i2cAddress);  //begin transmitting
+    Wire.write(0x80);                          //command mode
+    Wire.write(com);
+    Wire.endTransmission();                    // stop transmitting
+  #endif
 }
 
 void SSD1306::sendInitCommands(void) {
