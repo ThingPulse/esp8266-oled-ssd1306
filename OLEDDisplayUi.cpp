@@ -95,22 +95,20 @@ void OLEDDisplayUi::setFrameAnimation(AnimationDirection dir) {
   this->frameAnimationDirection = dir;
 }
 void OLEDDisplayUi::setFrames(FrameCallback* frameFunctions, uint8_t frameCount) {
-  this->frameCount     = frameCount;
   this->frameFunctions = frameFunctions;
+  this->frameCount     = frameCount;
+  this->resetState();
 }
 
 // -/----- Overlays ------\-
 void OLEDDisplayUi::setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount){
-  this->overlayCount     = overlayCount;
   this->overlayFunctions = overlayFunctions;
+  this->overlayCount     = overlayCount;
 }
 
 // -/----- Loading Process -----\-
 
 void OLEDDisplayUi::runLoadingProcess(LoadingStage* stages, uint8_t stagesCount) {
-  display->setTextAlignment(TEXT_ALIGN_CENTER);
-  display->setFont(ArialMT_Plain_10);
-
   uint8_t progress = 0;
   uint8_t increment = 100 / stagesCount;
 
@@ -204,6 +202,14 @@ void OLEDDisplayUi::tick() {
   this->drawIndicator();
   this->drawOverlays();
   this->display->display();
+}
+
+void OLEDDisplayUi::resetState() {
+  this->state.lastUpdate = 0;
+  this->state.ticksSinceLastStateSwitch = 0;
+  this->state.frameState = FIXED;
+  this->state.currentFrame = 0;
+  this->state.isIndicatorDrawen = true;
 }
 
 void OLEDDisplayUi::drawFrame(){
