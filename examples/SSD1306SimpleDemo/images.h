@@ -26,25 +26,3 @@ const char WiFi_Logo_bits[] PROGMEM = {
   0x00, 0x00, 0x80, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFC,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   };
-
-const char activeSymbol[] PROGMEM = {
-    B00000000,
-    B00000000,
-    B00011000,
-    B00100100,
-    B01000010,
-    B01000010,
-    B00100100,
-    B00011000
-};
-
-const char inactiveSymbol[] PROGMEM = {
-    B00000000,
-    B00000000,
-    B00000000,
-    B00000000,
-    B00011000,
-    B00011000,
-    B00000000,
-    B00000000
-};

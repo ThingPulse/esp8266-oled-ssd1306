@@ -29,7 +29,7 @@
 #define SSD1306Brzo_h
 
 #include "OLEDDisplay.h"
-#include "brzo_i2c.h"
+#include <brzo_i2c.h>
 
 #if F_CPU == 160000000L
   #define BRZO_I2C_SPEED 1000

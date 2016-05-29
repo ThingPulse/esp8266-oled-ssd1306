@@ -24,7 +24,6 @@
  */
 
 #include <Wire.h>
-#include "images.h"
 
 // Include the correct display library
 // For a connection via I2C using Wire include
@@ -32,13 +31,17 @@
 // For a connection via I2C using brzo_i2c (must be installed) include
 // #include "SSD1306Brzo.h"
 // For a connection via SPI include
+// #include <SPI.h>
 // #include "SSD1306Spi.h"
+
+// Include custom images
+#include "images.h"
 
 // Use the corresponding display class:
 
 // Initialize the OLED display using SPI
-// D5 -> SCL
-// D7 -> SDA
+// D5 -> CLK
+// D7 -> MOSI (DOUT)
 // D0 -> RES
 // D2 -> DC
 // D8 -> CS
