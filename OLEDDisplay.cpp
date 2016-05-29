@@ -25,63 +25,54 @@
  * Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
  */
 
-#include "SSD1306.h"
+#include "OLEDDisplay.h"
 
-
-SSD1306::SSD1306(uint8_t i2cAddress, uint8_t sda, uint8_t sdc) {
-  this->i2cAddress = i2cAddress;
-  this->sda = sda;
-  this->sdc = sdc;
-}
-
-bool SSD1306::init() {
+bool OLEDDisplay::init() {
+  if (!this->connect()) {
+    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Can't establish connection to display\n");
+    return false;
+  }
   this->buffer = (uint8_t*) malloc(sizeof(uint8_t) * DISPLAY_BUFFER_SIZE);
   if(!this->buffer) {
-    DEBUG_SSD1306("[SSD1306][init] Not enough memory to create display\n");
+    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
     return false;
   }
 
-  #ifdef SSD1306_DOUBLE_BUFFER
+  #ifdef OLEDDISPLAY_DOUBLE_BUFFER
   this->buffer_back = (uint8_t*) malloc(sizeof(uint8_t) * DISPLAY_BUFFER_SIZE);
   if(!this->buffer_back) {
-    DEBUG_SSD1306("[SSD1306][init] Not enough memory to create back buffer\n");
+    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
     free(this->buffer);
     return false;
   }
   #endif
 
-  reconnect();
   sendInitCommands();
   resetDisplay();
 
   return true;
 }
 
-void SSD1306::end() {
+void OLEDDisplay::end() {
   if (this->buffer) free(this->buffer);
-  #ifdef SSD1306_DOUBLE_BUFFER
+  #ifdef OLEDDISPLAY_DOUBLE_BUFFER
   if (this->buffer_back) free(this->buffer_back);
   #endif
 }
 
-void SSD1306::resetDisplay(void) {
+void OLEDDisplay::resetDisplay(void) {
   clear();
+  #ifdef OLEDDISPLAY_DOUBLE_BUFFER
+  memset(buffer_back, 1, DISPLAY_BUFFER_SIZE);
+  #endif
   display();
 }
 
-void SSD1306::reconnect() {
-  #ifdef SSD1306_USE_BRZO
-    brzo_i2c_setup(this->sda, this->sdc, 2000);
-  #else
-    Wire.begin(this->sda, this->sdc);
-  #endif
-}
-
-void SSD1306::setColor(SSD1306_COLOR color) {
+void OLEDDisplay::setColor(OLEDDISPLAY_COLOR color) {
   this->color = color;
 }
 
-void SSD1306::setPixel(int16_t x, int16_t y) {
+void OLEDDisplay::setPixel(int16_t x, int16_t y) {
   if (x >= 0 && x < 128 && y >= 0 && y < 64) {
     switch (color) {
       case WHITE:   buffer[x + (y / 8) * DISPLAY_WIDTH] |=  (1 << (y & 7)); break;
@@ -92,7 +83,7 @@ void SSD1306::setPixel(int16_t x, int16_t y) {
 }
 
 // Bresenham's algorithm - thx wikipedia and Adafruit_GFX
-void SSD1306::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
+void OLEDDisplay::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
   int16_t steep = abs(y1 - y0) > abs(x1 - x0);
   if (steep) {
     _swap_int16_t(x0, y0);
@@ -131,20 +122,20 @@ void SSD1306::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
   }
 }
 
-void SSD1306::drawRect(int16_t x, int16_t y, int16_t width, int16_t height) {
+void OLEDDisplay::drawRect(int16_t x, int16_t y, int16_t width, int16_t height) {
   drawHorizontalLine(x, y, width);
   drawVerticalLine(x, y, height);
   drawVerticalLine(x + width, y, height);
   drawHorizontalLine(x, y + height, width);
 }
 
-void SSD1306::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height) {
+void OLEDDisplay::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height) {
   for (int16_t i = yMove; i < yMove + height; i++) {
     drawHorizontalLine(xMove, i, width);
   }
 }
 
-void SSD1306::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
+void OLEDDisplay::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
   int16_t x = 0, y = radius;
 	int16_t dp = 1 - radius;
 	do {
@@ -170,7 +161,7 @@ void SSD1306::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
   setPixel(x0, y0 - radius);
 }
 
-void SSD1306::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
+void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
   int16_t x = 0, y = radius;
 	int16_t dp = 1 - radius;
 	do {
@@ -190,7 +181,7 @@ void SSD1306::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
 
 }
 
-void SSD1306::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
+void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
   if (y < 0 || y >= DISPLAY_HEIGHT) { return; }
 
   if (x < 0) {
@@ -223,7 +214,7 @@ void SSD1306::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
   }
 }
 
-void SSD1306::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
+void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
   if (y < 0 || y > DISPLAY_HEIGHT) return;
 
   if (x < 0) {
@@ -292,7 +283,7 @@ void SSD1306::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
   }
 }
 
-void SSD1306::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress) {
+void OLEDDisplay::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress) {
   uint16_t radius = height / 2;
   uint16_t innerRadius = radius - 3;
   setColor(WHITE);
@@ -309,11 +300,11 @@ void SSD1306::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t h
 
 }
 
-void SSD1306::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {
+void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {
   drawInternal(xMove, yMove, width, height, image, 0, 0);
 }
 
-void SSD1306::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *xbm) {
+void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *xbm) {
   int16_t widthInXbm = (width + 7) / 8;
   uint8_t data;
 
@@ -332,7 +323,7 @@ void SSD1306::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t heigh
   }
 }
 
-void SSD1306::drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth) {
+void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth) {
   uint8_t textHeight       = pgm_read_byte(fontData + HEIGHT_POS);
   uint8_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t sizeOfJumpTable = pgm_read_byte(fontData + CHAR_NUM_POS)  * JUMPTABLE_BYTES;
@@ -383,7 +374,7 @@ void SSD1306::drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint1
 }
 
 
-void SSD1306::drawString(int16_t xMove, int16_t yMove, String strUser) {
+void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, String strUser) {
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
 
   // char* text must be freed!
@@ -412,7 +403,7 @@ void SSD1306::drawString(int16_t xMove, int16_t yMove, String strUser) {
   free(text);
 }
 
-void SSD1306::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineWidth, String strUser) {
+void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineWidth, String strUser) {
   uint16_t firstChar  = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
 
@@ -452,7 +443,7 @@ void SSD1306::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineW
   free(text);
 }
 
-uint16_t SSD1306::getStringWidth(const char* text, uint16_t length) {
+uint16_t OLEDDisplay::getStringWidth(const char* text, uint16_t length) {
   uint16_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
 
   uint16_t stringWidth = 0;
@@ -469,7 +460,7 @@ uint16_t SSD1306::getStringWidth(const char* text, uint16_t length) {
   return max(maxWidth, stringWidth);
 }
 
-uint16_t SSD1306::getStringWidth(String strUser) {
+uint16_t OLEDDisplay::getStringWidth(String strUser) {
   char* text = utf8ascii(strUser);
   uint16_t length = strlen(text);
   uint16_t width = getStringWidth(text, length);
@@ -477,194 +468,46 @@ uint16_t SSD1306::getStringWidth(String strUser) {
   return width;
 }
 
-void SSD1306::setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment) {
+void OLEDDisplay::setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment) {
   this->textAlignment = textAlignment;
 }
 
-void SSD1306::setFont(const char *fontData) {
+void OLEDDisplay::setFont(const char *fontData) {
   this->fontData = fontData;
 }
 
-void SSD1306::displayOn(void) {
+void OLEDDisplay::displayOn(void) {
   sendCommand(DISPLAYON);
 }
 
-void SSD1306::displayOff(void) {
+void OLEDDisplay::displayOff(void) {
   sendCommand(DISPLAYOFF);
 }
 
-void SSD1306::invertDisplay(void) {
+void OLEDDisplay::invertDisplay(void) {
   sendCommand(INVERTDISPLAY);
 }
 
-void SSD1306::normalDisplay(void) {
+void OLEDDisplay::normalDisplay(void) {
   sendCommand(NORMALDISPLAY);
 }
 
-void SSD1306::setContrast(char contrast) {
+void OLEDDisplay::setContrast(char contrast) {
   sendCommand(SETCONTRAST);
   sendCommand(contrast);
 }
 
-void SSD1306::flipScreenVertically() {
-  sendCommand(SEGREMAP | 0x01);      //Rotate screen 180 deg
+void OLEDDisplay::flipScreenVertically() {
+  sendCommand(SEGREMAP | 0x01);
   sendCommand(COMSCANDEC);           //Rotate screen 180 Deg
 }
 
-void SSD1306::display(void) {
-  #ifdef SSD1306_DOUBLE_BUFFER
-    uint16_t minBoundY = ~0;
-    uint16_t maxBoundY = 0;
-
-    uint16_t minBoundX = ~0;
-    uint16_t maxBoundX = 0;
-
-    uint16_t x, y;
-
-    // Calculate the Y bounding box of changes
-    // and copy buffer[pos] to buffer_back[pos];
-    for (y = 0; y < 8; y++) {
-      for (x = 0; x < DISPLAY_WIDTH; x++) {
-       uint16_t pos = x + y * DISPLAY_WIDTH;
-       if (buffer[pos] != buffer_back[pos]) {
-         minBoundY = min(minBoundY, y);
-         maxBoundY = max(maxBoundY, y);
-         minBoundX = min(minBoundX, x);
-         maxBoundX = max(maxBoundX, x);
-       }
-       buffer_back[pos] = buffer[pos];
-     }
-     yield();
-    }
-
-    // If the minBoundY wasn't updated
-    // we can savely assume that buffer_back[pos] == buffer[pos]
-    // holdes true for all values of pos
-    if (minBoundY == ~0) return;
-
-    sendCommand(COLUMNADDR);
-    sendCommand(minBoundX);
-    sendCommand(maxBoundX);
-
-    sendCommand(PAGEADDR);
-    sendCommand(minBoundY);
-    sendCommand(maxBoundY);
-
-    byte k = 0;
-    #ifdef SSD1306_USE_BRZO
-      uint8_t sendBuffer[17];
-      sendBuffer[0] = 0x40;
-      brzo_i2c_start_transaction(this->i2cAddress, BRZO_I2C_SPEED);
-      for (y = minBoundY; y <= maxBoundY; y++) {
-          for (x = minBoundX; x <= maxBoundX; x++) {
-              k++;
-              sendBuffer[k] = buffer[x + y * DISPLAY_WIDTH];
-              if (k == 16)  {
-                brzo_i2c_write(sendBuffer, 17, true);
-                k = 0;
-              }
-          }
-          yield();
-      }
-      brzo_i2c_write(sendBuffer, k + 1, true);
-      brzo_i2c_end_transaction();
-    #else
-      for (y = minBoundY; y <= maxBoundY; y++) {
-          for (x = minBoundX; x <= maxBoundX; x++) {
-              if (k == 0) {
-                Wire.beginTransmission(this->i2cAddress);
-                Wire.write(0x40);
-              }
-              Wire.write(buffer[x + y * DISPLAY_WIDTH]);
-              k++;
-              if (k == 16)  {
-                Wire.endTransmission();
-                k = 0;
-              }
-          }
-          yield();
-      }
-
-      if (k != 0) {
-        Wire.endTransmission();
-      }
-    #endif
-
-  #else
-  // No double buffering
-    sendCommand(COLUMNADDR);
-    sendCommand(0x0);
-    sendCommand(0x7F);
-
-    sendCommand(PAGEADDR);
-    sendCommand(0x0);
-    sendCommand(0x7);
-
-    #ifdef SSD1306_USE_BRZO
-      uint8_t sendBuffer[17];
-      sendBuffer[0] = 0x40;
-      brzo_i2c_start_transaction(this->i2cAddress, BRZO_I2C_SPEED);
-      for (uint16_t i=0; i<DISPLAY_BUFFER_SIZE; i++) {
-        for (uint8_t x=1; x<17; x++) {
-          sendBuffer[x] = buffer[i];
-          i++;
-        }
-        i--;
-        brzo_i2c_write(sendBuffer,  17,  true);
-        yield();
-      }
-      brzo_i2c_end_transaction();
-    #else
-      byte k = 0;
-      for (y = minBoundY; y <= maxBoundY; y++) {
-          for (x = minBoundX; x <= maxBoundX; x++) {
-              if (k == 0) {
-                Wire.beginTransmission(this->i2cAddress);
-                Wire.write(0x40);
-              }
-              Wire.write(buffer[x + y * DISPLAY_WIDTH]);
-              k++;
-              if (k == 16)  {
-                Wire.endTransmission();
-                k = 0;
-              }
-          }
-          yield();
-      }
-
-      if (k != 0) {
-        Wire.endTransmission();
-      }
-    #endif
-  #endif
-}
-
-
-void SSD1306::clear(void) {
+void OLEDDisplay::clear(void) {
   memset(buffer, 0, DISPLAY_BUFFER_SIZE);
-  #ifdef SSD1306_DOUBLE_BUFFER
-  memset(buffer_back, 1, DISPLAY_BUFFER_SIZE);
-  #endif
 }
-
 
 // Private functions
-
-void SSD1306::sendCommand(unsigned char com) {
-  #ifdef SSD1306_USE_BRZO
-    uint8_t command[2] = {0x80 /* command mode */, com};
-    brzo_i2c_start_transaction(this->i2cAddress, BRZO_I2C_SPEED);
-    brzo_i2c_write(command, 2, true);
-    brzo_i2c_end_transaction();
-  #else
-    Wire.beginTransmission(this->i2cAddress);  //begin transmitting
-    Wire.write(0x80);                          //command mode
-    Wire.write(com);
-    Wire.endTransmission();                    // stop transmitting
-  #endif
-}
-
-void SSD1306::sendInitCommands(void) {
+void OLEDDisplay::sendInitCommands(void) {
   sendCommand(DISPLAYOFF);
   sendCommand(SETDISPLAYCLOCKDIV);
   sendCommand(0xF0); // Increase speed of the display max ~96Hz
@@ -691,7 +534,7 @@ void SSD1306::sendInitCommands(void) {
   sendCommand(DISPLAYON);
 }
 
-void SSD1306::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) {
+void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) {
   if (width < 0 || height < 0) return;
   if (yMove + height < 0 || yMove > DISPLAY_HEIGHT)  return;
   if (xMove + width  < 0 || xMove > DISPLAY_WIDTH)   return;
@@ -760,7 +603,7 @@ void SSD1306::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t 
 }
 
 // Code form http://playground.arduino.cc/Main/Utf8ascii
-uint8_t SSD1306::utf8ascii(byte ascii) {
+uint8_t OLEDDisplay::utf8ascii(byte ascii) {
   static uint8_t LASTCHAR;
 
   if ( ascii < 128 ) { // Standard ASCII-set 0..0x7F handling
@@ -781,14 +624,14 @@ uint8_t SSD1306::utf8ascii(byte ascii) {
 }
 
 // You need to free the char!
-char* SSD1306::utf8ascii(String str) {
+char* OLEDDisplay::utf8ascii(String str) {
   uint16_t k = 0;
   uint16_t length = str.length() + 1;
 
   // Copy the string into a char array
   char* s = (char*) malloc(length * sizeof(char));
   if(!s) {
-    DEBUG_SSD1306("[SSD1306][utf8ascii] Can't allocate another char array. Drop support for UTF-8.\n");
+    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][utf8ascii] Can't allocate another char array. Drop support for UTF-8.\n");
     return (char*) str.c_str();
   }
   str.toCharArray(s, length);
