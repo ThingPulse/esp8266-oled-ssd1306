@@ -16,7 +16,7 @@ env:
 
 install:
     - pip install -U platformio
-    - if [[ $PLATFORMIO_CI_SRC=examples/SSD1306SimpleDemo ]]; then platformio lib install 44 fi
+    - platformio lib install 44
 
 script:
     - platformio ci --lib="." --board=nodemcuv2
