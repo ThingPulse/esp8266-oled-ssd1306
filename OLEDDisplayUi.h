@@ -24,15 +24,16 @@
  *
  */
 
-#pragma once
+#ifndef OLEDDISPLAYUI_h
+#define OLEDDISPLAYUI_h
 
 #include <Arduino.h>
-#include "SSD1306.h"
+#include "OLEDDisplay.h"
 
-//#define DEBUG_SSD1306Ui(...) Serial.printf( __VA_ARGS__ )
+//#define DEBUG_OLEDDISPLAYUI(...) Serial.printf( __VA_ARGS__ )
 
-#ifndef DEBUG_SSD1306Ui
-#define DEBUG_SSD1306Ui(...)
+#ifndef DEBUG_OLEDDISPLAYUI
+#define DEBUG_OLEDDISPLAYUI(...)
 #endif
 
 enum AnimationDirection {
@@ -70,7 +71,7 @@ const char ANIMATION_inactiveSymbol[] PROGMEM = {
 
 
 // Structure of the UiState
-struct SSD1306UiState {
+struct OLEDDisplayUiState {
   u_int64_t     lastUpdate                = 0;
   uint16_t      ticksSinceLastStateSwitch = 0;
 
@@ -93,13 +94,13 @@ struct LoadingStage {
   void (*callback)();
 };
 
-typedef void (*FrameCallback)(SSD1306 *display,  SSD1306UiState* state, int16_t x, int16_t y);
-typedef void (*OverlayCallback)(SSD1306 *display,  SSD1306UiState* state);
-typedef void (*LoadingDrawFunction)(SSD1306 *display, LoadingStage* stage, uint8_t progress);
+typedef void (*FrameCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y);
+typedef void (*OverlayCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state);
+typedef void (*LoadingDrawFunction)(OLEDDisplay *display, LoadingStage* stage, uint8_t progress);
 
-class SSD1306Ui {
+class OLEDDisplayUi {
   private:
-    SSD1306             *display;
+    OLEDDisplay             *display;
 
     // Symbols for the Indicator
     IndicatorPosition   indicatorPosition         = BOTTOM;
@@ -133,16 +134,13 @@ class SSD1306Ui {
     uint8_t                indicatorDrawState        = 1;
 
     // Loading screen
-    LoadingDrawFunction loadingDrawFunction       = [](SSD1306 *display, LoadingStage* stage, uint8_t progress) {
+    LoadingDrawFunction loadingDrawFunction       = [](OLEDDisplay *display, LoadingStage* stage, uint8_t progress) {
       display->drawString(64, 20, stage->process);
-
-      // Draw a progress bar.
-      display->drawRect(4, 32, 120, 8);
-      display->fillRect(4 + 2, 32 + 2, (120 * ((float)progress / 100)) - 3, 8 - 3);
+      display->drawProgressBar(4, 32, 120, 8, progress);
     };
 
     // UI State
-    SSD1306UiState      state;
+    OLEDDisplayUiState      state;
 
     // Bookeeping for update
     uint8_t             updateInterval            = 33;
@@ -155,7 +153,7 @@ class SSD1306Ui {
 
   public:
 
-    SSD1306Ui(SSD1306 *display);
+    OLEDDisplayUi(OLEDDisplay *display);
 
     /**
      * Initialise the display
@@ -231,6 +229,7 @@ class SSD1306Ui {
      */
     void setInactiveSymbol(const char* symbol);
 
+
     // Frame settings
 
     /**
@@ -270,7 +269,8 @@ class SSD1306Ui {
     void previousFrame();
 
     // State Info
-    SSD1306UiState* getUiState();
+    OLEDDisplayUiState* getUiState();
 
     int8_t update();
 };
+#endif

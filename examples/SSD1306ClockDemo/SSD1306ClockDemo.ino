@@ -26,13 +26,38 @@
 
 #include <Wire.h>
 #include <TimeLib.h>
-#include "SSD1306.h"
-#include "SSD1306Ui.h"
 #include "images.h"
 
-// Initialize the OLED display on address 0x3c
-SSD1306   display(0x3c, 5, 4);
-SSD1306Ui ui     ( &display );
+// Include the correct display library
+// For a connection via I2C using Wire include
+#include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
+// For a connection via I2C using brzo_i2c (must be installed) include
+// #include "SSD1306Brzo.h"
+// For a connection via SPI include
+// #include "SSD1306Spi.h"
+
+// Include the UI lib
+#include "OLEDDisplayUi.h"
+
+// Use the corresponding display class:
+
+// Initialize the OLED display using SPI
+// D5 -> SCL
+// D7 -> SDA
+// D0 -> RES
+// D2 -> DC
+// D8 -> CS
+// SSD1306Spi        display(D0, D2, D8);
+
+// Initialize the OLED display using brzo_i2c
+// D3 -> SDA
+// D4 -> SCL
+// SSD1306Brzo display(0x3c, D3, D5);
+
+// Initialize the OLED display using Wire library
+SSD1306  display(0x3c, D3, D5);
+
+OLEDDisplayUi ui ( &display );
 
 int screenW = 128;
 int screenH = 64;
@@ -51,11 +76,11 @@ String twoDigits(int digits){
   }
 }
 
-void clockOverlay(SSD1306 *display, SSD1306UiState* state) {
+void clockOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
 
 }
 
-void analogClockFrame(SSD1306 *display, SSD1306UiState* state, int16_t x, int16_t y) {
+void analogClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
 //  ui.disableIndicator();
 
   // Draw the clock face
@@ -73,30 +98,30 @@ void analogClockFrame(SSD1306 *display, SSD1306UiState* state, int16_t x, int16_
     int y3 = ( clockCenterY - ( cos(angle) * ( clockRadius - ( clockRadius / 8 ) ) ) );
     display->drawLine( x2 + x , y2 + y , x3 + x , y3 + y);
   }
-  
+
   // display second hand
   float angle = second() * 6 ;
-  angle = ( angle / 57.29577951 ) ; //Convert degrees to radians  
+  angle = ( angle / 57.29577951 ) ; //Convert degrees to radians
   int x3 = ( clockCenterX + ( sin(angle) * ( clockRadius - ( clockRadius / 5 ) ) ) );
   int y3 = ( clockCenterY - ( cos(angle) * ( clockRadius - ( clockRadius / 5 ) ) ) );
   display->drawLine( clockCenterX + x , clockCenterY + y , x3 + x , y3 + y);
   //
   // display minute hand
   angle = minute() * 6 ;
-  angle = ( angle / 57.29577951 ) ; //Convert degrees to radians  
+  angle = ( angle / 57.29577951 ) ; //Convert degrees to radians
   x3 = ( clockCenterX + ( sin(angle) * ( clockRadius - ( clockRadius / 4 ) ) ) );
   y3 = ( clockCenterY - ( cos(angle) * ( clockRadius - ( clockRadius / 4 ) ) ) );
   display->drawLine( clockCenterX + x , clockCenterY + y , x3 + x , y3 + y);
   //
   // display hour hand
   angle = hour() * 30 + int( ( minute() / 12 ) * 6 )   ;
-  angle = ( angle / 57.29577951 ) ; //Convert degrees to radians  
+  angle = ( angle / 57.29577951 ) ; //Convert degrees to radians
   x3 = ( clockCenterX + ( sin(angle) * ( clockRadius - ( clockRadius / 2 ) ) ) );
   y3 = ( clockCenterY - ( cos(angle) * ( clockRadius - ( clockRadius / 2 ) ) ) );
   display->drawLine( clockCenterX + x , clockCenterY + y , x3 + x , y3 + y);
 }
 
-void digitalClockFrame(SSD1306 *display, SSD1306UiState* state, int16_t x, int16_t y) {
+void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   String timenow = String(hour())+":"+twoDigits(minute())+":"+twoDigits(second());
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_24);
@@ -154,8 +179,8 @@ void setup() {
   const unsigned long seventyYears = 2208988800UL;
   // subtract seventy years:
   unsigned long epoch = secsSinceStart - seventyYears * SECS_PER_HOUR;
-  setTime(epoch); 
-  
+  setTime(epoch);
+
 }
 
 
@@ -172,4 +197,3 @@ void loop() {
 
 
 }
-

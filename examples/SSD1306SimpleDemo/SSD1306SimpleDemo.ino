@@ -24,17 +24,37 @@
  */
 
 #include <Wire.h>
-#include "SSD1306.h"
 #include "images.h"
+
+// Include the correct display library
+// For a connection via I2C using Wire include
+#include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
+// For a connection via I2C using brzo_i2c (must be installed) include
+// #include "SSD1306Brzo.h"
+// For a connection via SPI include
+// #include "SSD1306Spi.h"
+
+// Use the corresponding display class:
+
+// Initialize the OLED display using SPI
+// D5 -> SCL
+// D7 -> SDA
+// D0 -> RES
+// D2 -> DC
+// D8 -> CS
+// SSD1306Spi        display(D0, D2, D8);
+
+// Initialize the OLED display using brzo_i2c
+// D3 -> SDA
+// D4 -> SCL
+// SSD1306Brzo display(0x3c, D3, D5);
+
+// Initialize the OLED display using Wire library
+SSD1306  display(0x3c, D3, D5);
+
 
 #define DEMO_DURATION 3000
 typedef void (*Demo)(void);
-
-// Initialize the OLED display on address 0x3c
-// D3 and D4 are the pin names on the NodeMCU. Change to int values
-// if get compilation errors
-SSD1306   display(0x3c, D3, D4);
-
 
 int demoMode = 0;
 int counter = 1;
@@ -68,7 +88,7 @@ void drawFontFaceDemo() {
 void drawTextFlowDemo() {
     display.setFont(ArialMT_Plain_10);
     display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.drawStringMaxWidth(0, 0, 128, 
+    display.drawStringMaxWidth(0, 0, 128,
       "Lorem ipsum\n dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore." );
 }
 
@@ -105,7 +125,7 @@ void drawRectDemo() {
 
     // Draw a line horizontally
     display.drawVerticalLine(40, 0, 20);
-} 
+}
 
 void drawCircleDemo() {
   for (int i=1; i < 8; i++) {
@@ -143,7 +163,7 @@ void loop() {
   display.clear();
   // draw the current demo method
   demos[demoMode]();
-  
+
   display.setTextAlignment(TEXT_ALIGN_RIGHT);
   display.drawString(10, 128, String(millis()));
   // write the buffer to the display
@@ -156,4 +176,3 @@ void loop() {
   counter++;
   delay(10);
 }
-
