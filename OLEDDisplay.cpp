@@ -506,6 +506,62 @@ void OLEDDisplay::clear(void) {
   memset(buffer, 0, DISPLAY_BUFFER_SIZE);
 }
 
+void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
+  setTextAlignment(TEXT_ALIGN_LEFT);
+  uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
+  uint16_t length = 0;
+  uint16_t line = 0;
+  uint16_t lastPos = 0;
+  for (uint16_t i=0;i<this->logBufferFilled;i++){
+    if (this->logBuffer[i] == 10) {
+      drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0);
+      lastPos = i;
+      length = 0;
+    } else {
+      length++;
+    }
+  }
+  drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0);
+}
+
+bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
+  if (logBuffer != NULL) free(logBuffer);
+  uint16_t size = lines * chars;
+  if (size > 0) {
+    this->logBufferMaxLines = lines;
+    this->logBufferLine     = 0;
+    this->logBufferSize     = size;
+    this->logBuffer         = (char *) malloc(size * sizeof(uint8_t));
+    if(!this->logBuffer) {
+      DEBUG_OLEDDISPLAY("[OLEDDISPLAY][setLogBuffer] Not enough memory to create log buffer\n");
+      return false;
+    }
+  }
+  return true;
+}
+
+size_t OLEDDisplay::write(uint8_t c) {
+  if (this->logBufferSize > 0) {
+    if (this->logBufferFilled < this->logBufferSize && this->logBufferLine < this->logBufferMaxLines) {
+      this->logBuffer[logBufferFilled] = utf8ascii(c);
+      this->logBufferFilled++;
+      if (c == 10) this->logBufferLine++;
+    } else {
+      if (this->logBufferLine <= this->logBufferMaxLines) this->logBufferLine = 0;
+      this->logBufferFilled = 0;
+      write(c);
+    }
+  }
+
+}
+
+size_t OLEDDisplay::write(const char* str) {
+  size_t length = strlen(str);
+  for (size_t i = 0; i < length; i++) {
+    write(str[i]);
+  }
+}
+
 // Private functions
 void OLEDDisplay::sendInitCommands(void) {
   sendCommand(DISPLAYOFF);
