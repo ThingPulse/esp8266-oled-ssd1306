@@ -6,13 +6,18 @@ This is a driver for the SSD1306 based 128x64 pixel OLED display running on the 
 
 You can either download this library as a zip file and unpack it to your Arduino/libraries folder or (once it has been added) choose it from the Arduino library manager.
 
+It is also available as a platformio library. Just execute the following command:
+```
+platformio lib install 562
+```
+
 ## Credits
-Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring the UI library.
+This library has initially been written by Daniel Eichhorn (@squix78). Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring the UI library. Also many thanks to the many committers who helped add new features and fix bugs.
 The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
 
 ## Usage
 
-The SSD1306Demo is a very comprehensive example demonstrating the most important features of the library.
+Check out the examples folder for a few comprehensive demonstrations how to use the library. Also check out the ESP8266 Weather Station library (https://github.com/squix78/esp8266-weather-station) which uses the OLED library to display beautiful weather information.
 
 ## Features
 
@@ -73,9 +78,6 @@ SSD1306Spi display(RES, DC, CS);
 ### Display Control
 
 ```C++
-// Create the display object connected to pin sda and sdc
-SSD1306(int i2cAddress, int sda, int sdc);
-
 // Initialize the display
 void init();
 
@@ -116,7 +118,10 @@ void flipScreenVertically();
 ## Pixel drawing
 
 ```C++
-void setColor(SSD1306_COLOR color);
+
+/* Drawing functions */
+// Sets the color of all pixel operations
+void setColor(OLEDDISPLAY_COLOR color);
 
 // Draw a pixel at given position
 void setPixel(int16_t x, int16_t y);
@@ -130,14 +135,24 @@ void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);
 // Fill the rectangle
 void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
+// Draw the border of a circle
+void drawCircle(int16_t x, int16_t y, int16_t radius);
+
+// Fill circle
+void fillCircle(int16_t x, int16_t y, int16_t radius);
+
 // Draw a line horizontally
 void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
-// Draw a line vertically
+// Draw a lin vertically
 void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
+// Draws a rounded progress bar with the outer dimensions given by width and height. Progress is
+// a unsigned byte value between 0 and 100
+void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
+
 // Draw a bitmap in the internal image format
-void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char* image);
+void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
 
 // Draw a XBM
 void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char* xbm);
@@ -156,6 +171,9 @@ void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text)
 // Returns the width of the const char* with the current
 // font settings
 uint16_t getStringWidth(const char* text, uint16_t length);
+
+// Convencience method for the const char version
+uint16_t getStringWidth(String text);
 
 // Specifies relative to which anchor point
 // the text is rendered. Available constants:
