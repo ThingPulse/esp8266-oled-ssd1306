@@ -8,7 +8,7 @@ You can either download this library as a zip file and unpack it to your Arduino
 
 ## Credits
 Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring the UI library.
-The init sequence for the SSD1306 was inspired by Adafruits library for the same display.
+The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
 
 ## Usage
 
@@ -38,8 +38,38 @@ Choose the font family, style and size, check the preview image and if you like 
 
 ![FontTool](https://github.com/squix78/esp8266-oled-ssd1306/raw/master/resources/FontTool.png)
 
+## Hardware Abstraction
+
+The library supports different protocols to access the OLED display. Currently there is support for I2C using the built in Wire.h library, I2C by using the much faster BRZO I2C library [https://github.com/pasko-zh/brzo_i2c] written in assembler and it also supports displays which come with the SPI interface.
+
+### I2C with Wire.h
+
+```C++
+#include <Wire.h>  
+#include "SSD1306.h"
+
+SSD1306  display(ADDRESS, SDA, SDC);
+```
+
+### I2C with brzo_i2c
+
+```C++
+#include <brzo_i2c.h>
+#include "SSD1306Brzo.h"
+
+SSD1306Brzo display(ADDRESS, SDA, SDC);
+```
+### SPI
+
+```C++
+#include <SPI.h>
+#include "SSD1306Spi.h"
+
+SSD1306Spi        display(RES, DC, CS);
+```
 
 ## API
+
 
 ### Display Control
 
