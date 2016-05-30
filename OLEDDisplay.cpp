@@ -507,30 +507,44 @@ void OLEDDisplay::clear(void) {
 }
 
 void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
-  setTextAlignment(TEXT_ALIGN_LEFT);
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
-  uint16_t length = 0;
-  uint16_t line = 0;
-  uint16_t lastPos = 0;
+  // Always align left
+  setTextAlignment(TEXT_ALIGN_LEFT);
+
+  // State values
+  uint16_t length   = 0;
+  uint16_t line     = 0;
+  uint16_t lastPos  = 0;
+
   for (uint16_t i=0;i<this->logBufferFilled;i++){
+    // Everytime we have a \n print
     if (this->logBuffer[i] == 10) {
+      length++;
+      // Draw string on line `line` from lastPos to length
+      // Passing 0 as the lenght because we are in TEXT_ALIGN_LEFT
       drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0);
+      // Remember last pos
       lastPos = i;
+      // Reset length
       length = 0;
     } else {
+      // Count chars until next linebreak
       length++;
     }
   }
-  drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0);
+  // Draw the remaining string
+  if (length > 0) {
+    drawStringInternal(xMove, yMove + line * lineHeight, &this->logBuffer[lastPos], length, 0);
+  }
 }
 
 bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
   if (logBuffer != NULL) free(logBuffer);
   uint16_t size = lines * chars;
   if (size > 0) {
-    this->logBufferMaxLines = lines;
-    this->logBufferLine     = 0;
-    this->logBufferSize     = size;
+    this->logBufferLine     = 0;      // Lines printed
+    this->logBufferMaxLines = lines;  // Lines max printable
+    this->logBufferSize     = size;   // Total number of characters the buffer can hold
     this->logBuffer         = (char *) malloc(size * sizeof(uint8_t));
     if(!this->logBuffer) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][setLogBuffer] Not enough memory to create log buffer\n");
@@ -542,24 +556,59 @@ bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
 
 size_t OLEDDisplay::write(uint8_t c) {
   if (this->logBufferSize > 0) {
-    if (this->logBufferFilled < this->logBufferSize && this->logBufferLine < this->logBufferMaxLines) {
+    // Don't waste space on \r\n line endings, dropping \r
+    if (c == 13) return 1;
+
+    bool maxLineNotReached = this->logBufferLine < this->logBufferMaxLines;
+    bool bufferNotFull = this->logBufferFilled < this->logBufferSize;
+
+    // Can we write to the buffer?
+    if (bufferNotFull && maxLineNotReached) {
       this->logBuffer[logBufferFilled] = utf8ascii(c);
       this->logBufferFilled++;
+      // Keep track of lines written
       if (c == 10) this->logBufferLine++;
     } else {
-      if (this->logBufferLine <= this->logBufferMaxLines) this->logBufferLine = 0;
-      this->logBufferFilled = 0;
+      // Max line number is reached
+      if (!maxLineNotReached) this->logBufferLine--;
+
+      // Find the end of the first line
+      uint16_t firstLineEnd = 0;
+      for (uint16_t i=0;i<this->logBufferFilled;i++) {
+        if (this->logBuffer[i] == 10){
+          // Include last char too
+          firstLineEnd = i + 1;
+          break;
+        }
+      }
+      // If there was a line ending
+      if (firstLineEnd > 0) {
+        // Calculate the new logBufferFilled value
+        this->logBufferFilled = logBufferFilled - firstLineEnd;
+        // Now we move the lines infront of the buffer
+        memcpy(this->logBuffer, &this->logBuffer[firstLineEnd], logBufferFilled);
+      } else {
+        // Let's reuse the buffer if it was full
+        if (!bufferNotFull) {
+          this->logBufferFilled = 0;
+        }// else {
+        //  Nothing to do here
+        //}
+      }
       write(c);
     }
   }
-
+  // We are always writing all uint8_t to the buffer
+  return 1;
 }
 
 size_t OLEDDisplay::write(const char* str) {
+  if (str == NULL) return 0;
   size_t length = strlen(str);
   for (size_t i = 0; i < length; i++) {
     write(str[i]);
   }
+  return length;
 }
 
 // Private functions
