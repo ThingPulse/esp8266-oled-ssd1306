@@ -65,11 +65,10 @@ SSD1306Brzo display(ADDRESS, SDA, SDC);
 #include <SPI.h>
 #include "SSD1306Spi.h"
 
-SSD1306Spi        display(RES, DC, CS);
+SSD1306Spi display(RES, DC, CS);
 ```
 
 ## API
-
 
 ### Display Control
 
