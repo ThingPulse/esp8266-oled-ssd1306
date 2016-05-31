@@ -56,6 +56,8 @@ void overlay1(OLEDDisplay *display,  OLEDDisplayUiState* state);
 
 ## New Features
 
+### Loading Animation
+
 While using this library ourself we noticed a pattern emerging. We want to drawing
 a loading progress while connecting to WiFi and updating weather data etc.
 
@@ -105,3 +107,19 @@ void myLoadingDraw(OLEDDisplay *display, LoadingStage* stage, uint8_t progress) 
 
 After defining a function like that, you can pass it to the Ui library by use
 `ui.setLoadingDrawFunction(myLoadingDraw)`.
+
+
+### Text Logging
+
+It is always useful to display some text on the display without worrying to much
+where it goes and managing it. In 3.0 we made the `OLEDDisplay` class implement
+[`Print`](https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/Print.h)
+so you can use it like you would use `Serial`. We calls this feature `LogBuffer`
+and the only thing you have to do is to define how many lines you want to display
+and how many characters there are on average on each. This is done by calling
+`setLogBuffer(lines, chars);`. If there is not enough memory the function will
+return false.
+
+After that you can draw the `LogBuffer` anywhere you want by calling `drawLogBuffer(x, y)`.
+(Note: You have to call `display()` to update the screen)
+We made a [video](https://www.youtube.com/watch?v=8Fiss77A3TE) showing this feature in action.
