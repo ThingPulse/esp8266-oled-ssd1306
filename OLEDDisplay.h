@@ -108,7 +108,7 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
 };
 
 
-class OLEDDisplay {
+class OLEDDisplay : public Print {
   public:
     // Initialize the display
     bool init();
@@ -209,6 +209,20 @@ class OLEDDisplay {
     // Clear the local pixel buffer
     void clear(void);
 
+    // Log buffer implementation
+
+    // This will define the lines and characters you can
+    // print to the screen. When you exeed the buffer size (lines * chars)
+    // the output may be truncated due to the size constraint.
+    bool setLogBuffer(uint16_t lines, uint16_t chars);
+
+    // Draw the log buffer at position (x, y)
+    void drawLogBuffer(uint16_t x, uint16_t y);
+
+    // Implementent needed function to be compatible with Print class
+    size_t write(uint8_t c);
+    size_t write(const char* s);
+
     uint8_t            *buffer;
 
     #ifdef OLEDDISPLAY_DOUBLE_BUFFER
@@ -216,10 +230,18 @@ class OLEDDisplay {
     #endif
 
   protected:
+
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
     OLEDDISPLAY_COLOR            color         = WHITE;
 
-    const char          *fontData          = ArialMT_Plain_10;
+    const char          *fontData              = ArialMT_Plain_10;
+
+    // State values for logBuffer
+    uint16_t   logBufferSize                   = 0;
+    uint16_t   logBufferFilled                 = 0;
+    uint16_t   logBufferLine                   = 0;
+    uint16_t   logBufferMaxLines               = 0;
+    char      *logBuffer                       = NULL;
 
     // Send a command to the display (low level function)
     virtual void sendCommand(uint8_t com);
