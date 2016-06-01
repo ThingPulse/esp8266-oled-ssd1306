@@ -9,7 +9,7 @@ version 3.0
 To get better performance and a smaller font definition format, we change the memory
 layout of the font definition format. If you are using custom fonts not included in
 this library we updated the font generator [here](http://oleddisplay.squix.ch/#/home).
-Please update your fonts to be working with 3.0.
+Please update your fonts to be working with 3.0 by selecting the respective version in the dropdown.
 
 
 ## Architectural Changes
@@ -87,7 +87,7 @@ LoadingStage loadingStages[] = {
 int LOADING_STAGES_COUNT = sizeof(loadingStages) / sizeof(LoadingStage);
 ```
 
-After defining your array of `LoadingStages` you can than run the loading process by using
+After defining your array of `LoadingStages` you can then run the loading process by using
 `ui.runLoadingProcess(loadingStages, LOADING_STAGES_COUNT)`. This will give you a
 nice little loading animation you can see in the beginning of [this](https://vimeo.com/168362918)
 video.

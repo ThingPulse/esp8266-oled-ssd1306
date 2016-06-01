@@ -12,12 +12,16 @@ platformio lib install 562
 ```
 
 ## Credits
-This library has initially been written by Daniel Eichhorn (@squix78). Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring the UI library. Also many thanks to the many committers who helped add new features and fix bugs.
+This library has initially been written by Daniel Eichhorn (@squix78). Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs.
 The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
 
 ## Usage
 
 Check out the examples folder for a few comprehensive demonstrations how to use the library. Also check out the ESP8266 Weather Station library (https://github.com/squix78/esp8266-weather-station) which uses the OLED library to display beautiful weather information.
+
+## Upgrade
+
+The API changed a lot with the 3.0 release. If you were using this library with older versions please have a look at the [Upgrade Guide](UPGRADE-3.0.md).
 
 ## Features
 
