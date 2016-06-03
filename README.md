@@ -1,6 +1,5 @@
-Build Status: [![Build Status](https://travis-ci.org/squix78/esp8266-oled-ssd1306.svg?branch=dev-branch-3.0.0)](https://travis-ci.org/squix78/esp8266-oled-ssd1306)
-
-# esp8266-oled-ssd1306
+esp8266-oled-ssd1306 [![Build Status](https://travis-ci.org/squix78/esp8266-oled-ssd1306.svg?branch=dev-branch-3.0.0)](https://travis-ci.org/squix78/esp8266-oled-ssd1306)
+============
 
 This is a driver for the SSD1306 based 128x64 pixel OLED display running on the Arduino/ESP8266 platform.
 
@@ -182,7 +181,7 @@ uint16_t getStringWidth(String text);
 // Specifies relative to which anchor point
 // the text is rendered. Available constants:
 // TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER_BOTH
-void setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment);
+void setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment);
 
 // Sets the current font. Available default fonts
 // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
@@ -190,7 +189,7 @@ void setTextAlignment(SSD1306_TEXT_ALIGNMENT textAlignment);
 void setFont(const char* fontData);
 ```
 
-## Ui Library (SSD1306Ui)
+## Ui Library (OLEDDisplayUi)
 
 The Ui Library is used to provide a basic set of Ui elements called, `Frames` and `Overlays`. A `Frame` is used to provide
 information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a pieces of information (e.g. a clock) that is displayed always at the same position.
@@ -300,10 +299,10 @@ void nextFrame();
 void previousFrame();
 
 // State Info
-SSD1306UiState* getUiState();
+OLEDDisplayUiState* getUiState();
 
 // This needs to be called in the main loop
-// the returned value it the remaining time (in ms)
+// the returned value is the remaining time (in ms)
 // you have to draw after drawing to keep the frame budget.
 int8_t update();
 ```
