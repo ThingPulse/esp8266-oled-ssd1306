@@ -9,12 +9,14 @@ cache:
         - "~/.platformio"
 
 env:
-    - PLATFORMIO_CI_SRC=examples/SSD1306UiDemo/SSD1306UiDemo.ino
-    - PLATFORMIO_CI_SRC=examples/SSD1306SimpleDemo/SSD1306SimpleDemo.ino
-    
+    - PLATFORMIO_CI_SRC=examples/SSD1306UiDemo
+    - PLATFORMIO_CI_SRC=examples/SSD1306SimpleDemo
+    - PLATFORMIO_CI_SRC=examples/SSD1306ClockDemo
+
 
 install:
     - pip install -U platformio
+    - platformio lib install 44
 
 script:
     - platformio ci --lib="." --board=nodemcuv2
