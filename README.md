@@ -1,7 +1,7 @@
 esp8266-oled-ssd1306 [![Build Status](https://travis-ci.org/squix78/esp8266-oled-ssd1306.svg?branch=dev-branch-3.0.0)](https://travis-ci.org/squix78/esp8266-oled-ssd1306)
 ============
 
-> We just released version 3.0.0. Please have at our [upgrade guide](UPGRADE-3.0.md)
+> We just released version 3.0.0. Please have a look at our [upgrade guide](UPGRADE-3.0.md)
 
 This is a driver for the SSD1306 based 128x64 pixel OLED display running on the Arduino/ESP8266 platform.
 Can be used with either the I2C or SPI version of the display
