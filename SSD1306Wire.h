@@ -36,12 +36,14 @@ class SSD1306Wire : public OLEDDisplay {
       uint8_t             _address;
       uint8_t             _sda;
       uint8_t             _scl;
+      uint8_t             _driver;
 
   public:
-    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl) {
+    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, uint8_t _driver=DRIVER_SSD1306) {
       this->_address = _address;
-      this->_sda = _sda;
-      this->_scl = _scl;
+      this->_sda     = _sda;
+      this->_scl     = _scl;
+      this->_driver  = _driver;
     }
 
     bool connect() {
@@ -53,6 +55,7 @@ class SSD1306Wire : public OLEDDisplay {
     }
 
     void display(void) {
+
       #ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = ~0;
         uint8_t maxBoundY = 0;
@@ -82,16 +85,32 @@ class SSD1306Wire : public OLEDDisplay {
         // holdes true for all values of pos
         if (minBoundY == ~0) return;
 
-        sendCommand(COLUMNADDR);
-        sendCommand(minBoundX);
-        sendCommand(maxBoundX);
+        if (_driver == DRIVER_SSD1306) {
+          sendCommand(COLUMNADDR);
+          sendCommand(minBoundX);
+          sendCommand(maxBoundX);
 
-        sendCommand(PAGEADDR);
-        sendCommand(minBoundY);
-        sendCommand(maxBoundY);
+          sendCommand(PAGEADDR);
+          sendCommand(minBoundY);
+          sendCommand(maxBoundY);
+
+        } else if (_driver == DRIVER_SH1106) {
+          // We should avoid this, and optimize using excellent 
+          // bound method but I did not succeded on SH1106
+          minBoundX = 0;
+          maxBoundX = 127;
+        }
 
         byte k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
+
+          if (_driver == DRIVER_SH1106) {
+            sendCommand(0xB0+y);//set page address;
+            // SH1106 ix 132x64 RAM so we need to shift by 2 to center to 128
+            sendCommand(0x00|((minBoundX+2)&0x0F)) ;//set lower column address
+            sendCommand(0x10|((minBoundX+2)>>4)) ;  //set higher column address
+          }
+
           for (x = minBoundX; x <= maxBoundX; x++) {
             if (k == 0) {
               Wire.beginTransmission(_address);
@@ -104,31 +123,38 @@ class SSD1306Wire : public OLEDDisplay {
               k = 0;
             }
           }
-          yield();
         }
-
-        if (k != 0) {
-          Wire.endTransmission();
-        }
+        
       #else
 
-        sendCommand(COLUMNADDR);
-        sendCommand(0x0);
-        sendCommand(0x7F);
+        if (_driver == DRIVER_SSD1306) {
+          sendCommand(COLUMNADDR);
+          sendCommand(0x0);
+          sendCommand(0x7F);
 
-        sendCommand(PAGEADDR);
-        sendCommand(0x0);
-        sendCommand(0x7);
+          sendCommand(PAGEADDR);
+          sendCommand(0x0);
+          sendCommand(0x7);
+        }
 
-        for (uint16_t i=0; i < DISPLAY_BUFFER_SIZE; i++) {
-          Wire.beginTransmission(this->_address);
-          Wire.write(0x40);
-          for (uint8_t x = 0; x < 16; x++) {
-            Wire.write(buffer[i]);
-            i++;
+        uint8_t * p = &buffer[0];
+        for (uint8_t y=0; y<8; y++) {
+
+          if (_driver == DRIVER_SH1106) {
+            sendCommand(0xB0+y);//set page addressSSD_Data_Mode;
+            // SH1106 ix 132x64 RAM so we need to shift by 2 to center to 128
+            sendCommand(0x02) ;//set lower column address 
+            sendCommand(0x10) ;//set higher column address
           }
-          i--;
-          Wire.endTransmission();
+
+          for( uint8_t x=0; x<8; x++) {
+            Wire.beginTransmission(_address);
+            Wire.write(0x40);
+            for (uint8_t k = 0; k < 16; k++) {
+              Wire.write(*p++);
+            }
+            Wire.endTransmission();
+          }
         }
       #endif
     }
@@ -141,6 +167,9 @@ class SSD1306Wire : public OLEDDisplay {
       Wire.endTransmission();
     }
 
+    uint8_t driver() {
+      return _driver;
+    }
 
 };
 
