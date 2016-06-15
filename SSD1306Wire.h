@@ -124,7 +124,9 @@ class SSD1306Wire : public OLEDDisplay {
             }
           }
         }
-        
+        if (k != 0) {
+          Wire.endTransmission();
+        }
       #else
 
         if (_driver == DRIVER_SSD1306) {
