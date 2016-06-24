@@ -122,6 +122,9 @@ class OLEDDisplayUi {
     FrameCallback*      frameFunctions;
     uint8_t             frameCount                = 0;
 
+    // Internally used to transition to a specific frame
+    int8_t              nextFrameNumber           = -1;
+
     // Values for Overlays
     OverlayCallback*    overlayFunctions;
     uint8_t             overlayCount              = 0;
@@ -270,6 +273,17 @@ class OLEDDisplayUi {
     // Manuell Controll
     void nextFrame();
     void previousFrame();
+
+    /**
+     * Switch without transition to frame `frame`.
+     */
+    void switchToFrame(uint8_t frame);
+
+    /**
+     * Transition to frame `frame`, when the `frame` number is bigger than the current
+     * frame the forward animation will be used, otherwise the backwards animation is used.
+     */
+    void transitionToFrame(uint8_t frame);
 
     // State Info
     OLEDDisplayUiState* getUiState();
