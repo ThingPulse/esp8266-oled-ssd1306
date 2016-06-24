@@ -270,7 +270,7 @@ class OLEDDisplayUi {
     void runLoadingProcess(LoadingStage* stages, uint8_t stagesCount);
 
 
-    // Manuell Controll
+    // Manual Control
     void nextFrame();
     void previousFrame();
 
