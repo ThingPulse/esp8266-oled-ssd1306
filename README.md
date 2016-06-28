@@ -310,6 +310,17 @@ void runLoadingProcess(LoadingStage* stages, uint8_t stagesCount);
 void nextFrame();
 void previousFrame();
 
+/**
+ * Switch without transition to frame `frame`.
+ */
+void switchToFrame(uint8_t frame);
+
+/**
+ * Transition to frame `frame`, when the `frame` number is bigger than the current
+ * frame the forward animation will be used, otherwise the backwards animation is used.
+ */
+void transitionToFrame(uint8_t frame);
+
 // State Info
 OLEDDisplayUiState* getUiState();
 
