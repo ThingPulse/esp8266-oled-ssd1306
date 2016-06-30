@@ -61,12 +61,12 @@ The library supports different protocols to access the OLED display. Currently t
 
 SSD1306  display(ADDRESS, SDA, SDC);
 ```
-or for a SSH1106:
+or for a SH1106:
 ```C++
 #include <Wire.h>  
-#include "SSH1106.h"
+#include "SH1106.h"
 
-SSH1106  display(ADDRESS, SDA, SDC);
+SH1106  display(ADDRESS, SDA, SDC);
 ```
 
 ### I2C with brzo_i2c
@@ -77,12 +77,12 @@ SSH1106  display(ADDRESS, SDA, SDC);
 
 SSD1306Brzo display(ADDRESS, SDA, SDC);
 ```
-or for the SSH1106:
+or for the SH1106:
 ```C++
 #include <brzo_i2c.h>
-#include "SSH1106Brzo.h"
+#include "SH1106Brzo.h"
 
-SSH1106Brzo display(ADDRESS, SDA, SDC);
+SH1106Brzo display(ADDRESS, SDA, SDC);
 ```
 
 ### SPI
