@@ -151,7 +151,7 @@ void OLEDDisplayUi::previousFrame() {
 }
 
 void OLEDDisplayUi::switchToFrame(uint8_t frame) {
-  if (frame >= this->frameCount) return
+  if (frame >= this->frameCount) return;
   this->state.ticksSinceLastStateSwitch = 0;
   if (frame == this->state.currentFrame) return;
   this->state.frameState = FIXED;
@@ -160,7 +160,7 @@ void OLEDDisplayUi::switchToFrame(uint8_t frame) {
 }
 
 void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
-  if (frame >= this->frameCount) return
+  if (frame >= this->frameCount) return;
   this->state.ticksSinceLastStateSwitch = 0;
   if (frame == this->state.currentFrame) return;
   this->nextFrameNumber = frame;
