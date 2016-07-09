@@ -431,11 +431,17 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
     }
 
     if (strWidth >= maxLineWidth) {
-      preferredBreakpoint = preferredBreakpoint ? preferredBreakpoint : i;
-      widthAtBreakpoint = preferredBreakpoint ? widthAtBreakpoint : strWidth;
-
+      if (preferredBreakpoint == 0) {
+        preferredBreakpoint = i;
+        widthAtBreakpoint = strWidth;
+      }
       drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint);
-      lastDrawnPos = preferredBreakpoint + 1; strWidth = 0; preferredBreakpoint = 0;
+      lastDrawnPos = preferredBreakpoint + 1;
+      // It is possible that we did not draw all letters to i so we need
+      // to account for the width of the chars from `i - preferredBreakpoint`
+      // by calculating the width we did not draw yet.
+      strWidth = strWidth - widthAtBreakpoint;
+      preferredBreakpoint = 0;
     }
   }
 
