@@ -151,21 +151,22 @@ void OLEDDisplayUi::previousFrame() {
 }
 
 void OLEDDisplayUi::switchToFrame(uint8_t frame) {
-  if (frame >= this->frameCount || frame != this->state.currentFrame) return;
-  this->state.lastUpdate = 0;
+  if (frame >= this->frameCount) return;
   this->state.ticksSinceLastStateSwitch = 0;
+  if (frame == this->state.currentFrame) return;
   this->state.frameState = FIXED;
   this->state.currentFrame = frame;
   this->state.isIndicatorDrawen = true;
 }
 
 void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
-  if (frame >= this->frameCount || frame != this->state.currentFrame) return;
+  if (frame >= this->frameCount) return;
+  this->state.ticksSinceLastStateSwitch = 0;
+  if (frame == this->state.currentFrame) return;
   this->nextFrameNumber = frame;
   this->lastTransitionDirection = this->state.frameTransitionDirection;
   this->state.manuelControll = true;
   this->state.frameState = IN_TRANSITION;
-  this->state.ticksSinceLastStateSwitch = 0;
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
