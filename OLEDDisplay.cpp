@@ -215,14 +215,18 @@ void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
 }
 
 void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
-  if (y < 0 || y > DISPLAY_HEIGHT) return;
+  if (x < 0 || x > DISPLAY_WIDTH) return;
 
-  if (x < 0) {
-    length += x;
-    x = 0;
+  if (y < 0) {
+    length += y;
+    y = 0;
   }
 
-  if (length < 0) return;
+  if ( (y + length) > DISPLAY_HEIGHT) {
+    length = (DISPLAY_HEIGHT - y);
+  }
+
+  if (length <= 0) return;
 
 
   uint8_t yOffset = y & 7;
