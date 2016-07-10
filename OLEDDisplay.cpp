@@ -278,7 +278,7 @@ void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
   }
 
   if (length > 0) {
-    drawBit = (1 << length & 7) - 1;
+    drawBit = (1 << (length & 7)) - 1;
     switch (color) {
       case WHITE:   *bufferPtr |= drawBit; break;
       case BLACK:   *bufferPtr &= drawBit; break;
