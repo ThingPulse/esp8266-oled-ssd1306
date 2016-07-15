@@ -130,8 +130,8 @@ void OLEDDisplay::drawRect(int16_t x, int16_t y, int16_t width, int16_t height) 
 }
 
 void OLEDDisplay::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height) {
-  for (int16_t i = yMove; i < yMove + height; i++) {
-    drawHorizontalLine(xMove, i, width);
+  for (int16_t x = xMove; x < xMove + width; x++) {
+    drawVerticalLine(x, yMove, height);
   }
 }
 
