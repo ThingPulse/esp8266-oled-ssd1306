@@ -255,7 +255,7 @@ void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
 }
 
 void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
-  if (x < 0 || x > DISPLAY_WIDTH) return;
+  if (x < 0 || x >= DISPLAY_WIDTH) return;
 
   if (y < 0) {
     length += y;
@@ -285,9 +285,9 @@ void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
     }
 
     switch (color) {
-      case WHITE:   *bufferPtr |= drawBit; break;
-      case BLACK:   *bufferPtr &= drawBit; break;
-      case INVERSE: *bufferPtr ^= drawBit; break;
+      case WHITE:   *bufferPtr |=  drawBit; break;
+      case BLACK:   *bufferPtr &= ~drawBit; break;
+      case INVERSE: *bufferPtr ^=  drawBit; break;
     }
 
     if (length < yOffset) return;
@@ -320,9 +320,9 @@ void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
   if (length > 0) {
     drawBit = (1 << (length & 7)) - 1;
     switch (color) {
-      case WHITE:   *bufferPtr |= drawBit; break;
-      case BLACK:   *bufferPtr &= drawBit; break;
-      case INVERSE: *bufferPtr ^= drawBit; break;
+      case WHITE:   *bufferPtr |=  drawBit; break;
+      case BLACK:   *bufferPtr &= ~drawBit; break;
+      case INVERSE: *bufferPtr ^=  drawBit; break;
     }
   }
 }
