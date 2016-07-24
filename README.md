@@ -385,3 +385,9 @@ This shows how to use define a maximum width after which the driver automaticall
 ![SPIVersion](https://github.com/neptune2/esp8266-oled-ssd1306/raw/master/resources/SPI_version.jpg)
 
 This shows the code working on the SPI version of the display. See demo code for ESP8266 pins used.
+
+## Project using this library
+
+ * [QRCode ESP8266](https://github.com/anunpanya/ESP8266_QRcode) (by @anunpanya)
+ * [Scan I2C](https://github.com/hallard/Scan-I2C-WiFi) (by @hallard)
+ * [Weather Station](https://github.com/squix78/esp8266-weather-station) (by @squix)
