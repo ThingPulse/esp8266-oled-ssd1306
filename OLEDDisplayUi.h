@@ -81,7 +81,7 @@ struct OLEDDisplayUiState {
   bool          isIndicatorDrawen         = true;
 
   // Normal = 1, Inverse = -1;
-  int8_t         frameTransitionDirection  = 1;
+  int8_t        frameTransitionDirection  = 1;
 
   bool          manuelControll            = false;
 
@@ -108,6 +108,8 @@ class OLEDDisplayUi {
 
     const char*         activeSymbol              = ANIMATION_activeSymbol;
     const char*         inactiveSymbol            = ANIMATION_inactiveSymbol;
+
+    bool                shouldDrawIndicators      = true;
 
     // Values for the Frames
     AnimationDirection  frameAnimationDirection   = SLIDE_RIGHT;
@@ -214,6 +216,16 @@ class OLEDDisplayUi {
      * when transitioning to the next frame.
      */
     void disableIndicator();
+
+    /**
+     * Enable drawing of indicators
+     */
+    void enableAllIndicator();
+
+    /**
+     * Disable draw of indicators.
+     */
+    void disableAllIndicator();
 
     /**
      * Set the position of the indicator bar.
