@@ -220,12 +220,12 @@ class OLEDDisplayUi {
     /**
      * Enable drawing of indicators
      */
-    void enableAllIndicator();
+    void enableAllIndicators();
 
     /**
      * Disable draw of indicators.
      */
-    void disableAllIndicator();
+    void disableAllIndicators();
 
     /**
      * Set the position of the indicator bar.
