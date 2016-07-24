@@ -427,24 +427,24 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, String strUser) {
   // char* text must be freed!
   char* text = utf8ascii(strUser);
 
-  uint16_t xOffset = 0;
+  uint16_t yOffset = 0;
   // If the string should be centered vertically too
   // we need to now how heigh the string is.
   if (textAlignment == TEXT_ALIGN_CENTER_BOTH) {
-    uint16_t lb;
+    uint16_t lb = 0;
     // Find number of linebreaks in text
-    for (uint16_t i=0, lb=0; text[i]; i++) {
-      lb += (text[i] == '\n');
+    for (uint16_t i=0;text[i] != 0; i++) {
+      lb += (text[i] == 10);
     }
     // Calculate center
-    xOffset = (lb * lineHeight) / 2;
+    yOffset = (lb * lineHeight) / 2;
   }
 
   uint16_t line = 0;
   char* textPart = strtok(text,"\n");
   while (textPart != NULL) {
     uint16_t length = strlen(textPart);
-    drawStringInternal(xMove - xOffset, yMove + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
+    drawStringInternal(xMove, yMove - yOffset + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
     textPart = strtok(NULL, "\n");
   }
   free(text);
