@@ -62,6 +62,10 @@ class SH1106Wire : public OLEDDisplay {
       #ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = ~0;
         uint8_t maxBoundY = 0;
+
+        uint8_t minBoundX = ~0;
+        uint8_t maxBoundX = 0;
+
         uint8_t x, y;
 
         // Calculate the Y bounding box of changes
@@ -72,6 +76,8 @@ class SH1106Wire : public OLEDDisplay {
            if (buffer[pos] != buffer_back[pos]) {
              minBoundY = _min(minBoundY, y);
              maxBoundY = _max(maxBoundY, y);
+             minBoundX = _min(minBoundX, x);
+             maxBoundX = _max(maxBoundX, x);
            }
            buffer_back[pos] = buffer[pos];
          }
@@ -83,12 +89,16 @@ class SH1106Wire : public OLEDDisplay {
         // holdes true for all values of pos
         if (minBoundY == ~0) return;
 
+        // Calculate the colum offset
+        uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
+        uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
+
         byte k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
           sendCommand(0xB0 + y);
-          sendCommand(0x02);
-          sendCommand(0x10);
-          for (x = 0; x < DISPLAY_WIDTH; x++) {
+          sendCommand(minBoundXp2H);
+          sendCommand(minBoundXp2L);
+          for (x = minBoundX; x <= maxBoundX; x++) {
             if (k == 0) {
               Wire.beginTransmission(_address);
               Wire.write(0x40);
@@ -99,6 +109,10 @@ class SH1106Wire : public OLEDDisplay {
               Wire.endTransmission();
               k = 0;
             }
+          }
+          if (k != 0)  {
+            Wire.endTransmission();
+            k = 0;
           }
           yield();
         }
