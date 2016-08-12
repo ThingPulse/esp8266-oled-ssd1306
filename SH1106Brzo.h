@@ -60,6 +60,8 @@ class SH1106Brzo : public OLEDDisplay {
        uint8_t minBoundY = ~0;
        uint8_t maxBoundY = 0;
 
+       uint8_t minBoundX = ~0;
+       uint8_t maxBoundX = 0;
        uint8_t x, y;
 
        // Calculate the Y bounding box of changes
@@ -70,6 +72,8 @@ class SH1106Brzo : public OLEDDisplay {
           if (buffer[pos] != buffer_back[pos]) {
             minBoundY = _min(minBoundY, y);
             maxBoundY = _max(maxBoundY, y);
+            minBoundX = _min(minBoundX, x);
+            maxBoundX = _max(maxBoundX, x);
           }
           buffer_back[pos] = buffer[pos];
         }
@@ -84,12 +88,18 @@ class SH1106Brzo : public OLEDDisplay {
        byte k = 0;
        uint8_t sendBuffer[17];
        sendBuffer[0] = 0x40;
+
+       // Calculate the colum offset 
+       uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
+       uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
+
        brzo_i2c_start_transaction(this->_address, BRZO_I2C_SPEED);
+
        for (y = minBoundY; y <= maxBoundY; y++) {
          sendCommand(0xB0 + y);
-         sendCommand(0x02);
-         sendCommand(0x10);
-         for (x = 0; x < DISPLAY_WIDTH; x++) {
+         sendCommand(minBoundXp2H);
+         sendCommand(minBoundXp2L);
+         for (x = minBoundX; x <= maxBoundX; x++) {
              k++;
              sendBuffer[k] = buffer[x + y * DISPLAY_WIDTH];
              if (k == 16)  {
@@ -97,9 +107,15 @@ class SH1106Brzo : public OLEDDisplay {
                k = 0;
              }
          }
+         if (k != 0) {
+           brzo_i2c_write(sendBuffer, k + 1, true);
+           k = 0;
+         }
          yield();
        }
-       brzo_i2c_write(sendBuffer, k + 1, true);
+       if (k != 0) {
+         brzo_i2c_write(sendBuffer, k + 1, true);
+       }
        brzo_i2c_end_transaction();
      #else
      #endif
