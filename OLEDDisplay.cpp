@@ -728,13 +728,13 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
       if (yOffset >= 0) {
         switch (this->color) {
           case WHITE:   buffer[dataPos] |= currentByte << yOffset; break;
-          case BLACK:   buffer[dataPos] &= currentByte << yOffset; break;
+          case BLACK:   buffer[dataPos] &= ~(currentByte << yOffset); break;
           case INVERSE: buffer[dataPos] ^= currentByte << yOffset; break;
         }
         if (dataPos < (DISPLAY_BUFFER_SIZE - DISPLAY_WIDTH)) {
           switch (this->color) {
             case WHITE:   buffer[dataPos + DISPLAY_WIDTH] |= currentByte >> (8 - yOffset); break;
-            case BLACK:   buffer[dataPos + DISPLAY_WIDTH] &= currentByte >> (8 - yOffset); break;
+            case BLACK:   buffer[dataPos + DISPLAY_WIDTH] &= ~(currentByte >> (8 - yOffset)); break;
             case INVERSE: buffer[dataPos + DISPLAY_WIDTH] ^= currentByte >> (8 - yOffset); break;
           }
         }
@@ -744,7 +744,7 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
 
         switch (this->color) {
           case WHITE:   buffer[dataPos] |= currentByte >> yOffset; break;
-          case BLACK:   buffer[dataPos] &= currentByte >> yOffset; break;
+          case BLACK:   buffer[dataPos] &= ~(currentByte >> yOffset); break;
           case INVERSE: buffer[dataPos] ^= currentByte >> yOffset; break;
         }
 
