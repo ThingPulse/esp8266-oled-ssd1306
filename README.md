@@ -276,12 +276,12 @@ void disableIndicator();
 /**
  * Enable drawing of indicators
  */
-void enableAllIndicator();
+void enableAllIndicators();
 
 /**
  * Disable drawing of indicators.
  */
-void disableAllIndicator();
+void disableAllIndicators();
 
 /**
  * Set the position of the indicator bar.
