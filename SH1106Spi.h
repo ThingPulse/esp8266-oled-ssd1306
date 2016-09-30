@@ -25,33 +25,37 @@
  * Credits for parts of this code go to Mike Rankin. Thank you so much for sharing!
  */
 
-#ifndef SH1106Brzo_h
-#define SH1106Brzo_h
+#ifndef SH1106Spi_h
+#define SH1106Spi_h
 
 #include "OLEDDisplay.h"
-#include <brzo_i2c.h>
+#include <SPI.h>
 
-#if F_CPU == 160000000L
-  #define BRZO_I2C_SPEED 1000
-#else
-  #define BRZO_I2C_SPEED 800
-#endif
-
-class SH1106Brzo : public OLEDDisplay {
+class SH1106Spi : public OLEDDisplay {
   private:
-      uint8_t             _address;
-      uint8_t             _sda;
-      uint8_t             _scl;
+      uint8_t             _rst;
+      uint8_t             _dc;
 
   public:
-    SH1106Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl) {
-      this->_address = _address;
-      this->_sda = _sda;
-      this->_scl = _scl;
+
+    SH1106Spi(uint8_t _rst, uint8_t _dc) {
+      this->_rst = _rst;
+      this->_dc  = _dc;
     }
 
     bool connect(){
-      brzo_i2c_setup(_sda, _scl, 0);
+      pinMode(_dc, OUTPUT);
+      pinMode(_rst, OUTPUT);
+
+      SPI.begin ();
+      SPI.setClockDivider (SPI_CLOCK_DIV2);
+
+      // Pulse Reset low for 10ms
+      digitalWrite(_rst, HIGH);
+      delay(1);
+      digitalWrite(_rst, LOW);
+      delay(10);
+      digitalWrite(_rst, HIGH);
       return true;
     }
 
@@ -62,6 +66,7 @@ class SH1106Brzo : public OLEDDisplay {
 
        uint8_t minBoundX = ~0;
        uint8_t maxBoundX = 0;
+
        uint8_t x, y;
 
        // Calculate the Y bounding box of changes
@@ -85,48 +90,38 @@ class SH1106Brzo : public OLEDDisplay {
        // holdes true for all values of pos
        if (minBoundY == ~0) return;
 
-       byte k = 0;
-       uint8_t sendBuffer[17];
-       sendBuffer[0] = 0x40;
-
-       // Calculate the colum offset 
+       // Calculate the colum offset
        uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
        uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
-
-       brzo_i2c_start_transaction(this->_address, BRZO_I2C_SPEED);
 
        for (y = minBoundY; y <= maxBoundY; y++) {
          sendCommand(0xB0 + y);
          sendCommand(minBoundXp2H);
          sendCommand(minBoundXp2L);
+         digitalWrite(_dc, HIGH);   // data mode
          for (x = minBoundX; x <= maxBoundX; x++) {
-             k++;
-             sendBuffer[k] = buffer[x + y * DISPLAY_WIDTH];
-             if (k == 16)  {
-               brzo_i2c_write(sendBuffer, 17, true);
-               k = 0;
-             }
-         }
-         if (k != 0) {
-           brzo_i2c_write(sendBuffer, k + 1, true);
-           k = 0;
+           SPI.transfer(buffer[x + y * DISPLAY_WIDTH]);
          }
          yield();
        }
-       if (k != 0) {
-         brzo_i2c_write(sendBuffer, k + 1, true);
-       }
-       brzo_i2c_end_transaction();
      #else
+      for (uint8_t y=0; y<DISPLAY_HEIGHT/8; y++) {
+        sendCommand(0xB0 + y);
+        sendCommand(0x02);
+        sendCommand(0x10);
+        digitalWrite(_dc, HIGH);   // data mode
+        for( uint8_t x=0; x < DISPLAY_WIDTH; x++) {
+          SPI.transfer(buffer[x + y * DISPLAY_WIDTH]);
+        }
+        yield();
+      }
      #endif
     }
 
   private:
     inline void sendCommand(uint8_t com) __attribute__((always_inline)){
-      uint8_t command[2] = {0x80 /* command mode */, com};
-      brzo_i2c_start_transaction(_address, BRZO_I2C_SPEED);
-      brzo_i2c_write(command, 2, true);
-      brzo_i2c_end_transaction();
+      digitalWrite(_dc, LOW);
+      SPI.transfer(com);
     }
 };
 

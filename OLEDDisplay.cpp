@@ -125,13 +125,13 @@ void OLEDDisplay::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
 void OLEDDisplay::drawRect(int16_t x, int16_t y, int16_t width, int16_t height) {
   drawHorizontalLine(x, y, width);
   drawVerticalLine(x, y, height);
-  drawVerticalLine(x + width, y, height);
-  drawHorizontalLine(x, y + height, width);
+  drawVerticalLine(x + width - 1, y, height);
+  drawHorizontalLine(x, y + height - 1, width);
 }
 
 void OLEDDisplay::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height) {
-  for (int16_t i = yMove; i < yMove + height; i++) {
-    drawHorizontalLine(xMove, i, width);
+  for (int16_t x = xMove; x < xMove + width; x++) {
+    drawVerticalLine(x, yMove, height);
   }
 }
 
@@ -160,6 +160,46 @@ void OLEDDisplay::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
   setPixel(x0 - radius, y0);
   setPixel(x0, y0 - radius);
 }
+
+void OLEDDisplay::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads) {
+  int16_t x = 0, y = radius;
+  int16_t dp = 1 - radius;
+  while (x < y) {
+    if (dp < 0)
+      dp = dp + 2 * (++x) + 3;
+    else
+      dp = dp + 2 * (++x) - 2 * (--y) + 5;
+    if (quads & 0x1) {
+      setPixel(x0 + x, y0 - y);
+      setPixel(x0 + y, y0 - x);
+    }
+    if (quads & 0x2) {
+      setPixel(x0 - y, y0 - x);
+      setPixel(x0 - x, y0 - y);
+    }
+    if (quads & 0x4) {
+      setPixel(x0 - y, y0 + x);
+      setPixel(x0 - x, y0 + y);
+    }
+    if (quads & 0x8) {
+      setPixel(x0 + x, y0 + y);
+      setPixel(x0 + y, y0 + x);
+    }
+  }
+  if (quads & 0x1 && quads & 0x8) {
+    setPixel(x0 + radius, y0);
+  }
+  if (quads & 0x4 && quads & 0x8) {
+    setPixel(x0, y0 + radius);
+  }
+  if (quads & 0x2 && quads & 0x4) {
+    setPixel(x0 - radius, y0);
+  }
+  if (quads & 0x1 && quads & 0x2) {
+    setPixel(x0, y0 - radius);
+  }
+}
+
 
 void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
   int16_t x = 0, y = radius;
@@ -215,7 +255,7 @@ void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
 }
 
 void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
-  if (x < 0 || x > DISPLAY_WIDTH) return;
+  if (x < 0 || x >= DISPLAY_WIDTH) return;
 
   if (y < 0) {
     length += y;
@@ -245,9 +285,9 @@ void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
     }
 
     switch (color) {
-      case WHITE:   *bufferPtr |= drawBit; break;
-      case BLACK:   *bufferPtr &= drawBit; break;
-      case INVERSE: *bufferPtr ^= drawBit; break;
+      case WHITE:   *bufferPtr |=  drawBit; break;
+      case BLACK:   *bufferPtr &= ~drawBit; break;
+      case INVERSE: *bufferPtr ^=  drawBit; break;
     }
 
     if (length < yOffset) return;
@@ -280,28 +320,31 @@ void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
   if (length > 0) {
     drawBit = (1 << (length & 7)) - 1;
     switch (color) {
-      case WHITE:   *bufferPtr |= drawBit; break;
-      case BLACK:   *bufferPtr &= drawBit; break;
-      case INVERSE: *bufferPtr ^= drawBit; break;
+      case WHITE:   *bufferPtr |=  drawBit; break;
+      case BLACK:   *bufferPtr &= ~drawBit; break;
+      case INVERSE: *bufferPtr ^=  drawBit; break;
     }
   }
 }
 
 void OLEDDisplay::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress) {
   uint16_t radius = height / 2;
-  uint16_t innerRadius = radius - 3;
-  setColor(WHITE);
-  drawCircle(x + radius, y + radius, radius);
-  drawRect(x+radius, y, width - 2*radius, height);
-  drawCircle(x + width - radius, y + radius, radius);
-  setColor(BLACK);
-  fillRect(x+radius, y+1, width - 2*radius + 1, height - 1);
-  setColor(WHITE);
-  uint16_t maxProgressWidth = (width - 2 * radius) * progress / 100;
-  for (uint16_t i = 0; i < maxProgressWidth; i++) {
-    fillCircle(x + radius + i, y + radius, innerRadius);
-  }
+  uint16_t xRadius = x + radius;
+  uint16_t yRadius = y + radius;
+  uint16_t doubleRadius = 2 * radius;
+  uint16_t innerRadius = radius - 2;
 
+  setColor(WHITE);
+  drawCircleQuads(xRadius, yRadius, radius, 0b00000110);
+  drawHorizontalLine(xRadius, y, width - doubleRadius + 1);
+  drawHorizontalLine(xRadius, y + height, width - doubleRadius + 1);
+  drawCircleQuads(x + width - radius, yRadius, radius, 0b00001001);
+
+  uint16_t maxProgressWidth = (width - doubleRadius - 1) * progress / 100;
+
+  fillCircle(xRadius, yRadius, innerRadius);
+  fillRect(xRadius + 1, y + 2, maxProgressWidth, height - 3);
+  fillCircle(xRadius + maxProgressWidth, yRadius, innerRadius);
 }
 
 void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {
@@ -384,24 +427,24 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, String strUser) {
   // char* text must be freed!
   char* text = utf8ascii(strUser);
 
-  uint16_t xOffset = 0;
+  uint16_t yOffset = 0;
   // If the string should be centered vertically too
   // we need to now how heigh the string is.
   if (textAlignment == TEXT_ALIGN_CENTER_BOTH) {
-    uint16_t lb;
+    uint16_t lb = 0;
     // Find number of linebreaks in text
-    for (uint16_t i=0, lb=0; text[i]; i++) {
-      lb += (text[i] == '\n');
+    for (uint16_t i=0;text[i] != 0; i++) {
+      lb += (text[i] == 10);
     }
     // Calculate center
-    xOffset = (lb * lineHeight) / 2;
+    yOffset = (lb * lineHeight) / 2;
   }
 
   uint16_t line = 0;
   char* textPart = strtok(text,"\n");
   while (textPart != NULL) {
     uint16_t length = strlen(textPart);
-    drawStringInternal(xMove - xOffset, yMove + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
+    drawStringInternal(xMove, yMove - yOffset + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
     textPart = strtok(NULL, "\n");
   }
   free(text);
@@ -690,13 +733,13 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
       if (yOffset >= 0) {
         switch (this->color) {
           case WHITE:   buffer[dataPos] |= currentByte << yOffset; break;
-          case BLACK:   buffer[dataPos] &= currentByte << yOffset; break;
+          case BLACK:   buffer[dataPos] &= ~(currentByte << yOffset); break;
           case INVERSE: buffer[dataPos] ^= currentByte << yOffset; break;
         }
         if (dataPos < (DISPLAY_BUFFER_SIZE - DISPLAY_WIDTH)) {
           switch (this->color) {
             case WHITE:   buffer[dataPos + DISPLAY_WIDTH] |= currentByte >> (8 - yOffset); break;
-            case BLACK:   buffer[dataPos + DISPLAY_WIDTH] &= currentByte >> (8 - yOffset); break;
+            case BLACK:   buffer[dataPos + DISPLAY_WIDTH] &= ~(currentByte >> (8 - yOffset)); break;
             case INVERSE: buffer[dataPos + DISPLAY_WIDTH] ^= currentByte >> (8 - yOffset); break;
           }
         }
@@ -706,7 +749,7 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
 
         switch (this->color) {
           case WHITE:   buffer[dataPos] |= currentByte >> yOffset; break;
-          case BLACK:   buffer[dataPos] &= currentByte >> yOffset; break;
+          case BLACK:   buffer[dataPos] &= ~(currentByte >> yOffset); break;
           case INVERSE: buffer[dataPos] ^= currentByte >> yOffset; break;
         }
 

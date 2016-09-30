@@ -76,6 +76,14 @@ void OLEDDisplayUi::disableIndicator(){
   this->state.isIndicatorDrawen = false;
 }
 
+void OLEDDisplayUi::enableAllIndicators(){
+  this->shouldDrawIndicators = true;
+}
+
+void OLEDDisplayUi::disableAllIndicators(){
+  this->shouldDrawIndicators = false;
+}
+
 void OLEDDisplayUi::setIndicatorPosition(IndicatorPosition pos) {
   this->indicatorPosition = pos;
 }
@@ -220,7 +228,9 @@ void OLEDDisplayUi::tick() {
 
   this->display->clear();
   this->drawFrame();
-  this->drawIndicator();
+  if (shouldDrawIndicators) {
+    this->drawIndicator();
+  }
   this->drawOverlays();
   this->display->display();
 }
