@@ -38,7 +38,18 @@ class SH1106Spi : public OLEDDisplay {
 
   public:
 
-    SH1106Spi(uint8_t _rst, uint8_t _dc) {
+    SH1106Spi(OLEDDISPLAY_GEOMETRY g, uint8_t _rst, uint8_t _dc) {      
+      this->geometry = g;
+      if (g == GEOMETRY_128_64) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 64;
+        this->displayBufferSize                = 1024;
+      } else if (g == GEOMETRY_128_32) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 32;
+        this->displayBufferSize                = 512;    
+      }
+
       this->_rst = _rst;
       this->_dc  = _dc;
     }
@@ -71,9 +82,9 @@ class SH1106Spi : public OLEDDisplay {
 
        // Calculate the Y bounding box of changes
        // and copy buffer[pos] to buffer_back[pos];
-       for (y = 0; y < (DISPLAY_HEIGHT / 8); y++) {
-         for (x = 0; x < DISPLAY_WIDTH; x++) {
-          uint16_t pos = x + y * DISPLAY_WIDTH;
+       for (y = 0; y < (displayHeight / 8); y++) {
+         for (x = 0; x < displayWidth; x++) {
+          uint16_t pos = x + y * displayWidth;
           if (buffer[pos] != buffer_back[pos]) {
             minBoundY = _min(minBoundY, y);
             maxBoundY = _max(maxBoundY, y);
@@ -100,18 +111,18 @@ class SH1106Spi : public OLEDDisplay {
          sendCommand(minBoundXp2L);
          digitalWrite(_dc, HIGH);   // data mode
          for (x = minBoundX; x <= maxBoundX; x++) {
-           SPI.transfer(buffer[x + y * DISPLAY_WIDTH]);
+           SPI.transfer(buffer[x + y * displayWidth]);
          }
          yield();
        }
      #else
-      for (uint8_t y=0; y<DISPLAY_HEIGHT/8; y++) {
+      for (uint8_t y=0; y<displayHeight/8; y++) {
         sendCommand(0xB0 + y);
         sendCommand(0x02);
         sendCommand(0x10);
         digitalWrite(_dc, HIGH);   // data mode
-        for( uint8_t x=0; x < DISPLAY_WIDTH; x++) {
-          SPI.transfer(buffer[x + y * DISPLAY_WIDTH]);
+        for( uint8_t x=0; x < displayWidth; x++) {
+          SPI.transfer(buffer[x + y * displayWidth]);
         }
         yield();
       }
