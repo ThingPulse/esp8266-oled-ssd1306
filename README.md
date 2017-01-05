@@ -322,7 +322,7 @@ void setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount);
  * Set the function that will draw each step
  * in the loading animation
  */
-void setLoadingDrawFunction(LoadingDrawFunction stage);
+void setLoadingDrawFunction(LoadingDrawFunction loadingDrawFunction);
 
 /**
  * Run the loading process
