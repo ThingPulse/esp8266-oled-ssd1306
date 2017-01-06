@@ -150,7 +150,7 @@ class OLEDDisplay : public Print {
     // Draw a lin vertically
     void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
-    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is 
+    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is
     // a unsigned byte value between 0 and 100
     void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
 
@@ -184,7 +184,7 @@ class OLEDDisplay : public Print {
 
     // Sets the current font. Available default fonts
     // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
-    void setFont(const char *fontData);
+    void setFont(const unsigned char *fontData);
 
     /* Display functions */
 
@@ -237,7 +237,7 @@ class OLEDDisplay : public Print {
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
     OLEDDISPLAY_COLOR            color         = WHITE;
 
-    const char          *fontData              = ArialMT_Plain_10;
+    const unsigned char          *fontData     = ArialMT_Plain_10;
 
     // State values for logBuffer
     uint16_t   logBufferSize                   = 0;
