@@ -347,11 +347,11 @@ void OLEDDisplay::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16
   fillCircle(xRadius + maxProgressWidth, yRadius, innerRadius);
 }
 
-void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {
+void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const unsigned char *image) {
   drawInternal(xMove, yMove, width, height, image, 0, 0);
 }
 
-void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *xbm) {
+void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const unsigned char *xbm) {
   int16_t widthInXbm = (width + 7) / 8;
   uint8_t data;
 
