@@ -259,7 +259,7 @@ class OLEDDisplay : public Print {
     static char* utf8ascii(String s);
     static byte utf8ascii(byte ascii);
 
-    void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
+    void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const unsigned char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
 

@@ -525,7 +525,7 @@ void OLEDDisplay::setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment) {
   this->textAlignment = textAlignment;
 }
 
-void OLEDDisplay::setFont(const char *fontData) {
+void OLEDDisplay::setFont(const unsigned char *fontData) {
   this->fontData = fontData;
 }
 
@@ -692,7 +692,7 @@ void OLEDDisplay::sendInitCommands(void) {
   sendCommand(DISPLAYON);
 }
 
-void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) {
+void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const unsigned char *data, uint16_t offset, uint16_t bytesInData) {
   if (width < 0 || height < 0) return;
   if (yMove + height < 0 || yMove > DISPLAY_HEIGHT)  return;
   if (xMove + width  < 0 || xMove > DISPLAY_WIDTH)   return;
