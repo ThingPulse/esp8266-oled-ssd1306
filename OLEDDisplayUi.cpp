@@ -376,11 +376,11 @@ void OLEDDisplayUi::drawIndicator() {
           break;
         case RIGHT:
           x = 120 + (8 * indicatorFadeProgress);
-          y = 32 - frameStartPos + 12 * i;
+          y = 32 - frameStartPos + 2 + 12 * i;
           break;
         case LEFT:
           x = 0 - (8 * indicatorFadeProgress);
-          y = 32 - frameStartPos + 12 * i;
+          y = 32 - frameStartPos + 2 + 12 * i;
           break;
       }
 
