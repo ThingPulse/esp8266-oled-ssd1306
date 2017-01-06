@@ -207,7 +207,7 @@ class OLEDDisplay : public Print {
     void flipScreenVertically();
 
     // Write the buffer to the display memory
-    virtual void display(void);
+    virtual void display(void) = 0;
 
     // Clear the local pixel buffer
     void clear(void);
