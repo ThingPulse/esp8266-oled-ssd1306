@@ -72,7 +72,7 @@ const char ANIMATION_inactiveSymbol[] PROGMEM = {
 
 // Structure of the UiState
 struct OLEDDisplayUiState {
-  u_int64_t     lastUpdate                = 0;
+  uint64_t     lastUpdate                = 0;
   uint16_t      ticksSinceLastStateSwitch = 0;
 
   FrameState    frameState                = FIXED;
