@@ -211,7 +211,7 @@ class OLEDDisplay : public Print {
     void flipScreenVertically();
 
     // Write the buffer to the display memory
-    virtual void display(void);
+    virtual void display(void) = 0;
 
     // Clear the local pixel buffer
     void clear(void);
@@ -251,10 +251,10 @@ class OLEDDisplay : public Print {
     char      *logBuffer                       = NULL;
 
     // Send a command to the display (low level function)
-    virtual void sendCommand(uint8_t com);
+    virtual void sendCommand(uint8_t com) {};
 
     // Connect to the display
-    virtual bool connect();
+    virtual bool connect() {};
 
     // Send all the init commands
     void sendInitCommands();

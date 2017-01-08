@@ -274,14 +274,14 @@ void enableIndicator();
 void disableIndicator();
 
 /**
- * Enable drawing of indicators
+ * Enable drawing of all indicators.
  */
-void enableAllIndicator();
+void enableAllIndicators();
 
 /**
- * Disable drawing of indicators.
+ * Disable drawing of all indicators.
  */
-void disableAllIndicator();
+void disableAllIndicators();
 
 /**
  * Set the position of the indicator bar.
@@ -322,7 +322,7 @@ void setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount);
  * Set the function that will draw each step
  * in the loading animation
  */
-void setLoadingDrawFunction(LoadingDrawFunction stage);
+void setLoadingDrawFunction(LoadingDrawFunction loadingDrawFunction);
 
 /**
  * Run the loading process
