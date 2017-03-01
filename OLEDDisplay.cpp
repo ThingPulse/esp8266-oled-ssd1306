@@ -612,12 +612,17 @@ size_t OLEDDisplay::write(uint8_t c) {
     // Don't waste space on \r\n line endings, dropping \r
     if (c == 13) return 1;
 
+    // convert UTF-8 character to font table index
+    c = (this->fontTableLookupFunction)(c);
+    // drop unknown character
+    if (c == 0) return 1;
+
     bool maxLineNotReached = this->logBufferLine < this->logBufferMaxLines;
     bool bufferNotFull = this->logBufferFilled < this->logBufferSize;
 
     // Can we write to the buffer?
     if (bufferNotFull && maxLineNotReached) {
-      this->logBuffer[logBufferFilled] = utf8ascii(c);
+      this->logBuffer[logBufferFilled] = c;
       this->logBufferFilled++;
       // Keep track of lines written
       if (c == 10) this->logBufferLine++;
@@ -760,27 +765,6 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
   }
 }
 
-// Code form http://playground.arduino.cc/Main/Utf8ascii
-uint8_t OLEDDisplay::utf8ascii(byte ascii) {
-  static uint8_t LASTCHAR;
-
-  if ( ascii < 128 ) { // Standard ASCII-set 0..0x7F handling
-    LASTCHAR = 0;
-    return ascii;
-  }
-
-  uint8_t last = LASTCHAR;   // get last char
-  LASTCHAR = ascii;
-
-  switch (last) {    // conversion depnding on first UTF8-character
-    case 0xC2: return  (ascii);  break;
-    case 0xC3: return  (ascii | 0xC0);  break;
-    case 0x82: if (ascii == 0xAC) return (0x80);    // special case Euro-symbol
-  }
-
-  return  0; // otherwise: return zero, if character has to be ignored
-}
-
 // You need to free the char!
 char* OLEDDisplay::utf8ascii(String str) {
   uint16_t k = 0;
@@ -797,7 +781,7 @@ char* OLEDDisplay::utf8ascii(String str) {
   length--;
 
   for (uint16_t i=0; i < length; i++) {
-    char c = utf8ascii(s[i]);
+    char c = (this->fontTableLookupFunction)(s[i]);
     if (c!=0) {
       s[k++]=c;
     }
@@ -807,4 +791,8 @@ char* OLEDDisplay::utf8ascii(String str) {
 
   // This will leak 's' be sure to free it in the calling function.
   return s;
+}
+
+void OLEDDisplay::setFontTableLookupFunction(FontTableLookupFunction function) {
+  this->fontTableLookupFunction = function;
 }
