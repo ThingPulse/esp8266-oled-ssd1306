@@ -107,6 +107,11 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
   TEXT_ALIGN_CENTER_BOTH = 3
 };
 
+enum OLEDDISPLAY_DRIVER {
+  DRIVER_SSD1306 = 0,
+  DRIVER_SH1106
+}; 
+
 
 class OLEDDisplay : public Print {
   public:
@@ -248,6 +253,9 @@ class OLEDDisplay : public Print {
 
     // Send a command to the display (low level function)
     virtual void sendCommand(uint8_t com) {};
+
+    // return OLED driver
+    virtual uint8_t driver();
 
     // Connect to the display
     virtual bool connect() {};

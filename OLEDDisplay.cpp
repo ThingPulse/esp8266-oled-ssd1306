@@ -666,30 +666,71 @@ size_t OLEDDisplay::write(const char* str) {
 
 // Private functions
 void OLEDDisplay::sendInitCommands(void) {
-  sendCommand(DISPLAYOFF);
-  sendCommand(SETDISPLAYCLOCKDIV);
-  sendCommand(0xF0); // Increase speed of the display max ~96Hz
-  sendCommand(SETMULTIPLEX);
-  sendCommand(0x3F);
-  sendCommand(SETDISPLAYOFFSET);
-  sendCommand(0x00);
-  sendCommand(SETSTARTLINE);
-  sendCommand(CHARGEPUMP);
-  sendCommand(0x14);
-  sendCommand(MEMORYMODE);
-  sendCommand(0x00);
-  sendCommand(SEGREMAP);
-  sendCommand(COMSCANINC);
-  sendCommand(SETCOMPINS);
-  sendCommand(0x12);
-  sendCommand(SETCONTRAST);
-  sendCommand(0xCF);
-  sendCommand(SETPRECHARGE);
-  sendCommand(0xF1);
-  sendCommand(DISPLAYALLON_RESUME);
-  sendCommand(NORMALDISPLAY);
-  sendCommand(0x2e);            // stop scroll
-  sendCommand(DISPLAYON);
+  // SSD1306
+  if (this->driver() == DRIVER_SSD1306) {
+    sendCommand(DISPLAYOFF);
+    sendCommand(SETDISPLAYCLOCKDIV);
+    sendCommand(0xF0); // Increase speed of the display max ~96Hz
+    sendCommand(SETMULTIPLEX);
+    sendCommand(0x3F);
+    sendCommand(SETDISPLAYOFFSET);
+    sendCommand(0x00);
+    sendCommand(SETSTARTLINE);
+    sendCommand(CHARGEPUMP);
+    sendCommand(0x14);
+    sendCommand(MEMORYMODE);
+    sendCommand(0x00);
+    sendCommand(SEGREMAP);
+    sendCommand(COMSCANINC);
+    sendCommand(SETCOMPINS);
+    sendCommand(0x12);
+    sendCommand(SETPRECHARGE);
+    sendCommand(0xF1);
+    sendCommand(DISPLAYALLON_RESUME);
+    sendCommand(NORMALDISPLAY);
+    sendCommand(0x2e);            // stop scroll
+    sendCommand(SETCONTRAST);
+    sendCommand(0xCF);
+    sendCommand(DISPLAYON);
+
+  // SH1106 
+  } else if (this->driver() == DRIVER_SH1106) {
+    sendCommand(DISPLAYOFF);
+    sendCommand(SETMULTIPLEX);
+    sendCommand(0x3F);
+    sendCommand(SETLOWCOLUMN|0x02); // set lower column address (add 2 pixels)
+    sendCommand(SETHIGHCOLUMN);     // set higher column address
+    sendCommand(SETSTARTLINE);      // set display start line
+    sendCommand(0xB0);              // set page address
+    sendCommand(NORMALDISPLAY);     
+    sendCommand(0xad);              // set charge pump enable
+    sendCommand(0x8b);              // external VCC   */
+    sendCommand(0x30);              // 0X30---0X33  set VPP   9V liangdu!!!!*/
+    sendCommand(SEGREMAP);      
+    sendCommand(COMSCANINC);    
+    sendCommand(SETDISPLAYOFFSET);  // set display offset
+    sendCommand(0x00);   
+    sendCommand(SETDISPLAYCLOCKDIV);
+    sendCommand(0xF0);
+    sendCommand(SETPRECHARGE);    
+    sendCommand(0x1f);    
+    sendCommand(SETCOMPINS);        // set COM pins
+    sendCommand(0x12);
+    sendCommand(SETVCOMDETECT);    
+    sendCommand(SETCONTRAST);
+    sendCommand(0x80);
+    sendCommand(0x2e);            // stop scroll
+
+    // @Charles
+    // Don't ask me why I needed this one it's the first time I need to to this on SH1106 OLED
+    // If not, display is shifted by one line, may be due to internal buffering of this library
+    // or something else, so strange but works with this trick
+    sendCommand(0xD3);            //set display offset
+    sendCommand(0x01);            // One line shift
+
+    sendCommand(DISPLAYON);
+  }
+
 }
 
 void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) {
