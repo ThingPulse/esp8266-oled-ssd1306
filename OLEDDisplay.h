@@ -206,6 +206,9 @@ class OLEDDisplay : public Print {
     // Turn the display upside down
     void flipScreenVertically();
 
+    // Mirror the display (to be used in a mirror or as a projector)
+    void mirrorScreen();
+
     // Write the buffer to the display memory
     virtual void display(void) = 0;
 
