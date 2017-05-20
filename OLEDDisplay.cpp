@@ -555,6 +555,11 @@ void OLEDDisplay::flipScreenVertically() {
   sendCommand(COMSCANDEC);           //Rotate screen 180 Deg
 }
 
+void OLEDDisplay::mirrorScreen() {
+  sendCommand(SEGREMAP);
+  sendCommand(COMSCANDEC);           //Mirror screen
+}
+
 void OLEDDisplay::clear(void) {
   memset(buffer, 0, DISPLAY_BUFFER_SIZE);
 }
