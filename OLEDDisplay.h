@@ -203,6 +203,9 @@ class OLEDDisplay : public Print {
     // Set display contrast
     void setContrast(char contrast);
 
+    // Reset display rotation or mirroring
+    void resetOrientation();
+
     // Turn the display upside down
     void flipScreenVertically();
 
