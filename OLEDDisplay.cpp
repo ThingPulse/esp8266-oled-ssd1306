@@ -73,7 +73,7 @@ void OLEDDisplay::setColor(OLEDDISPLAY_COLOR color) {
 }
 
 void OLEDDisplay::setPixel(int16_t x, int16_t y) {
-  if (x >= 0 && x < 128 && y >= 0 && y < 64) {
+  if (x >= 0 && x < DISPLAY_WIDTH && y >= 0 && y < DISPLAY_HEIGHT) {
     switch (color) {
       case WHITE:   buffer[x + (y / 8) * DISPLAY_WIDTH] |=  (1 << (y & 7)); break;
       case BLACK:   buffer[x + (y / 8) * DISPLAY_WIDTH] &= ~(1 << (y & 7)); break;
