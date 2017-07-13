@@ -72,6 +72,10 @@ void OLEDDisplay::setColor(OLEDDISPLAY_COLOR color) {
   this->color = color;
 }
 
+OLEDDISPLAY_COLOR OLEDDisplay:getColor() {
+  return this->color;
+}
+
 void OLEDDisplay::setPixel(int16_t x, int16_t y) {
   if (x >= 0 && x < 128 && y >= 0 && y < 64) {
     switch (color) {
