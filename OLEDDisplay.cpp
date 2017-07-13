@@ -72,7 +72,7 @@ void OLEDDisplay::setColor(OLEDDISPLAY_COLOR color) {
   this->color = color;
 }
 
-OLEDDISPLAY_COLOR OLEDDisplay:getColor() {
+OLEDDISPLAY_COLOR OLEDDisplay::getColor() {
   return this->color;
 }
 
