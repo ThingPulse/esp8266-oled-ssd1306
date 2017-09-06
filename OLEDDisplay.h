@@ -147,7 +147,7 @@ class OLEDDisplay : public Print {
     // Draw a line horizontally
     void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
-    // Draw a lin vertically
+    // Draw a line vertically
     void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
     // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is 
