@@ -52,8 +52,8 @@
   <body>
     <div id="form">
       <span>Font array name:</span> <input placeholder="Font array name" type="text" id="name" value="My_Font"/><br/>
-      <span>Height:</span> <input placeholder="Font height" type="number" id="height" value="13" max="64"/><br/>
       <span>Width:</span> <input placeholder="Font width" type="number" id="width" value="10"/><br/>
+      <span>Height:</span> <input placeholder="Font height" type="number" id="height" value="13" max="64"/><br/>
       <span>First char code:</span> <input placeholder="First char code" type="number" id="code" value="1" min="1"/><br/>
       <br/>
       <button id="create">Create</button>
@@ -73,11 +73,13 @@
       // 100% vanilla ECS6, no framework or library was injured for this project.
       // This page allows drawing icons in grids and generating the map with the format required by 
       // library for OLED SD1306 screen: https://github.com/squix78/esp8266-oled-ssd1306
+     
       // TODO: 
-      // Implement data parsing to edit existing font
+      // Implement data parsing to edit existing font: from char array data to pixels matrix
       // Implement methods to move glyphs, symetrical input, ...
       // Implement char insertion, non displayable char, ...
-
+      // Submit PR to original project.
+      
       let font;
       class Font {
         constructor(height, width, code) {
@@ -96,9 +98,18 @@
           let header = charContainer.appendChild(document.createElement("th"));
           header.setAttribute("colspan", this.width-1);
           header.textContent = `Character ${this.currentCharCode}`;
-          let removeCharHeader = charContainer.appendChild(document.createElement("th"));
-          removeCharHeader.setAttribute("action", "remove");
-          removeCharHeader.textContent = "x";
+          let deletePixels = charContainer.appendChild(document.createElement("th"));
+          deletePixels.setAttribute("action", "remove");
+          deletePixels.textContent = "x";
+          deletePixels.addEventListener('click', function() {
+            let result = confirm("Delete the pixels ?");
+            if(result) {
+              let pixels = charContainer.getElementsByTagName('td');
+              for(let p = 0; p < pixels.length; p++) {
+                pixels[p].className = '';
+              }
+            } 
+          });
           for(let r = 0; r < this.height; r++) {
           	let rowContainer = charContainer.appendChild(document.createElement("tr"));
             for(let c = 0; c < this.width; c++) {
@@ -112,6 +123,8 @@
           pixel.className = pixel.className == 'on' ? '': 'on';
         }
         
+        // Read from the <td> css class the pixels that need to be on
+        // generates the jump table and font data 
         generate() {
           document.getElementById('header').textContent = '';
           document.getElementById('jump').textContent = '';
@@ -123,20 +136,22 @@
           let charAddr = 0;
           output('jump', '  // Jump table:');
           output('data', '  // Data:');
+          // Browse each character
           for(let ch = 0; ch < charCount; ch++) {
             let charBytes = [];
             let charBits = [];
             let charWidth = 1; // always add one row of off pixels to the right ?
             let rows = chars[ch].getElementsByTagName('tr');
-            
+            // Browse each column
             for(let col = 0; col < this.width ; col++) {
               var bits = ""; // using string because js uses 32b ints when performing bit operations
-              //for(let r = 0; r < rows.length; r++) {
+              // Browse each row starting from the bottom one, going up, and accumulate pixels in
+              // a string: this rotates the glyph
               for(let r = rows.length-1; r >=0 ; r--) {
                 let pixelState = rows[r].children[col].className;
                 bits += (pixelState == 'on' ? '1': '0');           
               }
-              // Need to complete missing bits to have an odd number of bytes
+              // Need to complete missing bits to have a sizeof byte multiple number of bits
               for(let b = 0; b < bits2add; b++) {
                 bits +=  '0';
               }
@@ -144,8 +159,7 @@
               for(let b = 0 ; b < bits.length/16; b+=16) {
                 let word = parseInt(bits.substring(b, b+15), 2);
                 charBytes.push(getLsB(word));
-                charBytes.push(getMsB(word));
-                
+                charBytes.push(getMsB(word));               
               } 
             }
             // Remove bytes with value 0 at the end of the array.
@@ -154,20 +168,17 @@
             }
             
             output('data', `  ${charBytes.join(',')},`);
+            // TODO: last param width is not the best value. Need to compute the actual occupied width
             output('jump', `  ${getMsB(charAddr)}, ${getLsB(charAddr)}, ${toHexString(charBytes.length)}, ${toHexString(this.width)}, `);
             charAddr += charBytes.length;                                           
           }
           output('data', '};');
-
-          
           
           output('header', `const char ${name}[] PROGMEM = {`);
           output('header', `  ${toHexString(this.width)}, // Width: ${this.width}`);
           output('header', `  ${toHexString(this.height)}, // Height: ${this.height}`);          
           output('header', `  ${toHexString(this.firstCharCode)}, // First char: ${this.firstCharCode}`);
           output('header', `  ${toHexString(charCount)}, // Number of chars: ${charCount}`);
-          
-          
         }
       }
       
