@@ -227,8 +227,9 @@ const char My_Font[] PROGMEM = {
         }
         
         // Return anInt as hex string
-        static toHexString(anInt) {
-          return `0x${anInt.toString(16)}`
+        static toHexString(aByte) {
+          let zero = aByte < 16?'0':'';
+          return `0x${zero}${aByte.toString(16).toUpperCase()}`
         }
         
         // Return least significant byte as hex string
@@ -272,6 +273,7 @@ const char My_Font[] PROGMEM = {
             let charBytes = [];
             let charCode = chars[ch].getAttribute('code');
             let rows = chars[ch].getElementsByTagName('tr');
+            let notZero = false;
             // Browse each column
             for(let col = 0; col < this.width ; col++) {
               let bits = ""; // using string because js uses 32b ints when performing bit operations
@@ -292,6 +294,9 @@ const char My_Font[] PROGMEM = {
               for(let b = bits.length - 1; b >= 7; b -= 8) {
                 //Font.output('data', `  // ${bits.substring(b-7, b)}`);  // Debugging help: rotated bitmap
                 let byte = parseInt(bits.substring(b-8, b), 2);
+                if (byte != 0) {
+                  notZero = true;
+                }
                 charBytes.push(Font.toHexString(byte));
               } 
             }
@@ -300,13 +305,18 @@ const char My_Font[] PROGMEM = {
               charBytes.pop();
             }
             
-            Font.output('data', `  ${charBytes.join(',')},  // ${charCode}`);
-            // TODO: last param width is not the best value. Need to compute the actual occupied width
-            Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
-            charAddr += charBytes.length;                                           
+            if (notZero) {
+              Font.output('data', `  ${charBytes.join(',')},  // ${charCode}`);
+              // TODO: last param width is not the best value. Need to compute the actual occupied width
+              Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
+              charAddr += charBytes.length;
+            } else {
+              Font.output('jump', `  0xff, 0xff, 0x00, ${Font.toHexString(this.width)},  // ${charCode} `);
+            }
           }
           Font.output('data', '};');
           
+          Font.output('header', "// Font generated or edited with the glyphEditor");
           Font.output('header', `const char ${name}[] PROGMEM = {`);
           // Comments are used when parsing back a generated font
           Font.output('header', `  ${Font.toHexString(this.width)}, // Width: ${this.width}`);
