@@ -25,7 +25,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 -->
+<!--
+ Standalone page to draw icons in matrix and generates the map definition with the format required by 
+ library for OLED SD1306 screen: https://github.com/squix78/esp8266-oled-ssd1306
+ 100% quick and dirty vanilla ECS6, no framework or library was injured for this project.
 
+ TODO: 
+ Implement methods to move glyphs in their matrix, copy one from another, symetrical input, ...
+ Implement char insertion, non displayable char (?), ...
+ Submit PR to original project.
+-->
 <html>
   <head>
     <style>
@@ -82,7 +91,6 @@ SOFTWARE.
     </style>
   </head>
   <body>
-  <!--The html part is aweful and needs to be redesigned-->
     <div id="form">
       <table width="100%">
         <tr>
@@ -90,16 +98,16 @@ SOFTWARE.
           <td width="75%" rowspan="4">
             <textarea id="inputText" placeholder="Or paste a char array font definition here">
 const char My_Font[] PROGMEM = {
-0xa, // Width: 10
-0xd, // Height: 13
-0x1, // First char: 1
-0x2, // Number of chars: 2
-// Jump table:
-0x0, 0x0, 0x14, 0xa,
-0x0, 0x14, 0x14, 0xa,
-// Font Data:
-0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x0,0x6,
-0x0,0x60,0x0,0x5c,0x80,0x43,0x60,0x40,0x98,0x57,0x98,0x57,0x60,0x40,0x80,0x43,0x0,0x5c,0x0,0x60,
+  0xa, // Width: 10
+  0xd, // Height: 13
+  0x1, // First char: 1
+  0x2, // Number of chars: 2
+  // Jump table:
+  0x0, 0x0, 0x14, 0xa,
+  0x0, 0x14, 0x14, 0xa,
+  // Font Data:
+  0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x0,0x6,
+  0x0,0x60,0x0,0x5c,0x80,0x43,0x60,0x40,0x98,0x57,0x98,0x57,0x60,0x40,0x80,0x43,0x0,0x5c,0x0,0x60,
 };              
             </textarea></td>
         </tr>
@@ -129,17 +137,8 @@ const char My_Font[] PROGMEM = {
     </div>
     <script>
     (function() {
-      // This page allows drawing icons in grids and generating the map with the format required by 
-      // library for OLED SD1306 screen: https://github.com/squix78/esp8266-oled-ssd1306
-      // 100% quick and dirty vanilla ECS6, no framework or library was injured for this project.
-     
-      // TODO: 
-      // Implement data parsing to edit existing font: from char array data to pixels matrix
-      // Implement methods to move glyphs in their matrix, copy one from another, symetrical input, ...
-      // Implement char insertion, non displayable char (?), ...
-      // Submit PR to original project.
-      
       let font;
+      
       class Font {
         constructor() {
           this.height = parseInt(document.getElementById('height').value);
@@ -154,15 +153,16 @@ const char My_Font[] PROGMEM = {
         // Let's use the DOM to store everything for now
         
         // Add a pixel matrix to draw a new character
+        // jumpaData not used for now: some day, use the last byte for optimisation 
         addChar(jumpData, charData) {
           let charContainer = this.fontContainer.appendChild(document.createElement("table"));
           charContainer.setAttribute("code", this.currentCharCode);
           let header = charContainer.appendChild(document.createElement("th"));
-          header.setAttribute("colspan", this.width-1);
+          header.setAttribute("colspan", this.width - 1);
           // Non displayable characters 
           if (charData && !charData.length) {
-            // Original fonts comes with undisplayable chars.
-            // Draw an empty matrix so that one can add his own chars instead.
+            // Original fonts come with optim for undisplayable chars: they have 0xFFFF address in the jump table and no data.
+            // Draw an empty matrix so that one can use them to insert their own characters instead.
             header.textContent = `No character ${this.currentCharCode}`;
           } else {
             header.textContent = `Character ${this.currentCharCode}`;
@@ -256,10 +256,9 @@ const char My_Font[] PROGMEM = {
         // Read from the <td> css class the pixels that need to be on
         // generates the jump table and font data 
         generate() {
-          document.getElementById('header').textContent = '';
-          document.getElementById('jump').textContent = '';
-          document.getElementById('data').textContent = '';
-          let name = document.getElementById('name').value.replace(/[^a-zA-Z0-9_\$]/g, '_');
+          Font.emptyOutput();
+          
+          let name = document.getElementById('name').value.replace(/[^a-zA-Z0-9_$]/g, '_');
           
           let bits2add = this.bytesForHeight*8 - this.height;  // number of missing bits to fill leftmost byte
           let chars = this.fontContainer.getElementsByTagName('table');
@@ -297,11 +296,11 @@ const char My_Font[] PROGMEM = {
               } 
             }
             // Remove bytes with value 0 at the end of the array.
-            while(charBytes[charBytes.length-1] === '0x0' && charBytes.length != 1) {
+            while(charBytes[charBytes.length-1] === '0x0' && charBytes.length !== 1) {
               charBytes.pop();
             }
             
-            Font.output('data', `  ${charBytes.join(',')},`);
+            Font.output('data', `  ${charBytes.join(',')},  // ${charCode}`);
             // TODO: last param width is not the best value. Need to compute the actual occupied width
             Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
             charAddr += charBytes.length;                                           
@@ -335,11 +334,11 @@ const char My_Font[] PROGMEM = {
         if (target.nodeName !== 'TD' || e.buttons !== 1) return;
         Font.togglePixel(target);
       });
-      document.getElementById('chars').addEventListener('dragstart', function(e) {
+      document.getElementById('chars').addEventListener('dragstart', function() {
         return false;
       });
 
-      document.getElementById('create').addEventListener('click', function(button) {
+      document.getElementById('create').addEventListener('click', function() {
         document.body.className = "started";      
       	font = new Font();
         font.addChar();
@@ -347,7 +346,11 @@ const char My_Font[] PROGMEM = {
 
       // parse a char array declaration for an existing font.
       // parsing heavily relies on comments.
-      document.getElementById('parse').addEventListener('click', function(e) {
+      document.getElementById('parse').addEventListener('click', function() {
+        if (document.getElementById('chars').childElementCount) {
+          let result = confirm("Confirm you want to overwrite the existing grids ?");
+          if (!result) return;          
+        } 
         let lines = document.getElementById('inputText').value.split('\n');
         let name = '';
         let height = 0;
@@ -367,7 +370,7 @@ const char My_Font[] PROGMEM = {
           // Declaration line: grab the name
           if (line.indexOf('PROGMEM') > 0) {
             fields = line.split(' ');
-            name = fields[2];
+            name = fields[2].replace(/[\[\]]/g, '');
             continue;
           }
           line = line.toLowerCase();
