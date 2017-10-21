@@ -74,17 +74,9 @@ SOFTWARE.
         font-size:12px;
         user-select: all;
       }
-      #input {
-        position:absolute;
-        top:0;
-        right:0;
-        padding: 20px;
-        width:50%;
-      }
-      #input textarea {
+      #inputText {
         width: 100%;
-        height: 500px;
-        margin-bottom: 10px;
+        height:120px;
       }
       
     </style>
@@ -92,9 +84,24 @@ SOFTWARE.
   <body>
   <!--The html part is aweful and needs to be redesigned-->
     <div id="form">
-      <table>
+      <table width="100%">
         <tr>
           <td>Font array name:</td><td><input placeholder="Font array name" type="text" id="name" value="My_Font"/></td>
+          <td width="75%" rowspan="4">
+            <textarea id="inputText" placeholder="Or paste a char array font definition here">
+const char My_Font[] PROGMEM = {
+0xa, // Width: 10
+0xd, // Height: 13
+0x1, // First char: 1
+0x2, // Number of chars: 2
+// Jump table:
+0x0, 0x0, 0x14, 0xa,
+0x0, 0x14, 0x14, 0xa,
+// Font Data:
+0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x0,0x6,
+0x0,0x60,0x0,0x5c,0x80,0x43,0x60,0x40,0x98,0x57,0x98,0x57,0x60,0x40,0x80,0x43,0x0,0x5c,0x0,0x60,
+};              
+            </textarea></td>
         </tr>
         <tr>
           <td>Width:</td><td><input placeholder="Font width" type="number" id="width" value="10"/></td>
@@ -105,11 +112,12 @@ SOFTWARE.
         <tr>
           <td>First char code:</td><td><input placeholder="First char code" type="number" id="code" value="1" min="1"/></td>
         </tr>
+        <tr>
+          <td colspan="2"><button id="create">Create</button><button id="addChar">Add a character</button> <button id="generate">Generate</button></td>
+          <td><button id="parse">Parse</button></td>
+        </tr>
       </table>
       <br/>
-      <button id="create">Create</button>
-      <button id="addChar">Add a character</button>
-      <button id="generate">Generate</button>
     </div>
     <div id="page">
       <div id="chars" ondragstart="return false;"></div>
@@ -118,23 +126,6 @@ SOFTWARE.
         <div class="output" id="jump"> </div>
         <div class="output" id="data"> </div>
       </div>
-    </div>
-    <div id="input">
-      <textarea id="inputText" placeholder="Paste a char array font definition here">
-        const char My_Font[] PROGMEM = {
-        0xa, // Width: 10
-        0xd, // Height: 13
-        0x1, // First char: 1
-        0x2, // Number of chars: 2
-        // Jump table:
-        0x0, 0x0, 0x14, 0xa,
-        0x0, 0x14, 0x14, 0xa,
-        // Font Data:
-        0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x0,0x6,
-        0x0,0x60,0x0,0x5c,0x80,0x43,0x60,0x40,0x98,0x57,0x98,0x57,0x60,0x40,0x80,0x43,0x0,0x5c,0x0,0x60,
-        };
-      </textarea>
-      <button id="parse">Parse</button>
     </div>
     <script>
     (function() {
@@ -170,8 +161,9 @@ SOFTWARE.
           header.setAttribute("colspan", this.width-1);
           // Non displayable characters 
           if (charData && !charData.length) {
+            // Original fonts comes with undisplayable chars.
+            // Draw an empty matrix so that one can add his own chars instead.
             header.textContent = `No character ${this.currentCharCode}`;
-            return;
           } else {
             header.textContent = `Character ${this.currentCharCode}`;
           }
@@ -195,7 +187,6 @@ SOFTWARE.
             for(let b = 0; b < missingBytes ; b++) {
               charData.push(0);
             }
-
             while(charData.length) {
               let row = charData.splice(0, this.bytesForHeight).reverse();
               let pixelRow = [];
@@ -212,7 +203,7 @@ SOFTWARE.
                 }
               }
               pixelRow.splice(this.height +1);
-              Font.output('data', pixelRow);
+              // Font.output('data', pixelRow);
               pixelInit.push(pixelRow.reverse());
             }
           }
@@ -254,7 +245,14 @@ SOFTWARE.
           let line = output.appendChild(document.createElement('div'));
           line.textContent = msg;
         }
-        
+        static emptyChars() {
+          document.getElementById('chars').textContent = '';
+        }
+        static emptyOutput() {
+          document.getElementById('header').textContent = '';
+          document.getElementById('jump').textContent = '';
+          document.getElementById('data').textContent = '';
+        }
         // Read from the <td> css class the pixels that need to be on
         // generates the jump table and font data 
         generate() {
@@ -273,8 +271,7 @@ SOFTWARE.
           // Browse each character
           for(let ch = 0; ch < charCount; ch++) {
             let charBytes = [];
-            let charBits = [];
-            let charWidth = 1; // always add one row of off pixels to the right ?
+            let charCode = chars[ch].getAttribute('code');
             let rows = chars[ch].getElementsByTagName('tr');
             // Browse each column
             for(let col = 0; col < this.width ; col++) {
@@ -290,7 +287,7 @@ SOFTWARE.
               for(let b = 0; b < bits2add; b++) {
                 bits +=  '0';
               }
-              Font.output('data', `  // ${bits}`);  // Debugging help: rotated bitmap
+              // Font.output('data', `  // ${bits}`);  // Debugging help: rotated bitmap
 
               // read bytes from the end
               for(let b = bits.length - 1; b >= 7; b -= 8) {
@@ -306,7 +303,7 @@ SOFTWARE.
             
             Font.output('data', `  ${charBytes.join(',')},`);
             // TODO: last param width is not the best value. Need to compute the actual occupied width
-            Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)}, `);
+            Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
             charAddr += charBytes.length;                                           
           }
           Font.output('data', '};');
@@ -405,11 +402,13 @@ SOFTWARE.
               fields = line.split(',');
               let newEntry = [];
               for(let f=0; f < fields.length; f++) {
-                if (readingData && fields[f] !== '') {
-                  charData.push(parseInt(fields[f]));
+                let value = parseInt(fields[f]);
+                if (isNaN(value)) continue;
+                if (readingData) {
+                  charData.push(value);
                 }
                 if (readingJumpTable) {
-                  newEntry.push(parseInt(fields[f]));
+                  newEntry.push(value);
                 }
               }
               if (readingJumpTable) {
@@ -428,6 +427,13 @@ SOFTWARE.
             readingJumpTable = true;
           }
         }
+        if (!name || !height || !width || !firstCharCode) {
+          alert("Does not look like a parsable font. Try again.");
+          return;
+        }
+        
+        Font.emptyChars();
+        Font.emptyOutput();
         document.getElementById('name').value = name;
         document.getElementById('height').value = parseInt(height);
         document.getElementById('width').value = parseInt(width);
