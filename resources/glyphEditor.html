@@ -116,9 +116,9 @@ const char My_Font[] PROGMEM = {
             </textarea></td>
         </tr>
         <tr>
-        <tr>
           <td>First char code:</td><td><input placeholder="First char code" type="number" id="code" value="1" min="1"/></td>
         </tr>
+        <tr>
           <td>Width:</td><td><input placeholder="Font width" type="number" id="width" value="10"/></td>
         </tr>
         <tr>
@@ -276,7 +276,7 @@ const char My_Font[] PROGMEM = {
           for(let ch = 0; ch < charCount; ch++) {
             chars[ch].getElementsByTagName('th')[0].textContent = `# ${ch + firstCharCode}`;
             let charBytes = [];
-            let charCode = chars[ch].getAttribute('code');
+            let charCode = ch + firstCharCode;
             let rows = chars[ch].getElementsByTagName('tr');
             let notZero = false;
             // Browse each column
