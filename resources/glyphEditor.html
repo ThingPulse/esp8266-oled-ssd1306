@@ -83,6 +83,7 @@ SOFTWARE.
         margin-top: 12px;
         font-size:12px;
         user-select: all;
+        max-width:60%;
       }
       #header {
         margin-top: 10px;
@@ -312,7 +313,7 @@ const char My_Font[] PROGMEM = {
             }
             
             if (notZero) {
-              Font.output('data', `  ${charBytes.join(',')},  // ${charCode}`);
+              Font.output('data', `  ${charBytes.join(', ')},  // ${charCode}`);
               // TODO: last param width is not the best value. Need to compute the actual occupied width
               Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
               charAddr += charBytes.length;
