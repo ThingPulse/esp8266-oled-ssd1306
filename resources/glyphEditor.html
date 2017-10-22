@@ -30,10 +30,6 @@ SOFTWARE.
  library for OLED SD1306 screen: https://github.com/squix78/esp8266-oled-ssd1306
  100% quick and dirty vanilla ECS6, no framework or library was injured for this project.
 
- TODO: 
- Implement methods to move glyphs in their matrix, copy one from another, symetrical input, ...
- Implement char insertion, non displayable char (?), ...
- Submit PR to original project.
 -->
 <html>
   <head>
@@ -74,9 +70,6 @@ SOFTWARE.
       body.started #create {
         display: none;
       }
-      body.started input {
-        pointer-events:none;
-      }
       #page {
         position:relative;
       }
@@ -106,7 +99,7 @@ SOFTWARE.
       <table width="100%">
         <tr>
           <td>Font array name:</td><td><input placeholder="Font array name" type="text" id="name" value="My_Font"/></td>
-          <td width="75%" rowspan="4">
+          <td width="75%" rowspan="5">
             <textarea id="inputText" placeholder="Or paste a char array font definition here">
 const char My_Font[] PROGMEM = {
   0xa, // Width: 10
@@ -123,13 +116,16 @@ const char My_Font[] PROGMEM = {
             </textarea></td>
         </tr>
         <tr>
+        <tr>
+          <td>First char code:</td><td><input placeholder="First char code" type="number" id="code" value="1" min="1"/></td>
+        </tr>
           <td>Width:</td><td><input placeholder="Font width" type="number" id="width" value="10"/></td>
         </tr>
         <tr>
           <td>Height:</td><td><input placeholder="Font height" type="number" id="height" value="13" max="64"/></td>
         </tr>
         <tr>
-          <td>First char code:</td><td><input placeholder="First char code" type="number" id="code" value="1" min="1"/></td>
+          <td colspan="3"> </td>     <!--slightly improves layout-->
         </tr>
         <tr>
           <td colspan="2"><button id="create">Create</button> </td>
@@ -158,10 +154,13 @@ const char My_Font[] PROGMEM = {
         constructor() {
           this.height = parseInt(document.getElementById('height').value);
           this.width = parseInt(document.getElementById('width').value);
-          this.firstCharCode = parseInt(document.getElementById('code').value);
-          this.currentCharCode = this.firstCharCode;
+          let firstCharCode = parseInt(document.getElementById('code').value);
+          this.currentCharCode = firstCharCode;
           this.fontContainer = document.getElementById('chars');
           this.bytesForHeight = (1 + ((this.height - 1) >> 3));  // number of bytes needed for this font height
+          document.body.className = "started";
+          document.getElementById('height').disabled = true;
+          document.getElementById('width').disabled = true;          
         }
         
         // Should we have a Char and a Pixel class ? not sure it's worth it.
@@ -263,11 +262,11 @@ const char My_Font[] PROGMEM = {
         // generates the jump table and font data 
         generate() {
           Font.emptyOutput();
-          
+          let chars = this.fontContainer.getElementsByTagName('table');
+          let firstCharCode = parseInt(document.getElementById('code').value);
           let name = document.getElementById('name').value.replace(/[^a-zA-Z0-9_$]/g, '_');
           
           let bits2add = this.bytesForHeight*8 - this.height;  // number of missing bits to fill leftmost byte
-          let chars = this.fontContainer.getElementsByTagName('table');
           let charCount = chars.length;
           let charAddr = 0;
           // Comments are used when parsing back a generated font
@@ -275,6 +274,7 @@ const char My_Font[] PROGMEM = {
           Font.output('data', '  // Font Data:');
           // Browse each character
           for(let ch = 0; ch < charCount; ch++) {
+            chars[ch].getElementsByTagName('th')[0].textContent = `# ${ch + firstCharCode}`;
             let charBytes = [];
             let charCode = chars[ch].getAttribute('code');
             let rows = chars[ch].getElementsByTagName('tr');
@@ -327,7 +327,7 @@ const char My_Font[] PROGMEM = {
           // Comments are used when parsing back a generated font
           Font.output('header', `  ${Font.toHexString(this.width)}, // Width: ${this.width}`);
           Font.output('header', `  ${Font.toHexString(this.height)}, // Height: ${this.height}`);          
-          Font.output('header', `  ${Font.toHexString(this.firstCharCode)}, // First char: ${this.firstCharCode}`);
+          Font.output('header', `  ${Font.toHexString(firstCharCode)}, // First char: ${firstCharCode}`);
           Font.output('header', `  ${Font.toHexString(charCount)}, // Number of chars: ${charCount}`);
         }
       }
@@ -447,7 +447,6 @@ const char My_Font[] PROGMEM = {
       });
 
       document.getElementById('create').addEventListener('click', function() {
-        document.body.className = "started";      
       	font = new Font();
         font.addChar();
       });
