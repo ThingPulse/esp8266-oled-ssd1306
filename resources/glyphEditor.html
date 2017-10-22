@@ -57,6 +57,9 @@ SOFTWARE.
       #chars th[action] {
         cursor:pointer;
       }
+      #chars th[action="up"], #chars th[action="down"], #chars th[action="left"], #chars th[action="right"] {
+        font-size: 10px;
+      }
       #chars td.on {
         background-color: #CCC;
       }
@@ -400,12 +403,13 @@ const char My_Font[] PROGMEM = {
           case 'up':
             pixels = currentContainer.getElementsByTagName('td');
             for(p = 0; p < pixels.length; p++) {
-              if(p < (font.width - 1)*font.height) {
+              if(p < font.width*(font.height -1)) {
                 pixels[p].className = pixels[p + font.width].className;
               } else {
                 pixels[p].className = '';
               }
-            }            break;
+            }            
+            break;
 
           case 'toggle':
             Font.togglePixel(target);
