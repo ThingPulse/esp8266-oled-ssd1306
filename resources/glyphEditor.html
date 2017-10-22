@@ -66,6 +66,7 @@ SOFTWARE.
       
       #addChar, #generate {
         display: none;
+        user-select: none;
       }
       body.started #addChar, body.started #generate {
         display: inline;
@@ -90,10 +91,12 @@ SOFTWARE.
         font-size:12px;
         user-select: all;
       }
+      #header {
+        margin-top: 10px;
+      }
       #inputText {
         width: 100%;
         height:120px;
-        user-select: all;
       }
       
     </style>
@@ -129,15 +132,19 @@ const char My_Font[] PROGMEM = {
           <td>First char code:</td><td><input placeholder="First char code" type="number" id="code" value="1" min="1"/></td>
         </tr>
         <tr>
-          <td colspan="2"><button id="create">Create</button><button id="addChar">Add a character</button> <button id="generate">Generate</button></td>
+          <td colspan="2"><button id="create">Create</button> </td>
           <td><button id="parse">Parse</button></td>
         </tr>
       </table>
       <br/>
     </div>
     <div id="page">
-      <div id="chars" ondragstart="return false;"></div>
+      <div id="charxContainer" ondragstart="return false;">
+        <div id="chars"></div><br/>
+        <button id="addChar">Add a character</button>
+      </div>
       <div id="output">
+        <button id="generate">Generate</button>
         <div class="output" id="header"> </div>
         <div class="output" id="jump"> </div>
         <div class="output" id="data"> </div>
@@ -300,7 +307,7 @@ const char My_Font[] PROGMEM = {
               } 
             }
             // Remove bytes with value 0 at the end of the array.
-            while(charBytes[charBytes.length-1] === '0x0' && charBytes.length !== 1) {
+            while(parseInt(charBytes[charBytes.length-1]) === 0 && charBytes.length !== 1) {
               charBytes.pop();
             }
             
@@ -325,19 +332,22 @@ const char My_Font[] PROGMEM = {
         }
       }
       
-     
       document.getElementById('generate').addEventListener('click', function() {
         font.generate();
       });
-      
       document.getElementById('addChar').addEventListener('click', function() {
         font.addChar();
       });
+      document.getElementById('inputText').addEventListener('click', function(e) {
+        let target = e.target;
+        target.select();
+      });
       document.getElementById('chars').addEventListener('mousedown', function(e) {
+        if (e.button != 0) return;
         let target = e.target;
         let action = target.getAttribute('action') || '';
-        let result, code, nextContainer, previousContainer, pixels ;
         if (action === '') return;
+        let result, code, nextContainer, previousContainer, pixels ;
         let currentContainer = target.parentNode.parentNode;
         switch(action) {
           case 'add':
