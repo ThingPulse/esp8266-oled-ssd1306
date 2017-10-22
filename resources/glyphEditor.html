@@ -37,6 +37,7 @@ SOFTWARE.
 -->
 <html>
   <head>
+    <meta charset="utf-8" />
     <style>
       #form {
         user-select: none; 
@@ -52,6 +53,9 @@ SOFTWARE.
         border: 1px solid #CCC;
         width: 12px;
         height: 15px;
+      }
+      #chars th[action] {
+        cursor:pointer;
       }
       #chars td.on {
         background-color: #CCC;
@@ -86,6 +90,7 @@ SOFTWARE.
       #inputText {
         width: 100%;
         height:120px;
+        user-select: all;
       }
       
     </style>
@@ -157,28 +162,15 @@ const char My_Font[] PROGMEM = {
         addChar(jumpData, charData) {
           let charContainer = this.fontContainer.appendChild(document.createElement("table"));
           charContainer.setAttribute("code", this.currentCharCode);
-          let header = charContainer.appendChild(document.createElement("th"));
-          header.setAttribute("colspan", this.width - 1);
-          // Non displayable characters 
-          if (charData && !charData.length) {
-            // Original fonts come with optim for undisplayable chars: they have 0xFFFF address in the jump table and no data.
-            // Draw an empty matrix so that one can use them to insert their own characters instead.
-            header.textContent = `No character ${this.currentCharCode}`;
-          } else {
-            header.textContent = `Character ${this.currentCharCode}`;
-          }
-          let deletePixels = charContainer.appendChild(document.createElement("th"));
-          deletePixels.setAttribute("action", "remove");
-          deletePixels.textContent = "x";
-          deletePixels.addEventListener('click', function() {
-            let result = confirm("Delete the pixels ?");
-            if(result) {
-              let pixels = charContainer.getElementsByTagName('td');
-              for(let p = 0; p < pixels.length; p++) {
-                pixels[p].className = '';
-              }
-            } 
-          });
+          let header = charContainer.appendChild(document.createElement("tr"));
+          header.innerHTML = `<th colspan="${this.width-7}"># ${this.currentCharCode}</th>` 
+              + '<th  title="Delete this char" action="delete">-</th>'
+              + '<th title="Add a char above" action="add">+</th>'
+              + '<th title="Shift pixels to the left" action="left">🡨</th>'
+              + '<th title="Shift pixels down" action="down">🡫</th>'
+              + '<th title="Shift pixels to the right" action="up">🡩</th>'
+              + '<th title="Shift pixels to the righ" action="right">🡪</th>'
+              + '<th title="Reset all pixels" action="clean">C</th>';
           // If data is provided, decode it to pixel initialization friendly structure
           let pixelInit = [];
           if (charData && charData.length) {
@@ -212,6 +204,8 @@ const char My_Font[] PROGMEM = {
           	let rowContainer = charContainer.appendChild(document.createElement("tr"));
             for(let c = 0; c < this.width; c++) {
           		let pixContainer = rowContainer.appendChild(document.createElement("td"));
+              pixContainer.setAttribute('action', 'toggle');
+          		// If there is some init data, set the pixel accordingly
               if (pixelInit.length && pixelInit[c]) {
                 if (pixelInit[c][r]) {
                   pixContainer.className = 'on';
@@ -220,6 +214,7 @@ const char My_Font[] PROGMEM = {
             }
           }
           this.currentCharCode++;
+          return charContainer;
         }
         
         static togglePixel(pixel) {
@@ -279,7 +274,8 @@ const char My_Font[] PROGMEM = {
               let bits = ""; // using string because js uses 32b ints when performing bit operations
               // Browse each row starting from the bottom one, going up, and accumulate pixels in
               // a string: this rotates the glyph
-              for(let r = rows.length-1; r >=0 ; r--) {
+              // Beware, row 0 is table headers.
+              for(let r = rows.length-1; r >=1 ; r--) {
                 let pixelState = rows[r].children[col].className;
                 bits += (pixelState === 'on' ? '1': '0');           
               }
@@ -311,7 +307,7 @@ const char My_Font[] PROGMEM = {
               Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
               charAddr += charBytes.length;
             } else {
-              Font.output('jump', `  0xff, 0xff, 0x00, ${Font.toHexString(this.width)},  // ${charCode} `);
+              Font.output('jump', `  0xFF, 0xFF, 0x00, ${Font.toHexString(this.width)},  // ${charCode} `);
             }
           }
           Font.output('data', '};');
@@ -336,12 +332,100 @@ const char My_Font[] PROGMEM = {
       });
       document.getElementById('chars').addEventListener('mousedown', function(e) {
         let target = e.target;
-        if (target.nodeName !== 'TD') return;
-        Font.togglePixel(target);
+        let action = target.getAttribute('action') || '';
+        let result, code, nextContainer, previousContainer, pixels ;
+        if (action === '') return;
+        let currentContainer = target.parentNode.parentNode;
+        switch(action) {
+          case 'add':
+            code = currentContainer.getAttribute('code');
+            nextContainer = font.addChar();
+            currentContainer.parentNode.insertBefore(nextContainer, currentContainer);
+            do {
+              nextContainer.setAttribute('code', code);
+              nextContainer.getElementsByTagName('th')[0].textContent = `# ${code}`;
+              code ++;
+            } while (nextContainer = nextContainer.nextSibling);
+            break;
+
+          case 'delete':
+            result = confirm("Delete this character ?");
+            if (!result) return;
+            code = currentContainer.getAttribute('code');
+            nextContainer = currentContainer;
+            while (nextContainer = nextContainer.nextSibling) {
+              nextContainer.setAttribute('code', code);
+              nextContainer.getElementsByTagName('th')[0].textContent = `# ${code}`;
+              code ++;
+            }
+            currentContainer.parentNode.removeChild(currentContainer);
+            break;
+
+          // Shift pixels to the left  
+          case 'left':
+            pixels = currentContainer.getElementsByTagName('td');
+            for(p = 0; p < pixels.length; p++) {
+              if((p + 1) % font.width) {
+                pixels[p].className = pixels[p + 1].className;
+              } else {
+                pixels[p].className = '';
+              }
+            }
+            break;
+          
+          // Shift pixels to the right
+          case 'right':
+            pixels = currentContainer.getElementsByTagName('td');
+            for(p = pixels.length-1; p >=0 ; p--) {
+              if(p % font.width) {
+                pixels[p].className = pixels[p - 1].className;
+              } else {
+                pixels[p].className = '';
+              }
+            }
+            break;
+
+          // Shift pixels down
+          case 'down':
+            pixels = currentContainer.getElementsByTagName('td');
+            for(p = pixels.length-1; p >=0 ; p--) {
+              if(p >= font.width) {
+                pixels[p].className = pixels[p - font.width].className;
+              } else {
+                pixels[p].className = '';
+              }
+            }            break;
+
+          // Shift pixels up
+          case 'up':
+            pixels = currentContainer.getElementsByTagName('td');
+            for(p = 0; p < pixels.length; p++) {
+              if(p < (font.width - 1)*font.height) {
+                pixels[p].className = pixels[p + font.width].className;
+              } else {
+                pixels[p].className = '';
+              }
+            }            break;
+
+          case 'toggle':
+            Font.togglePixel(target);
+            break;
+
+          case 'clean':
+            result = confirm("Delete the pixels ?");
+            if (!result) return;
+            pixels = currentContainer.getElementsByTagName('td');
+            for (let p = 0; p < pixels.length; p++) {
+              pixels[p].className = '';
+            }
+            break;
+        }
+        
       });
       document.getElementById('chars').addEventListener('mouseover', function(e) {
         let target = e.target;
-        if (target.nodeName !== 'TD' || e.buttons !== 1) return;
+        let action = target.getAttribute('action');
+        if (action !== 'toggle' || e.buttons !== 1) return;
         Font.togglePixel(target);
       });
       document.getElementById('chars').addEventListener('dragstart', function() {
