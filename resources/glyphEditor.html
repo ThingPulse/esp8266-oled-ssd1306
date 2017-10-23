@@ -35,12 +35,12 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <style>
-      #form {
+      body {
         user-select: none; 
+        -moz-user-select: none; 
       }
       #chars table {
         margin-top: 5px;
-        user-select: none; 
       }
       #chars table, tr, td, th {
         border-collapse: collapse;
@@ -62,7 +62,6 @@ SOFTWARE.
       
       #addChar, #generate {
         display: none;
-        user-select: none;
       }
       body.started #addChar, body.started #generate {
         display: inline;
@@ -83,8 +82,10 @@ SOFTWARE.
         margin-top: 12px;
         font-size:12px;
         user-select: all;
+        -moz-user-select: all;
         max-width:60%;
       }
+      
       #header {
         margin-top: 10px;
       }
@@ -129,7 +130,7 @@ const char My_Font[] PROGMEM = {
           <td colspan="3"> </td>     <!--slightly improves layout-->
         </tr>
         <tr>
-          <td colspan="2"><button id="create">Create</button> </td>
+          <td colspan="2"><button id="create">Create</button> <button id="generate">Generate</button></td>
           <td><button id="parse">Parse</button></td>
         </tr>
       </table>
@@ -141,7 +142,6 @@ const char My_Font[] PROGMEM = {
         <button id="addChar">Add a character</button>
       </div>
       <div id="output">
-        <button id="generate">Generate</button>
         <div class="output" id="header"> </div>
         <div class="output" id="jump"> </div>
         <div class="output" id="data"> </div>
