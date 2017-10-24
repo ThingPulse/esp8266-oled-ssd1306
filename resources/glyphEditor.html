@@ -35,12 +35,12 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <style>
-      #form {
-        user-select: none; 
+      body {
       }
       #chars table {
-        margin-top: 5px;
         user-select: none; 
+        -moz-user-select: none; 
+        margin-top: 5px;
       }
       #chars table, tr, td, th {
         border-collapse: collapse;
@@ -62,7 +62,6 @@ SOFTWARE.
       
       #addChar, #generate {
         display: none;
-        user-select: none;
       }
       body.started #addChar, body.started #generate {
         display: inline;
@@ -83,8 +82,10 @@ SOFTWARE.
         margin-top: 12px;
         font-size:12px;
         user-select: all;
+        -moz-user-select: all;
         max-width:60%;
       }
+      
       #header {
         margin-top: 10px;
       }
@@ -103,16 +104,16 @@ SOFTWARE.
           <td width="75%" rowspan="5">
             <textarea id="inputText" placeholder="Or paste a char array font definition here">
 const char My_Font[] PROGMEM = {
-  0xa, // Width: 10
-  0xd, // Height: 13
-  0x1, // First char: 1
-  0x2, // Number of chars: 2
-  // Jump table:
-  0x0, 0x0, 0x14, 0xa,
-  0x0, 0x14, 0x14, 0xa,
+  0x0A, // Width: 10
+  0x0D, // Height: 13
+  0x01, // First char: 1
+  0x02, // Number of chars: 2
+  // Jump Table:
+  0x00, 0x00, 0x13, 0x0A, // 1
+  0x00, 0x13, 0x14, 0x0A, // 2
   // Font Data:
-  0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x80,0x10,0x80,0x1f,0x0,0x6,
-  0x0,0x60,0x0,0x5c,0x80,0x43,0x60,0x40,0x98,0x57,0x98,0x57,0x60,0x40,0x80,0x43,0x0,0x5c,0x0,0x60,
+  0xF0, 0x03, 0x10, 0x02, 0xF0, 0x03, 0x10, 0x02, 0xF0, 0x03, 0x10, 0x02, 0xF0, 0x03, 0x10, 0x02, 0xF0, 0x03, 0xC0, // 1
+  0x00, 0x0C, 0x80, 0x0B, 0x70, 0x08, 0x0C, 0x08, 0xF3, 0x0A, 0xF3, 0x0A, 0x0C, 0x08, 0x70, 0x08, 0x80, 0x0B, 0x00, 0x0C, // 2
 };              
             </textarea></td>
         </tr>
@@ -129,7 +130,7 @@ const char My_Font[] PROGMEM = {
           <td colspan="3"> </td>     <!--slightly improves layout-->
         </tr>
         <tr>
-          <td colspan="2"><button id="create">Create</button> </td>
+          <td colspan="2"><button id="create">Create</button> <button id="generate">Generate</button></td>
           <td><button id="parse">Parse</button></td>
         </tr>
       </table>
@@ -141,7 +142,6 @@ const char My_Font[] PROGMEM = {
         <button id="addChar">Add a character</button>
       </div>
       <div id="output">
-        <button id="generate">Generate</button>
         <div class="output" id="header"> </div>
         <div class="output" id="jump"> </div>
         <div class="output" id="data"> </div>
@@ -155,8 +155,7 @@ const char My_Font[] PROGMEM = {
         constructor() {
           this.height = parseInt(document.getElementById('height').value);
           this.width = parseInt(document.getElementById('width').value);
-          let firstCharCode = parseInt(document.getElementById('code').value);
-          this.currentCharCode = firstCharCode;
+          this.currentCharCode = parseInt(document.getElementById('code').value);
           this.fontContainer = document.getElementById('chars');
           this.bytesForHeight = (1 + ((this.height - 1) >> 3));  // number of bytes needed for this font height
           document.body.className = "started";
@@ -172,19 +171,21 @@ const char My_Font[] PROGMEM = {
         addChar(jumpData, charData) {
           let charContainer = this.fontContainer.appendChild(document.createElement("table"));
           charContainer.setAttribute("code", this.currentCharCode);
+          let caption = charContainer.appendChild(document.createElement("caption"));
+          caption.textContent =`Char # ${this.currentCharCode}`;
           let header = charContainer.appendChild(document.createElement("tr"));
-          header.innerHTML = `<th colspan="${this.width-7}"># ${this.currentCharCode}</th>` 
-              + '<th  title="Delete this char" action="delete">-</th>'
+          header.innerHTML = '<th  title="Delete this char" action="delete">-</th>'
               + '<th title="Add a char above" action="add">+</th>'
-              + '<th title="Shift pixels to the left" action="left">🡨</th>'
-              + '<th title="Shift pixels down" action="down">🡫</th>'
-              + '<th title="Shift pixels to the right" action="up">🡩</th>'
-              + '<th title="Shift pixels to the righ" action="right">🡪</th>'
-              + '<th title="Reset all pixels" action="clean">C</th>';
+              + '<th title="Shift pixels to the left" action="left">&larr;</th>'
+              + '<th title="Shift pixels down" action="down">&darr;</th>'
+              + '<th title="Shift pixels to the right" action="up">&uarr;</th>'
+              + '<th title="Shift pixels to the righ" action="right">&rarr;</th>'
+              + '<th title="Copy another character" action="copy">©</th>'
+              + '<th title="Reset all pixels" action="clean">&empty;</th>';
           // If data is provided, decode it to pixel initialization friendly structure
           let pixelInit = [];
           if (charData && charData.length) {
-            // charData byte count needs to be a multiple of bytesForHeight. End bytes with value 0 may have been stripped
+            // charData byte count needs to be a multiple of bytesForHeight. End bytes with value 0 may have been trimmed
             let missingBytes = charData.length % this.bytesForHeight;
             for(let b = 0; b < missingBytes ; b++) {
               charData.push(0);
@@ -204,8 +205,8 @@ const char My_Font[] PROGMEM = {
                   mask = mask >> 1;
                 }
               }
-              pixelRow.splice(this.height +1);
-              // Font.output('data', pixelRow);
+              pixelRow.splice(0, pixelRow.length - this.height);
+              //Font.output('data', pixelRow);
               pixelInit.push(pixelRow.reverse());
             }
           }
@@ -275,7 +276,8 @@ const char My_Font[] PROGMEM = {
           Font.output('data', '  // Font Data:');
           // Browse each character
           for(let ch = 0; ch < charCount; ch++) {
-            chars[ch].getElementsByTagName('th')[0].textContent = `# ${ch + firstCharCode}`;
+            // Fix renumbering in case first char code was modified  
+            chars[ch].getElementsByTagName('caption')[0].textContent = `Char # ${ch + firstCharCode}`;
             let charBytes = [];
             let charCode = ch + firstCharCode;
             let rows = chars[ch].getElementsByTagName('tr');
@@ -290,17 +292,16 @@ const char My_Font[] PROGMEM = {
                 let pixelState = rows[r].children[col].className;
                 bits += (pixelState === 'on' ? '1': '0');           
               }
-              
               // Need to complete missing bits to have a sizeof byte multiple number of bits
               for(let b = 0; b < bits2add; b++) {
-                bits +=  '0';
+                bits =  '0' + bits;
               }
               // Font.output('data', `  // ${bits}`);  // Debugging help: rotated bitmap
 
               // read bytes from the end
               for(let b = bits.length - 1; b >= 7; b -= 8) {
-                //Font.output('data', `  // ${bits.substring(b-7, b)}`);  // Debugging help: rotated bitmap
-                let byte = parseInt(bits.substring(b-8, b), 2);
+                //Font.output('data', `  // ${bits.substr(b-7, 8)}`);  // Debugging help: rotated bitmap
+                let byte = parseInt(bits.substr(b-7, 8), 2);
                 if (byte != 0) {
                   notZero = true;
                 }
@@ -357,7 +358,7 @@ const char My_Font[] PROGMEM = {
             currentContainer.parentNode.insertBefore(nextContainer, currentContainer);
             do {
               nextContainer.setAttribute('code', code);
-              nextContainer.getElementsByTagName('th')[0].textContent = `# ${code}`;
+              nextContainer.getElementsByTagName('caption')[0].textContent = `char # ${code}`;
               code ++;
             } while (nextContainer = nextContainer.nextSibling);
             break;
@@ -369,7 +370,7 @@ const char My_Font[] PROGMEM = {
             nextContainer = currentContainer;
             while (nextContainer = nextContainer.nextSibling) {
               nextContainer.setAttribute('code', code);
-              nextContainer.getElementsByTagName('th')[0].textContent = `# ${code}`;
+              nextContainer.getElementsByTagName('caption')[0].textContent = `char # ${code}`;
               code ++;
             }
             currentContainer.parentNode.removeChild(currentContainer);
@@ -434,6 +435,21 @@ const char My_Font[] PROGMEM = {
               pixels[p].className = '';
             }
             break;
+          
+          case 'copy':
+             let charNumber = parseInt(prompt("Source char #: "));
+             let chars = font.fontContainer.getElementsByTagName('table');
+             let tableOffset = charNumber + parseInt(document.getElementById('code').value) - 2 ;
+             let srcPixels = chars[tableOffset].getElementsByTagName('td');
+             let targetPixels = currentContainer.getElementsByTagName('td');
+             for(let i=0; i < srcPixels.length; i++) {
+               // First tds are in the th row, for editing actions. Skip them
+               if (targetPixels[i].parentNode.localName === 'th') continue; // In case we give them css at some point...
+               targetPixels[i].className = srcPixels[i].className;
+             }
+            break;
+          default:
+            // no.
         }
         
       });
