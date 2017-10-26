@@ -437,7 +437,7 @@ const char My_Font[] PROGMEM = {
           case 'copy':
              let charNumber = parseInt(prompt("Source char #: "));
              let chars = font.fontContainer.getElementsByTagName('table');
-             let tableOffset = charNumber + parseInt(document.getElementById('code').value) - 2 ;
+             let tableOffset = charNumber - parseInt(document.getElementById('code').value) ;
              let srcPixels = chars[tableOffset].getElementsByTagName('td');
              let targetPixels = currentContainer.getElementsByTagName('td');
              for(let i=0; i < srcPixels.length; i++) {
