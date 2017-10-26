@@ -370,8 +370,8 @@ const char My_Font[] PROGMEM = {
                 +"type: " + f.type + "\n"
                 +"size: " + f.size + " bytes\n"
                 +"starts with: " + contents.substr(0, contents.indexOf("\n")) 
-            ); 
-            document.getElementById("inputText").innerHTML = contents;  		
+            );
+              document.getElementById("inputText").value = contents;
           };
           r.readAsText(f);
         } else { 
