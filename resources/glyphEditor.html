@@ -55,7 +55,7 @@ SOFTWARE.
         font-size: 10px;
       }
       #chars td.on {
-        background-color: #CCC;
+        background-color: #00F;
       }
       
       #addChar, #generate {
@@ -128,8 +128,8 @@ const char My_Font[] PROGMEM = {
           <td colspan="3"> </td>     <!--slightly improves layout-->
         </tr>
         <tr>
-          <td colspan="2"><button id="create">Create</button> <button id="generate">Generate</button></td>
-          <td><button id="parse">Parse</button></td>
+          <td colspan="2"><button id="create">Create</button> <button id="generate">Generate</button> <button id="savetoFile">Save To File</button> </td>
+          <td><input type="file" id="fileinput" />  <button id="parse">Parse</button></td>
         </tr>
       </table>
       <br/>
@@ -170,15 +170,15 @@ const char My_Font[] PROGMEM = {
           let charContainer = this.fontContainer.appendChild(document.createElement("table"));
           charContainer.setAttribute("code", this.currentCharCode);
           let caption = charContainer.appendChild(document.createElement("caption"));
-          caption.textContent =`Char # ${this.currentCharCode}`;
+          caption.textContent =`Char #${this.currentCharCode}`;
           let header = charContainer.appendChild(document.createElement("tr"));
-          header.innerHTML = '<th  title="Delete this char" action="delete">-</th>'
+          header.innerHTML = '<th  title="Delete this char" action="delete">&cross;</th>'
               + '<th title="Add a char above" action="add">+</th>'
               + '<th title="Shift pixels to the left" action="left">&larr;</th>'
               + '<th title="Shift pixels down" action="down">&darr;</th>'
-              + '<th title="Shift pixels to the right" action="up">&uarr;</th>'
-              + '<th title="Shift pixels to the righ" action="right">&rarr;</th>'
-              + '<th title="Copy another character" action="copy">©</th>'
+              + '<th title="Shift pixels up" action="up">&uarr;</th>'
+              + '<th title="Shift pixels to the right" action="right">&rarr;</th>'
+              + '<th title="Copy from another character" action="copy">&copy;</th>'
               + '<th title="Reset all pixels" action="clean">&empty;</th>';
           // If data is provided, decode it to pixel initialization friendly structure
           let pixelInit = [];
@@ -258,6 +258,29 @@ const char My_Font[] PROGMEM = {
           document.getElementById('jump').textContent = '';
           document.getElementById('data').textContent = '';
         }
+		
+        saveFile() {
+          let filename = document.getElementById('name').value.replace(/[^a-zA-Z0-9_$]/g, '_') + ".h";
+          let data = document.getElementById("output").innerText;
+          if(data.length < 10) return;
+          let blobObject = new Blob([data], {type:'text/plain'}); 
+    
+          if(window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blobObject, filename);
+          } else {
+            let a = document.createElement("a");
+            a.setAttribute("href", URL.createObjectURL(blobObject));
+            a.setAttribute("download", filename);
+            if (document.createEvent) {
+              let event = document.createEvent('MouseEvents');
+              event.initEvent('click', true, true);
+              a.dispatchEvent(event);
+            } else {
+              a.click();
+            }
+          }  
+        }
+			
         // Read from the <td> css class the pixels that need to be on
         // generates the jump table and font data 
         generate() {
@@ -275,7 +298,7 @@ const char My_Font[] PROGMEM = {
           // Browse each character
           for(let ch = 0; ch < charCount; ch++) {
             // Fix renumbering in case first char code was modified  
-            chars[ch].getElementsByTagName('caption')[0].textContent = `Char # ${ch + firstCharCode}`;
+            chars[ch].getElementsByTagName('caption')[0].textContent = `Char #${ch + firstCharCode}`;
             let charBytes = [];
             let charCode = ch + firstCharCode;
             let rows = chars[ch].getElementsByTagName('tr');
@@ -300,7 +323,7 @@ const char My_Font[] PROGMEM = {
               for(let b = bits.length - 1; b >= 7; b -= 8) {
                 //Font.output('data', `  // ${bits.substr(b-7, 8)}`);  // Debugging help: rotated bitmap
                 let byte = parseInt(bits.substr(b-7, 8), 2);
-                if (byte != 0) {
+                if (byte !== 0) {
                   notZero = true;
                 }
                 charBytes.push(Font.toHexString(byte));
@@ -331,6 +354,30 @@ const char My_Font[] PROGMEM = {
           Font.output('header', `  ${Font.toHexString(charCount)}, // Number of chars: ${charCount}`);
         }
       }
+	  
+      document.getElementById('fileinput').addEventListener('change', function(e) {
+        let f = e.target.files[0]; 
+        if (f) {
+          let r = new FileReader();
+          r.onload = function(e) { 
+            let contents = e.target.result;
+                alert( "Got the file.\n" 
+                +"name: " + f.name + "\n"
+                +"type: " + f.type + "\n"
+                +"size: " + f.size + " bytes\n"
+                +"starts with: " + contents.substr(0, contents.indexOf("\n")) 
+            ); 
+            document.getElementById("inputText").innerHTML = contents;  		
+          };
+          r.readAsText(f);
+        } else { 
+          alert("Failed to load file");
+        }
+        });
+      
+      document.getElementById('savetoFile').addEventListener('click', function() {
+        font.saveFile();
+      });
       
       document.getElementById('generate').addEventListener('click', function() {
         font.generate();
@@ -343,7 +390,7 @@ const char My_Font[] PROGMEM = {
         target.select();
       });
       document.getElementById('chars').addEventListener('mousedown', function(e) {
-        if (e.button != 0) return;
+        if (e.button !== 0) return;
         let target = e.target;
         let action = target.getAttribute('action') || '';
         if (action === '') return;
@@ -356,7 +403,7 @@ const char My_Font[] PROGMEM = {
             currentContainer.parentNode.insertBefore(nextContainer, currentContainer);
             do {
               nextContainer.setAttribute('code', code);
-              nextContainer.getElementsByTagName('caption')[0].textContent = `char # ${code}`;
+              nextContainer.getElementsByTagName('caption')[0].textContent = `Char #${code}`;
               code ++;
             } while (nextContainer = nextContainer.nextSibling);
             break;
@@ -368,7 +415,7 @@ const char My_Font[] PROGMEM = {
             nextContainer = currentContainer;
             while (nextContainer = nextContainer.nextSibling) {
               nextContainer.setAttribute('code', code);
-              nextContainer.getElementsByTagName('caption')[0].textContent = `char # ${code}`;
+              nextContainer.getElementsByTagName('caption')[0].textContent = `Char #${code}`;
               code ++;
             }
             currentContainer.parentNode.removeChild(currentContainer);
@@ -437,7 +484,7 @@ const char My_Font[] PROGMEM = {
           case 'copy':
              let charNumber = parseInt(prompt("Source char #: "));
              let chars = font.fontContainer.getElementsByTagName('table');
-             let tableOffset = charNumber - parseInt(document.getElementById('code').value) ;
+             let tableOffset = charNumber - parseInt(document.getElementById('code').value);
              let srcPixels = chars[tableOffset].getElementsByTagName('td');
              let targetPixels = currentContainer.getElementsByTagName('td');
              for(let i=0; i < srcPixels.length; i++) {
@@ -580,4 +627,3 @@ const char My_Font[] PROGMEM = {
     </script>  
   </body>
 </html>
-
