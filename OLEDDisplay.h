@@ -109,7 +109,13 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
 
 
 class OLEDDisplay : public Print {
+  private:
+    const int _width, _height;
   public:
+    OLEDDisplay(const int width = DISPLAY_WIDTH, const int height = DISPLAY_HEIGHT) : _width(width), _height(height){ };
+    const int width(void) const { return _width; };
+    const int height(void) const { return _height; };
+
     // Initialize the display
     bool init();
 
@@ -150,7 +156,7 @@ class OLEDDisplay : public Print {
     // Draw a lin vertically
     void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
-    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is 
+    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is
     // a unsigned byte value between 0 and 100
     void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
 
