@@ -107,6 +107,7 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
   TEXT_ALIGN_CENTER_BOTH = 3
 };
 
+typedef byte (*FontTableLookupFunction)(const byte ch);
 
 class OLEDDisplay : public Print {
   public:
@@ -186,6 +187,9 @@ class OLEDDisplay : public Print {
     // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
     void setFont(const char *fontData);
 
+    // Set the function that will convert utf-8 to font table index
+    void setFontTableLookupFunction(FontTableLookupFunction function);
+
     /* Display functions */
 
     // Turn the display on
@@ -256,13 +260,33 @@ class OLEDDisplay : public Print {
     void sendInitCommands();
 
     // converts utf8 characters to extended ascii
-    static char* utf8ascii(String s);
-    static byte utf8ascii(byte ascii);
+    char* utf8ascii(String s);
 
     void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
 
+    // UTF-8 to font table index converter
+    // Code form http://playground.arduino.cc/Main/Utf8ascii
+    FontTableLookupFunction fontTableLookupFunction = [](const byte ch) {
+      static uint8_t LASTCHAR;
+
+      if (ch < 128) { // Standard ASCII-set 0..0x7F handling
+        LASTCHAR = 0;
+        return ch;
+      }
+
+      uint8_t last = LASTCHAR;   // get last char
+      LASTCHAR = ch;
+
+      switch (last) {    // conversion depnding on first UTF8-character
+        case 0xC2: return (uint8_t) ch;  break;
+        case 0xC3: return (uint8_t) (ch | 0xC0);  break;
+        case 0x82: if (ch == 0xAC) return (uint8_t) 0x80;    // special case Euro-symbol
+      }
+
+      return (uint8_t) 0; // otherwise: return zero, if character has to be ignored
+    };
 };
 
 #endif
