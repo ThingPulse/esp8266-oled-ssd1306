@@ -44,7 +44,18 @@ class SSD1306Spi : public OLEDDisplay {
       uint8_t             _cs;
 
   public:
-    SSD1306Spi(uint8_t _rst, uint8_t _dc, uint8_t _cs) {
+    SSD1306Spi(OLEDDISPLAY_GEOMETRY g,  uint8_t _rst, uint8_t _dc, uint8_t _cs) {
+      this->geometry = g;
+      if (g == GEOMETRY_128_64) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 64;
+        this->displayBufferSize                = 1024;
+      } else if (g == GEOMETRY_128_32) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 32;
+        this->displayBufferSize                = 512;    
+      }
+      
       this->_rst = _rst;
       this->_dc  = _dc;
       this->_cs  = _cs;
@@ -79,9 +90,9 @@ class SSD1306Spi : public OLEDDisplay {
 
        // Calculate the Y bounding box of changes
        // and copy buffer[pos] to buffer_back[pos];
-       for (y = 0; y < (DISPLAY_HEIGHT / 8); y++) {
-         for (x = 0; x < DISPLAY_WIDTH; x++) {
-          uint16_t pos = x + y * DISPLAY_WIDTH;
+       for (y = 0; y < (displayHeight / 8); y++) {
+         for (x = 0; x < displayWidth; x++) {
+          uint16_t pos = x + y * displayWidth;
           if (buffer[pos] != buffer_back[pos]) {
             minBoundY = _min(minBoundY, y);
             maxBoundY = _max(maxBoundY, y);
@@ -111,7 +122,7 @@ class SSD1306Spi : public OLEDDisplay {
        digitalWrite(_cs, LOW);
        for (y = minBoundY; y <= maxBoundY; y++) {
          for (x = minBoundX; x <= maxBoundX; x++) {
-           SPI.transfer(buffer[x + y * DISPLAY_WIDTH]);
+           SPI.transfer(buffer[x + y * displayWidth]);
          }
          yield();
        }
@@ -124,12 +135,17 @@ class SSD1306Spi : public OLEDDisplay {
 
        sendCommand(PAGEADDR);
        sendCommand(0x0);
-       sendCommand(0x7);
+
+       if (geometry == GEOMETRY_128_64) {
+         sendCommand(0x7);
+       } else if (geometry == GEOMETRY_128_32) {
+         sendCommand(0x3);
+       }
 
         digitalWrite(_cs, HIGH);
         digitalWrite(_dc, HIGH);   // data mode
         digitalWrite(_cs, LOW);
-        for (uint16_t i=0; i<DISPLAY_BUFFER_SIZE; i++) {
+        for (uint16_t i=0; i<displayBufferSize; i++) {
           SPI.transfer(buffer[i]);
           yield();
         }
