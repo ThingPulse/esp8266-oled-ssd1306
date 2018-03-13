@@ -272,6 +272,7 @@ void OLEDDisplayUi::drawFrame(){
           y1 = y + (this->display->getHeight());
           break;
         case SLIDE_DOWN:
+        default:
           x = 0;
           y = (this->display->getHeight()) * progress;
           x1 = 0;
@@ -345,6 +346,7 @@ void OLEDDisplayUi::drawIndicator() {
         posOfHighlightFrame = frameToHighlight;
         break;
       case RIGHT_LEFT:
+      default:
         posOfHighlightFrame = this->frameCount - frameToHighlight;
         break;
     }
@@ -386,6 +388,7 @@ void OLEDDisplayUi::drawIndicator() {
           y = (this->display->getHeight() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case LEFT:
+        default:
           x = 0 - (8 * indicatorFadeProgress);
           y = (this->display->getHeight() / 2) - frameStartPos + indicatorSpacing * i;
           break;

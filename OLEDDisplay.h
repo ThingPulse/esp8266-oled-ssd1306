@@ -266,7 +266,7 @@ class OLEDDisplay : public Print {
     virtual void sendCommand(uint8_t com) {};
 
     // Connect to the display
-    virtual bool connect() {};
+    virtual bool connect() {return true;};
 
     // Send all the init commands
     void sendInitCommands();
