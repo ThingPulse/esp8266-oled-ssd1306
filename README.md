@@ -142,6 +142,9 @@ void setContrast(char contrast);
 
 // Turn the display upside down
 void flipScreenVertically();
+
+// Draw the screen mirrored
+void mirrorScreen();
 ```
 
 ## Pixel drawing
