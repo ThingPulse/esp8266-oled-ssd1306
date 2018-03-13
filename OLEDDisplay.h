@@ -42,12 +42,6 @@
 #define OLEDDISPLAY_DOUBLE_BUFFER
 #endif
 
-
-// Display settings
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 64
-#define DISPLAY_BUFFER_SIZE 1024
-
 // Header Values
 #define JUMPTABLE_BYTES 4
 
@@ -107,10 +101,18 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
   TEXT_ALIGN_CENTER_BOTH = 3
 };
 
+
+enum OLEDDISPLAY_GEOMETRY {
+  GEOMETRY_128_64   = 0,
+  GEOMETRY_128_32   = 1
+};
+
 typedef byte (*FontTableLookupFunction)(const byte ch);
+
 
 class OLEDDisplay : public Print {
   public:
+    
     // Initialize the display
     bool init();
 
@@ -226,7 +228,11 @@ class OLEDDisplay : public Print {
     // Draw the log buffer at position (x, y)
     void drawLogBuffer(uint16_t x, uint16_t y);
 
-    // Implementent needed function to be compatible with Print class
+    // Get screen geometry
+    uint16_t getWidth(void);
+    uint16_t getHeight(void);
+
+    // Implement needed function to be compatible with Print class
     size_t write(uint8_t c);
     size_t write(const char* s);
 
@@ -237,6 +243,12 @@ class OLEDDisplay : public Print {
     #endif
 
   protected:
+
+    OLEDDISPLAY_GEOMETRY geometry              = GEOMETRY_128_64;
+
+    uint16_t  displayWidth                     = 128;
+    uint16_t  displayHeight                    = 64;
+    uint16_t  displayBufferSize                = 1024;
 
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
     OLEDDISPLAY_COLOR            color         = WHITE;

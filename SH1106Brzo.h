@@ -44,7 +44,18 @@ class SH1106Brzo : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-    SH1106Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl) {
+    SH1106Brzo(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
+      this->geometry = g;
+      if (g == GEOMETRY_128_64) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 64;
+        this->displayBufferSize                = 1024;
+      } else if (g == GEOMETRY_128_32) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 32;
+        this->displayBufferSize                = 512;    
+      }
+
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
@@ -66,9 +77,9 @@ class SH1106Brzo : public OLEDDisplay {
 
        // Calculate the Y bounding box of changes
        // and copy buffer[pos] to buffer_back[pos];
-       for (y = 0; y < (DISPLAY_HEIGHT / 8); y++) {
-         for (x = 0; x < DISPLAY_WIDTH; x++) {
-          uint16_t pos = x + y * DISPLAY_WIDTH;
+       for (y = 0; y < (displayHeight / 8); y++) {
+         for (x = 0; x < displayWidth; x++) {
+          uint16_t pos = x + y * displayWidth;
           if (buffer[pos] != buffer_back[pos]) {
             minBoundY = _min(minBoundY, y);
             maxBoundY = _max(maxBoundY, y);
@@ -101,7 +112,7 @@ class SH1106Brzo : public OLEDDisplay {
          sendCommand(minBoundXp2L);
          for (x = minBoundX; x <= maxBoundX; x++) {
              k++;
-             sendBuffer[k] = buffer[x + y * DISPLAY_WIDTH];
+             sendBuffer[k] = buffer[x + y * displayWidth];
              if (k == 16)  {
                brzo_i2c_write(sendBuffer, 17, true);
                k = 0;
