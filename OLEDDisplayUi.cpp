@@ -116,6 +116,10 @@ void OLEDDisplayUi::setOverlays(OverlayCallback* overlayFunctions, uint8_t overl
 
 // -/----- Loading Process -----\-
 
+void OLEDDisplayUi::setLoadingDrawFunction(LoadingDrawFunction loadingDrawFunction) {
+  this->loadingDrawFunction = loadingDrawFunction;
+}
+
 void OLEDDisplayUi::runLoadingProcess(LoadingStage* stages, uint8_t stagesCount) {
   uint8_t progress = 0;
   uint8_t increment = 100 / stagesCount;
