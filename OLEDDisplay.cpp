@@ -347,11 +347,11 @@ void OLEDDisplay::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16
   fillCircle(xRadius + maxProgressWidth, yRadius, innerRadius);
 }
 
-void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {
+void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *image) {
   drawInternal(xMove, yMove, width, height, image, 0, 0);
 }
 
-void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *xbm) {
+void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *xbm) {
   int16_t widthInXbm = (width + 7) / 8;
   uint8_t data;
 
@@ -525,7 +525,7 @@ void OLEDDisplay::setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment) {
   this->textAlignment = textAlignment;
 }
 
-void OLEDDisplay::setFont(const char *fontData) {
+void OLEDDisplay::setFont(const uint8_t *fontData) {
   this->fontData = fontData;
 }
 
@@ -718,7 +718,7 @@ void OLEDDisplay::sendInitCommands(void) {
   sendCommand(DISPLAYON);
 }
 
-void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) {
+void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) {
   if (width < 0 || height < 0) return;
   if (yMove + height < 0 || yMove > displayHeight)  return;
   if (xMove + width  < 0 || xMove > displayWidth)   return;

@@ -90,10 +90,10 @@ void OLEDDisplayUi::setIndicatorPosition(IndicatorPosition pos) {
 void OLEDDisplayUi::setIndicatorDirection(IndicatorDirection dir) {
   this->indicatorDirection = dir;
 }
-void OLEDDisplayUi::setActiveSymbol(const char* symbol) {
+void OLEDDisplayUi::setActiveSymbol(const uint8_t* symbol) {
   this->activeSymbol = symbol;
 }
-void OLEDDisplayUi::setInactiveSymbol(const char* symbol) {
+void OLEDDisplayUi::setInactiveSymbol(const uint8_t* symbol) {
   this->inactiveSymbol = symbol;
 }
 
@@ -367,7 +367,8 @@ void OLEDDisplayUi::drawIndicator() {
     }
     
     uint16_t frameStartPos = (indicatorSpacing * frameCount / 2);
-    const char *image;
+    const uint8_t *image;
+
     uint16_t x,y;
     for (byte i = 0; i < this->frameCount; i++) {
 
