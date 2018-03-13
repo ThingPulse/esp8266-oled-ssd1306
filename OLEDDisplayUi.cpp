@@ -90,10 +90,10 @@ void OLEDDisplayUi::setIndicatorPosition(IndicatorPosition pos) {
 void OLEDDisplayUi::setIndicatorDirection(IndicatorDirection dir) {
   this->indicatorDirection = dir;
 }
-void OLEDDisplayUi::setActiveSymbol(const char* symbol) {
+void OLEDDisplayUi::setActiveSymbol(const uint8_t* symbol) {
   this->activeSymbol = symbol;
 }
-void OLEDDisplayUi::setInactiveSymbol(const char* symbol) {
+void OLEDDisplayUi::setInactiveSymbol(const uint8_t* symbol) {
   this->inactiveSymbol = symbol;
 }
 
@@ -254,28 +254,29 @@ void OLEDDisplayUi::drawFrame(){
        int16_t x, y, x1, y1;
        switch(this->frameAnimationDirection){
         case SLIDE_LEFT:
-          x = -128 * progress;
+          x = -(this->display->getWidth()) * progress;
           y = 0;
-          x1 = x + 128;
+          x1 = x + this->display->getWidth();
           y1 = 0;
           break;
         case SLIDE_RIGHT:
-          x = 128 * progress;
+          x = this->display->getWidth() * progress;
           y = 0;
-          x1 = x - 128;
+          x1 = x - this->display->getWidth();
           y1 = 0;
           break;
         case SLIDE_UP:
           x = 0;
-          y = -64 * progress;
+          y = -(this->display->getHeight()) * progress;
           x1 = 0;
-          y1 = y + 64;
+          y1 = y + (this->display->getHeight());
           break;
         case SLIDE_DOWN:
+        default:
           x = 0;
-          y = 64 * progress;
+          y = (this->display->getHeight()) * progress;
           x1 = 0;
-          y1 = y - 64;
+          y1 = y - (this->display->getHeight());
           break;
        }
 
@@ -345,6 +346,7 @@ void OLEDDisplayUi::drawIndicator() {
         posOfHighlightFrame = frameToHighlight;
         break;
       case RIGHT_LEFT:
+      default:
         posOfHighlightFrame = this->frameCount - frameToHighlight;
         break;
     }
@@ -360,27 +362,35 @@ void OLEDDisplayUi::drawIndicator() {
         break;
     }
 
-    uint16_t frameStartPos = (12 * frameCount / 2);
-    const char *image;
+    //Space between indicators - reduce for small screen sizes
+    uint16_t indicatorSpacing = 12;
+    if (this->display->getHeight() < 64 && (this->indicatorPosition == RIGHT || this->indicatorPosition == LEFT)) {
+      indicatorSpacing = 6;
+    }
+    
+    uint16_t frameStartPos = (indicatorSpacing * frameCount / 2);
+    const uint8_t *image;
+
     uint16_t x,y;
     for (byte i = 0; i < this->frameCount; i++) {
 
       switch (this->indicatorPosition){
         case TOP:
           y = 0 - (8 * indicatorFadeProgress);
-          x = 64 - frameStartPos + 12 * i;
+          x = (this->display->getWidth() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case BOTTOM:
-          y = 56 + (8 * indicatorFadeProgress);
-          x = 64 - frameStartPos + 12 * i;
+          y = (this->display->getHeight() - 8) + (8 * indicatorFadeProgress);
+          x = (this->display->getWidth() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case RIGHT:
-          x = 120 + (8 * indicatorFadeProgress);
-          y = 32 - frameStartPos + 2 + 12 * i;
+          x = (this->display->getWidth() - 8) + (8 * indicatorFadeProgress);
+          y = (this->display->getHeight() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case LEFT:
+        default:
           x = 0 - (8 * indicatorFadeProgress);
-          y = 32 - frameStartPos + 2 + 12 * i;
+          y = (this->display->getHeight() / 2) - frameStartPos + indicatorSpacing * i;
           break;
       }
 

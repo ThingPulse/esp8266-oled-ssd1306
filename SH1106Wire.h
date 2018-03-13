@@ -44,7 +44,18 @@ class SH1106Wire : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-    SH1106Wire(uint8_t _address, uint8_t _sda, uint8_t _scl) {
+    SH1106Wire(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {      
+      this->geometry = g;
+      if (g == GEOMETRY_128_64) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 64;
+        this->displayBufferSize                = 1024;
+      } else if (g == GEOMETRY_128_32) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 32;
+        this->displayBufferSize                = 512;    
+      }
+
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
@@ -70,9 +81,9 @@ class SH1106Wire : public OLEDDisplay {
 
         // Calculate the Y bounding box of changes
         // and copy buffer[pos] to buffer_back[pos];
-        for (y = 0; y < (DISPLAY_HEIGHT / 8); y++) {
-          for (x = 0; x < DISPLAY_WIDTH; x++) {
-           uint16_t pos = x + y * DISPLAY_WIDTH;
+        for (y = 0; y < (displayHeight / 8); y++) {
+          for (x = 0; x < displayWidth; x++) {
+           uint16_t pos = x + y * displayWidth;
            if (buffer[pos] != buffer_back[pos]) {
              minBoundY = _min(minBoundY, y);
              maxBoundY = _max(maxBoundY, y);
@@ -103,7 +114,7 @@ class SH1106Wire : public OLEDDisplay {
               Wire.beginTransmission(_address);
               Wire.write(0x40);
             }
-            Wire.write(buffer[x + y * DISPLAY_WIDTH]);
+            Wire.write(buffer[x + y * displayWidth]);
             k++;
             if (k == 16)  {
               Wire.endTransmission();
