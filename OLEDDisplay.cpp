@@ -552,9 +552,19 @@ void OLEDDisplay::setContrast(char contrast) {
   sendCommand(contrast);
 }
 
+void OLEDDisplay::resetOrientation() {
+  sendCommand(SEGREMAP);
+  sendCommand(COMSCANINC);           //Reset screen rotation or mirroring
+}
+
 void OLEDDisplay::flipScreenVertically() {
   sendCommand(SEGREMAP | 0x01);
   sendCommand(COMSCANDEC);           //Rotate screen 180 Deg
+}
+
+void OLEDDisplay::mirrorScreen() {
+  sendCommand(SEGREMAP);
+  sendCommand(COMSCANDEC);           //Mirror screen
 }
 
 void OLEDDisplay::clear(void) {
