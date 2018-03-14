@@ -112,6 +112,7 @@ typedef byte (*FontTableLookupFunction)(const byte ch);
 
 class OLEDDisplay : public Print {
   public:
+    virtual ~OLEDDisplay() {}
     
     // Initialize the display
     bool init();
