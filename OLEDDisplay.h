@@ -126,6 +126,9 @@ class OLEDDisplay : public Print {
     // Sets the color of all pixel operations
     void setColor(OLEDDISPLAY_COLOR color);
 
+    // Returns the current color.
+    OLEDDISPLAY_COLOR getColor();
+
     // Draw a pixel at given position
     void setPixel(int16_t x, int16_t y);
 
