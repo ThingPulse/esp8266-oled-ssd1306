@@ -38,7 +38,18 @@ class SSD1306Wire : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl) {
+    SSD1306Wire(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
+      this->geometry = g;
+      if (g == GEOMETRY_128_64) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 64;
+        this->displayBufferSize                = 1024;
+      } else if (g == GEOMETRY_128_32) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 32;
+        this->displayBufferSize                = 512;    
+      }
+
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
@@ -63,9 +74,9 @@ class SSD1306Wire : public OLEDDisplay {
 
         // Calculate the Y bounding box of changes
         // and copy buffer[pos] to buffer_back[pos];
-        for (y = 0; y < (DISPLAY_HEIGHT / 8); y++) {
-          for (x = 0; x < DISPLAY_WIDTH; x++) {
-           uint16_t pos = x + y * DISPLAY_WIDTH;
+        for (y = 0; y < (displayHeight / 8); y++) {
+          for (x = 0; x < displayWidth; x++) {
+           uint16_t pos = x + y * displayWidth;
            if (buffer[pos] != buffer_back[pos]) {
              minBoundY = _min(minBoundY, y);
              maxBoundY = _max(maxBoundY, y);
@@ -97,7 +108,7 @@ class SSD1306Wire : public OLEDDisplay {
               Wire.beginTransmission(_address);
               Wire.write(0x40);
             }
-            Wire.write(buffer[x + y * DISPLAY_WIDTH]);
+            Wire.write(buffer[x + y * displayWidth]);
             k++;
             if (k == 16)  {
               Wire.endTransmission();
@@ -118,9 +129,14 @@ class SSD1306Wire : public OLEDDisplay {
 
         sendCommand(PAGEADDR);
         sendCommand(0x0);
-        sendCommand(0x7);
+        
+        if (geometry == GEOMETRY_128_64) {
+          sendCommand(0x7);
+        } else if (geometry == GEOMETRY_128_32) {
+          sendCommand(0x3);
+        }
 
-        for (uint16_t i=0; i < DISPLAY_BUFFER_SIZE; i++) {
+        for (uint16_t i=0; i < displayBufferSize; i++) {
           Wire.beginTransmission(this->_address);
           Wire.write(0x40);
           for (uint8_t x = 0; x < 16; x++) {

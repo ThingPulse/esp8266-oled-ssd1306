@@ -42,12 +42,6 @@
 #define OLEDDISPLAY_DOUBLE_BUFFER
 #endif
 
-
-// Display settings
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 64
-#define DISPLAY_BUFFER_SIZE 1024
-
 // Header Values
 #define JUMPTABLE_BYTES 4
 
@@ -108,8 +102,18 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
 };
 
 
+enum OLEDDISPLAY_GEOMETRY {
+  GEOMETRY_128_64   = 0,
+  GEOMETRY_128_32   = 1
+};
+
+typedef byte (*FontTableLookupFunction)(const byte ch);
+
+
 class OLEDDisplay : public Print {
   public:
+    virtual ~OLEDDisplay() {}
+    
     // Initialize the display
     bool init();
 
@@ -122,6 +126,9 @@ class OLEDDisplay : public Print {
     /* Drawing functions */
     // Sets the color of all pixel operations
     void setColor(OLEDDISPLAY_COLOR color);
+
+    // Returns the current color.
+    OLEDDISPLAY_COLOR getColor();
 
     // Draw a pixel at given position
     void setPixel(int16_t x, int16_t y);
@@ -147,18 +154,18 @@ class OLEDDisplay : public Print {
     // Draw a line horizontally
     void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
-    // Draw a lin vertically
+    // Draw a line vertically
     void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 
-    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is 
+    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is
     // a unsigned byte value between 0 and 100
     void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
 
     // Draw a bitmap in the internal image format
-    void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
+    void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *image);
 
     // Draw a XBM
-    void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char *xbm);
+    void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *xbm);
 
     /* Text functions */
 
@@ -184,7 +191,10 @@ class OLEDDisplay : public Print {
 
     // Sets the current font. Available default fonts
     // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
-    void setFont(const char *fontData);
+    void setFont(const uint8_t *fontData);
+
+    // Set the function that will convert utf-8 to font table index
+    void setFontTableLookupFunction(FontTableLookupFunction function);
 
     /* Display functions */
 
@@ -203,8 +213,14 @@ class OLEDDisplay : public Print {
     // Set display contrast
     void setContrast(char contrast);
 
+    // Reset display rotation or mirroring
+    void resetOrientation();
+
     // Turn the display upside down
     void flipScreenVertically();
+
+    // Mirror the display (to be used in a mirror or as a projector)
+    void mirrorScreen();
 
     // Write the buffer to the display memory
     virtual void display(void) = 0;
@@ -222,7 +238,11 @@ class OLEDDisplay : public Print {
     // Draw the log buffer at position (x, y)
     void drawLogBuffer(uint16_t x, uint16_t y);
 
-    // Implementent needed function to be compatible with Print class
+    // Get screen geometry
+    uint16_t getWidth(void);
+    uint16_t getHeight(void);
+
+    // Implement needed function to be compatible with Print class
     size_t write(uint8_t c);
     size_t write(const char* s);
 
@@ -234,10 +254,16 @@ class OLEDDisplay : public Print {
 
   protected:
 
+    OLEDDISPLAY_GEOMETRY geometry              = GEOMETRY_128_64;
+
+    uint16_t  displayWidth                     = 128;
+    uint16_t  displayHeight                    = 64;
+    uint16_t  displayBufferSize                = 1024;
+
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
     OLEDDISPLAY_COLOR            color         = WHITE;
 
-    const char          *fontData              = ArialMT_Plain_10;
+    const uint8_t          *fontData     = ArialMT_Plain_10;
 
     // State values for logBuffer
     uint16_t   logBufferSize                   = 0;
@@ -256,13 +282,33 @@ class OLEDDisplay : public Print {
     void sendInitCommands();
 
     // converts utf8 characters to extended ascii
-    static char* utf8ascii(String s);
-    static byte utf8ascii(byte ascii);
+    char* utf8ascii(String s);
 
-    void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
+    void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
 
+    // UTF-8 to font table index converter
+    // Code form http://playground.arduino.cc/Main/Utf8ascii
+    FontTableLookupFunction fontTableLookupFunction = [](const byte ch) {
+      static uint8_t LASTCHAR;
+
+      if (ch < 128) { // Standard ASCII-set 0..0x7F handling
+        LASTCHAR = 0;
+        return ch;
+      }
+
+      uint8_t last = LASTCHAR;   // get last char
+      LASTCHAR = ch;
+
+      switch (last) {    // conversion depnding on first UTF8-character
+        case 0xC2: return (uint8_t) ch;  break;
+        case 0xC3: return (uint8_t) (ch | 0xC0);  break;
+        case 0x82: if (ch == 0xAC) return (uint8_t) 0x80;    // special case Euro-symbol
+      }
+
+      return (uint8_t) 0; // otherwise: return zero, if character has to be ignored
+    };
 };
 
 #endif

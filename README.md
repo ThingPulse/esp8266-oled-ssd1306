@@ -1,5 +1,6 @@
-esp8266-oled-ssd1306 [![Build Status](https://travis-ci.org/squix78/esp8266-oled-ssd1306.svg?branch=dev-branch-3.0.0)](https://travis-ci.org/squix78/esp8266-oled-ssd1306)
-============
+[![Build Status](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306)
+
+# ESP8266 OLED SSD1306 
 
 > We just released version 3.0.0. Please have a look at our [upgrade guide](UPGRADE-3.0.md)
 
@@ -19,7 +20,7 @@ The init sequence for the SSD1306 was inspired by Adafruit's library for the sam
 
 ## Usage
 
-Check out the examples folder for a few comprehensive demonstrations how to use the library. Also check out the ESP8266 Weather Station library (https://github.com/squix78/esp8266-weather-station) which uses the OLED library to display beautiful weather information.
+Check out the examples folder for a few comprehensive demonstrations how to use the library. Also check out the [ESP8266 Weather Station](https://github.com/ThingPulse/esp8266-weather-station) library which uses the OLED library to display beautiful weather information.
 
 ## Upgrade
 
@@ -141,6 +142,9 @@ void setContrast(char contrast);
 
 // Turn the display upside down
 void flipScreenVertically();
+
+// Draw the screen mirrored
+void mirrorScreen();
 ```
 
 ## Pixel drawing
