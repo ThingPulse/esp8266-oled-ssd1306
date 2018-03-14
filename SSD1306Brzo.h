@@ -44,7 +44,22 @@ class SSD1306Brzo : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-    SSD1306Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl) {
+    SSD1306Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl) : SSD1306Brzo(GEOMETRY_128_64, _address, _sda, _scl) {
+
+    }
+
+    SSD1306Brzo(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
+      this->geometry = g;
+      if (g == GEOMETRY_128_64) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 64;
+        this->displayBufferSize                = 1024;
+      } else if (g == GEOMETRY_128_32) {
+        this->displayWidth                     = 128;
+        this->displayHeight                    = 32;
+        this->displayBufferSize                = 512;
+      }
+
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
@@ -67,9 +82,9 @@ class SSD1306Brzo : public OLEDDisplay {
 
        // Calculate the Y bounding box of changes
        // and copy buffer[pos] to buffer_back[pos];
-       for (y = 0; y < (DISPLAY_HEIGHT / 8); y++) {
-         for (x = 0; x < DISPLAY_WIDTH; x++) {
-          uint16_t pos = x + y * DISPLAY_WIDTH;
+       for (y = 0; y < (displayHeight / 8); y++) {
+         for (x = 0; x < displayWidth; x++) {
+          uint16_t pos = x + y * displayWidth;
           if (buffer[pos] != buffer_back[pos]) {
             minBoundY = _min(minBoundY, y);
             maxBoundY = _max(maxBoundY, y);
@@ -101,7 +116,7 @@ class SSD1306Brzo : public OLEDDisplay {
        for (y = minBoundY; y <= maxBoundY; y++) {
            for (x = minBoundX; x <= maxBoundX; x++) {
                k++;
-               sendBuffer[k] = buffer[x + y * DISPLAY_WIDTH];
+               sendBuffer[k] = buffer[x + y * displayWidth];
                if (k == 16)  {
                  brzo_i2c_write(sendBuffer, 17, true);
                  k = 0;
@@ -119,12 +134,17 @@ class SSD1306Brzo : public OLEDDisplay {
 
        sendCommand(PAGEADDR);
        sendCommand(0x0);
-       sendCommand(0x7);
+
+       if (geometry == GEOMETRY_128_64) {
+         sendCommand(0x7);
+       } else if (geometry == GEOMETRY_128_32) {
+         sendCommand(0x3);
+       }
 
        uint8_t sendBuffer[17];
        sendBuffer[0] = 0x40;
        brzo_i2c_start_transaction(this->_address, BRZO_I2C_SPEED);
-       for (uint16_t i=0; i<DISPLAY_BUFFER_SIZE; i++) {
+       for (uint16_t i=0; i<displayBufferSize; i++) {
          for (uint8_t x=1; x<17; x++) {
            sendBuffer[x] = buffer[i];
            i++;

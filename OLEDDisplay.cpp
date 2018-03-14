@@ -36,8 +36,10 @@ bool OLEDDisplay::init() {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Can't establish connection to display\n");
     return false;
   }
+
   if(this->buffer==NULL) {
-  this->buffer = (uint8_t*) malloc(sizeof(uint8_t) * DISPLAY_BUFFER_SIZE);
+  this->buffer = (uint8_t*) malloc(sizeof(uint8_t) * displayBufferSize);
+
   if(!this->buffer) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
     return false;
@@ -46,7 +48,8 @@ bool OLEDDisplay::init() {
 
   #ifdef OLEDDISPLAY_DOUBLE_BUFFER
   if(this->buffer_back==NULL) {
-  this->buffer_back = (uint8_t*) malloc(sizeof(uint8_t) * DISPLAY_BUFFER_SIZE);
+  this->buffer_back = (uint8_t*) malloc(sizeof(uint8_t) * displayBufferSize);
+
   if(!this->buffer_back) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
     free(this->buffer);
@@ -72,13 +75,17 @@ void OLEDDisplay::end() {
 void OLEDDisplay::resetDisplay(void) {
   clear();
   #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-  memset(buffer_back, 1, DISPLAY_BUFFER_SIZE);
+  memset(buffer_back, 1, displayBufferSize);
   #endif
   display();
 }
 
 void OLEDDisplay::setColor(OLEDDISPLAY_COLOR color) {
   this->color = color;
+}
+
+OLEDDISPLAY_COLOR OLEDDisplay::getColor() {
+  return this->color;
 }
 
 void OLEDDisplay::setPixel(int16_t x, int16_t y) {
@@ -349,18 +356,18 @@ void OLEDDisplay::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16
   drawHorizontalLine(xRadius, y + height, width - doubleRadius + 1);
   drawCircleQuads(x + width - radius, yRadius, radius, 0b00001001);
 
-  uint16_t maxProgressWidth = (width - doubleRadius - 1) * progress / 100;
+  uint16_t maxProgressWidth = (width - doubleRadius + 1) * progress / 100;
 
   fillCircle(xRadius, yRadius, innerRadius);
   fillRect(xRadius + 1, y + 2, maxProgressWidth, height - 3);
   fillCircle(xRadius + maxProgressWidth, yRadius, innerRadius);
 }
 
-void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image) {
+void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *image) {
   drawInternal(xMove, yMove, width, height, image, 0, 0);
 }
 
-void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *xbm) {
+void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *xbm) {
   int16_t widthInXbm = (width + 7) / 8;
   uint8_t data = 0;
 
@@ -536,7 +543,7 @@ void OLEDDisplay::setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment) {
   this->textAlignment = textAlignment;
 }
 
-void OLEDDisplay::setFont(const char *fontData) {
+void OLEDDisplay::setFont(const uint8_t *fontData) {
   this->fontData = fontData;
 }
 
@@ -568,13 +575,23 @@ void OLEDDisplay::setContrast(char contrast, char precharge, char comdetect) {
   sendCommand(DISPLAYON);
 }
 
+void OLEDDisplay::resetOrientation() {
+  sendCommand(SEGREMAP);
+  sendCommand(COMSCANINC);           //Reset screen rotation or mirroring
+}
+
 void OLEDDisplay::flipScreenVertically() {
   sendCommand(SEGREMAP | 0x01);
   sendCommand(COMSCANDEC);           //Rotate screen 180 Deg
 }
 
+void OLEDDisplay::mirrorScreen() {
+  sendCommand(SEGREMAP);
+  sendCommand(COMSCANDEC);           //Mirror screen
+}
+
 void OLEDDisplay::clear(void) {
-  memset(buffer, 0, DISPLAY_BUFFER_SIZE);
+  memset(buffer, 0, displayBufferSize);
 }
 
 void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
@@ -609,6 +626,14 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   }
 }
 
+uint16_t OLEDDisplay::getWidth(void) {
+  return displayWidth;
+}
+
+uint16_t OLEDDisplay::getHeight(void) {
+  return displayHeight;
+}
+
 bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
   if (logBuffer != NULL) free(logBuffer);
   uint16_t size = lines * chars;
@@ -631,12 +656,17 @@ size_t OLEDDisplay::write(uint8_t c) {
     // Don't waste space on \r\n line endings, dropping \r
     if (c == 13) return 1;
 
+    // convert UTF-8 character to font table index
+    c = (this->fontTableLookupFunction)(c);
+    // drop unknown character
+    if (c == 0) return 1;
+
     bool maxLineNotReached = this->logBufferLine < this->logBufferMaxLines;
     bool bufferNotFull = this->logBufferFilled < this->logBufferSize;
 
     // Can we write to the buffer?
     if (bufferNotFull && maxLineNotReached) {
-      this->logBuffer[logBufferFilled] = utf8ascii(c);
+      this->logBuffer[logBufferFilled] = c;
       this->logBufferFilled++;
       // Keep track of lines written
       if (c == 10) this->logBufferLine++;
@@ -700,9 +730,21 @@ void OLEDDisplay::sendInitCommands(void) {
   sendCommand(SEGREMAP);
   sendCommand(COMSCANINC);
   sendCommand(SETCOMPINS);
-  sendCommand(0x12); // according to the adafruit lib, sometimes this may need to be 0x02
+  
+  if (geometry == GEOMETRY_128_64) {
+    sendCommand(0x12);
+  } else if (geometry == GEOMETRY_128_32) {
+    sendCommand(0x02);
+  }
+
   sendCommand(SETCONTRAST);
-  sendCommand(0xCF);
+  
+  if (geometry == GEOMETRY_128_64) {
+    sendCommand(0xCF);
+  } else if (geometry == GEOMETRY_128_32) {
+    sendCommand(0x8F);
+  }
+  
   sendCommand(SETPRECHARGE);
   sendCommand(0xF1);
   sendCommand(SETVCOMDETECT); //0xDB, (additionally needed to lower the contrast)
@@ -713,7 +755,7 @@ void OLEDDisplay::sendInitCommands(void) {
   sendCommand(DISPLAYON);
 }
 
-void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) {
+void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) {
   if (width < 0 || height < 0) return;
   if (yMove + height < 0 || yMove > this->height())  return;
   if (xMove + width  < 0 || xMove > this->width())   return;
@@ -743,7 +785,7 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
 //    int16_t yScreenPos = yMove + yOffset;
     int16_t dataPos    = xPos  + yPos;
 
-    if (dataPos >=  0  && dataPos < DISPLAY_BUFFER_SIZE &&
+    if (dataPos >=  0  && dataPos < displayBufferSize &&
         xPos    >=  0  && xPos    < this->width() ) {
 
       if (yOffset >= 0) {
@@ -752,7 +794,8 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
           case BLACK:   buffer[dataPos] &= ~(currentByte << yOffset); break;
           case INVERSE: buffer[dataPos] ^= currentByte << yOffset; break;
         }
-        if (dataPos < (DISPLAY_BUFFER_SIZE - this->width())) {
+
+        if (dataPos < (displayBufferSize - this->width())) {
           switch (this->color) {
             case WHITE:   buffer[dataPos + this->width()] |= currentByte >> (8 - yOffset); break;
             case BLACK:   buffer[dataPos + this->width()] &= ~(currentByte >> (8 - yOffset)); break;
@@ -781,27 +824,6 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
   }
 }
 
-// Code form http://playground.arduino.cc/Main/Utf8ascii
-uint8_t OLEDDisplay::utf8ascii(byte ascii) {
-  static uint8_t LASTCHAR;
-
-  if ( ascii < 128 ) { // Standard ASCII-set 0..0x7F handling
-    LASTCHAR = 0;
-    return ascii;
-  }
-
-  uint8_t last = LASTCHAR;   // get last char
-  LASTCHAR = ascii;
-
-  switch (last) {    // conversion depnding on first UTF8-character
-    case 0xC2: return  (ascii);  break;
-    case 0xC3: return  (ascii | 0xC0);  break;
-    case 0x82: if (ascii == 0xAC) return (0x80);    // special case Euro-symbol
-  }
-
-  return  0; // otherwise: return zero, if character has to be ignored
-}
-
 // You need to free the char!
 char* OLEDDisplay::utf8ascii(String str) {
   uint16_t k = 0;
@@ -818,7 +840,7 @@ char* OLEDDisplay::utf8ascii(String str) {
   length--;
 
   for (uint16_t i=0; i < length; i++) {
-    char c = utf8ascii(s[i]);
+    char c = (this->fontTableLookupFunction)(s[i]);
     if (c!=0) {
       s[k++]=c;
     }
@@ -828,4 +850,8 @@ char* OLEDDisplay::utf8ascii(String str) {
 
   // This will leak 's' be sure to free it in the calling function.
   return s;
+}
+
+void OLEDDisplay::setFontTableLookupFunction(FontTableLookupFunction function) {
+  this->fontTableLookupFunction = function;
 }

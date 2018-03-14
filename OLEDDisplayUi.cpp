@@ -90,10 +90,10 @@ void OLEDDisplayUi::setIndicatorPosition(IndicatorPosition pos) {
 void OLEDDisplayUi::setIndicatorDirection(IndicatorDirection dir) {
   this->indicatorDirection = dir;
 }
-void OLEDDisplayUi::setActiveSymbol(const char* symbol) {
+void OLEDDisplayUi::setActiveSymbol(const uint8_t* symbol) {
   this->activeSymbol = symbol;
 }
-void OLEDDisplayUi::setInactiveSymbol(const char* symbol) {
+void OLEDDisplayUi::setInactiveSymbol(const uint8_t* symbol) {
   this->inactiveSymbol = symbol;
 }
 
@@ -272,6 +272,7 @@ void OLEDDisplayUi::drawFrame(){
           y1 = y + this->display->height();
           break;
         case SLIDE_DOWN:
+        default:
           x = 0;
           y = this->display->height() * progress;
           x1 = 0;
@@ -345,6 +346,7 @@ void OLEDDisplayUi::drawIndicator() {
         posOfHighlightFrame = frameToHighlight;
         break;
       case RIGHT_LEFT:
+      default:
         posOfHighlightFrame = this->frameCount - frameToHighlight;
         break;
     }
@@ -360,9 +362,18 @@ void OLEDDisplayUi::drawIndicator() {
         break;
     }
 
-    uint16_t frameStartPos = (12 * frameCount / 2);
-    const char *image;
-    uint16_t x = 0, y = 0;
+    //Space between indicators - reduce for small screen sizes
+    uint16_t indicatorSpacing = 12;
+    if (this->display->getHeight() < 64 && (this->indicatorPosition == RIGHT || this->indicatorPosition == LEFT)) {
+      indicatorSpacing = 6;
+    }
+    
+    uint16_t frameStartPos = (indicatorSpacing * frameCount / 2);
+    const uint8_t *image;
+
+    uint16_t x = 0,y = 0;
+
+
     for (byte i = 0; i < this->frameCount; i++) {
 
       switch (this->indicatorPosition){
@@ -379,8 +390,9 @@ void OLEDDisplayUi::drawIndicator() {
           y = (this->display->height() / 2) - frameStartPos + 2 + 12 * i;
           break;
         case LEFT:
+        default:
           x = 0 - (8 * indicatorFadeProgress);
-          y = (this->display->height() / 2) - frameStartPos + 2 + 12 * i;
+          y = (this->display->height() / 2) - frameStartPos + 2 + indicatorSpacing * i;
           break;
       }
 

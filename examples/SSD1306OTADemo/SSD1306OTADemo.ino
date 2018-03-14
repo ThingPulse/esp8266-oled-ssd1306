@@ -69,7 +69,7 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306  display(0x3c, D3, D5);
+SSD1306  display(GEOMETRY_128_64, 0x3c, D3, D5);
 // SH1106 display(0x3c, D3, D5);
 
 
@@ -90,7 +90,7 @@ void setup() {
     display.clear();
     display.setFont(ArialMT_Plain_10);
     display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    display.drawString(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 10, "OTA Update");
+    display.drawString(display.getWidth()/2, display.getHeight()/2 - 10, "OTA Update");
     display.display();
   });
 
@@ -103,14 +103,14 @@ void setup() {
     display.clear();
     display.setFont(ArialMT_Plain_10);
     display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    display.drawString(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, "Restart");
+    display.drawString(display.getWidth()/2, display.getHeight()/2, "Restart");
     display.display();
   });
 
   // Align text vertical/horizontal center
   display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
   display.setFont(ArialMT_Plain_10);
-  display.drawString(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, "Ready for OTA:\n" + WiFi.localIP().toString());
+  display.drawString(display.getWidth()/2, display.getHeight()/2, "Ready for OTA:\n" + WiFi.localIP().toString());
   display.display();
 }
 
