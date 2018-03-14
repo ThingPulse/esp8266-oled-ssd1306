@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306)
 
-# ESP8266 OLED SSD1306 
+# ESP8266 OLED SSD1306
 
 > We just released version 3.0.0. Please have a look at our [upgrade guide](UPGRADE-3.0.md)
 
@@ -25,6 +25,8 @@ Check out the examples folder for a few comprehensive demonstrations how to use 
 ## Upgrade
 
 The API changed a lot with the 3.0 release. If you were using this library with older versions please have a look at the [Upgrade Guide](UPGRADE-3.0.md).
+
+Going from 3.x version to 4.0 a lot of internals changed and compatibility for more displays was added. Please read the [Upgrade Guide](UPGRADE-4.0.md)
 
 ## Features
 
