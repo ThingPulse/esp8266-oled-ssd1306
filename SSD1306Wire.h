@@ -38,6 +38,10 @@ class SSD1306Wire : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
+    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl) : SSD1306Wire(GEOMETRY_128_64, _address, _sda, _scl) {
+
+    }
+
     SSD1306Wire(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
       this->geometry = g;
       if (g == GEOMETRY_128_64) {
@@ -47,7 +51,7 @@ class SSD1306Wire : public OLEDDisplay {
       } else if (g == GEOMETRY_128_32) {
         this->displayWidth                     = 128;
         this->displayHeight                    = 32;
-        this->displayBufferSize                = 512;    
+        this->displayBufferSize                = 512;
       }
 
       this->_address = _address;
@@ -129,7 +133,7 @@ class SSD1306Wire : public OLEDDisplay {
 
         sendCommand(PAGEADDR);
         sendCommand(0x0);
-        
+
         if (geometry == GEOMETRY_128_64) {
           sendCommand(0x7);
         } else if (geometry == GEOMETRY_128_32) {

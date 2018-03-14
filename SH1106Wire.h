@@ -44,7 +44,11 @@ class SH1106Wire : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-    SH1106Wire(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {      
+    SH1106Wire(uint8_t _address, uint8_t _sda, uint8_t _scl) : SH1106Wire(GEOMETRY_128_64, _address, _sda, _scl) {
+
+    }
+
+    SH1106Wire(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
       this->geometry = g;
       if (g == GEOMETRY_128_64) {
         this->displayWidth                     = 128;
@@ -53,7 +57,7 @@ class SH1106Wire : public OLEDDisplay {
       } else if (g == GEOMETRY_128_32) {
         this->displayWidth                     = 128;
         this->displayHeight                    = 32;
-        this->displayBufferSize                = 512;    
+        this->displayBufferSize                = 512;
       }
 
       this->_address = _address;

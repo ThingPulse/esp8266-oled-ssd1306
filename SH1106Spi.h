@@ -37,8 +37,11 @@ class SH1106Spi : public OLEDDisplay {
       uint8_t             _dc;
 
   public:
+    SH1106Spi(uint8_t _rst, uint8_t _dc) : SH1106Spi(GEOMETRY_128_64, _rst, _dc) {
 
-    SH1106Spi(OLEDDISPLAY_GEOMETRY g, uint8_t _rst, uint8_t _dc) {      
+    }
+
+    SH1106Spi(OLEDDISPLAY_GEOMETRY g, uint8_t _rst, uint8_t _dc) {
       this->geometry = g;
       if (g == GEOMETRY_128_64) {
         this->displayWidth                     = 128;
@@ -47,7 +50,7 @@ class SH1106Spi : public OLEDDisplay {
       } else if (g == GEOMETRY_128_32) {
         this->displayWidth                     = 128;
         this->displayHeight                    = 32;
-        this->displayBufferSize                = 512;    
+        this->displayBufferSize                = 512;
       }
 
       this->_rst = _rst;

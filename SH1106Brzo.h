@@ -44,6 +44,10 @@ class SH1106Brzo : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
+    SH1106Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl) : SH1106Brzo(GEOMETRY_128_64, _address, _sda, _scl) {
+
+    }
+
     SH1106Brzo(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
       this->geometry = g;
       if (g == GEOMETRY_128_64) {
@@ -53,7 +57,7 @@ class SH1106Brzo : public OLEDDisplay {
       } else if (g == GEOMETRY_128_32) {
         this->displayWidth                     = 128;
         this->displayHeight                    = 32;
-        this->displayBufferSize                = 512;    
+        this->displayBufferSize                = 512;
       }
 
       this->_address = _address;
@@ -100,7 +104,7 @@ class SH1106Brzo : public OLEDDisplay {
        uint8_t sendBuffer[17];
        sendBuffer[0] = 0x40;
 
-       // Calculate the colum offset 
+       // Calculate the colum offset
        uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
        uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
 

@@ -44,6 +44,10 @@ class SSD1306Spi : public OLEDDisplay {
       uint8_t             _cs;
 
   public:
+    SSD1306Spi(uint8_t _rst, uint8_t _dc, uint8_t _cs) : SSD1306Spi(GEOMETRY_128_64, _rst, _dc, _cs) {
+
+    }
+
     SSD1306Spi(OLEDDISPLAY_GEOMETRY g,  uint8_t _rst, uint8_t _dc, uint8_t _cs) {
       this->geometry = g;
       if (g == GEOMETRY_128_64) {
@@ -53,9 +57,9 @@ class SSD1306Spi : public OLEDDisplay {
       } else if (g == GEOMETRY_128_32) {
         this->displayWidth                     = 128;
         this->displayHeight                    = 32;
-        this->displayBufferSize                = 512;    
+        this->displayBufferSize                = 512;
       }
-      
+
       this->_rst = _rst;
       this->_dc  = _dc;
       this->_cs  = _cs;
