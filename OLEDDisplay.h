@@ -111,14 +111,12 @@ typedef byte (*FontTableLookupFunction)(const byte ch);
 
 
 class OLEDDisplay : public Print {
-  private:
-    const int _width, _height;
 
   public:
     virtual ~OLEDDisplay();
 
-    const int width(void) const { return displayWidth; };
-    const int height(void) const { return displayHeight; };
+    const uint16_t width(void) const { return displayWidth; };
+    const uint16_t height(void) const { return displayHeight; };
 
     // Initialize the display
     bool init();
