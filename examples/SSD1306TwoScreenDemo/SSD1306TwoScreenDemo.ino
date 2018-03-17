@@ -52,6 +52,8 @@ void setup() {
 
   // Initialising the UI will init the display too.
   display.init();
+  display2.init();
+
   display.setI2cAutoInit(true);
   display2.setI2cAutoInit(true);
 
@@ -59,8 +61,10 @@ void setup() {
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
 
-  display2.init();
-  //display2.setFont(ArialMT_Plain_10);
+  display.flipScreenVertically();
+  display2.setFont(ArialMT_Plain_10);
+
+
 
 }
 
