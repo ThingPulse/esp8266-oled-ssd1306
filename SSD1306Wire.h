@@ -36,6 +36,7 @@ class SSD1306Wire : public OLEDDisplay {
       uint8_t             _address;
       uint8_t             _sda;
       uint8_t             _scl;
+      bool                _doI2cAutoInit = false;
 
   public:
     SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl) : SSD1306Wire(GEOMETRY_128_64, _address, _sda, _scl) {
@@ -68,6 +69,7 @@ class SSD1306Wire : public OLEDDisplay {
     }
 
     void display(void) {
+      initI2cIfNeccesary();
       const int x_offset = (128 - this->width()) / 2;
       #ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = ~0;
@@ -157,14 +159,24 @@ class SSD1306Wire : public OLEDDisplay {
       #endif
     }
 
+    void setI2cAutoInit(bool doI2cAutoInit) {
+      _doI2cAutoInit = doI2cAutoInit;
+    }
+
   private:
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
+      initI2cIfNeccesary();
       Wire.beginTransmission(_address);
       Wire.write(0x80);
       Wire.write(command);
       Wire.endTransmission();
     }
 
+    void initI2cIfNeccesary() {
+      if (_doI2cAutoInit) {
+        Wire.begin(this->_sda, this->_scl);
+      }
+    }
 
 };
 
