@@ -217,7 +217,7 @@ class OLEDDisplay : public Print {
     // Set display contrast
     // really low brightness & contrast: contrast = 10, precharge = 5, comdetect = 0
     // normal brightness & contrast:  contrast = 100
-    void setContrast(char contrast, char precharge = 241, char comdetect = 64);
+    void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
 
     // Reset display rotation or mirroring
     void resetOrientation();
