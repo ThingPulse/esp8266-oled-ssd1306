@@ -311,8 +311,8 @@ class OLEDDisplay : public Print {
       LASTCHAR = ch;
 
       switch (last) {    // conversion depnding on first UTF8-character
-        case 0xC2: return (uint8_t) ch;  break;
-        case 0xC3: return (uint8_t) (ch | 0xC0);  break;
+        case 0xC2: return (uint8_t) ch;
+        case 0xC3: return (uint8_t) (ch | 0xC0);
         case 0x82: if (ch == 0xAC) return (uint8_t) 0x80;    // special case Euro-symbol
       }
 
