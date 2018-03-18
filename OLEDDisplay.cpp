@@ -714,6 +714,18 @@ size_t OLEDDisplay::write(const char* str) {
 }
 
 // Private functions
+void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g) {
+  this->geometry = g;
+  if (g == GEOMETRY_128_64) {
+    this->displayWidth                     = 128;
+    this->displayHeight                    = 64;
+  } else if (g == GEOMETRY_128_32) {
+    this->displayWidth                     = 128;
+    this->displayHeight                    = 32;
+  }
+  this->displayBufferSize                = displayWidth*displayHeight/8;
+}
+
 void OLEDDisplay::sendInitCommands(void) {
   sendCommand(DISPLAYOFF);
   sendCommand(SETDISPLAYCLOCKDIV);

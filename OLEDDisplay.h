@@ -265,6 +265,9 @@ class OLEDDisplay : public Print {
     uint16_t  displayWidth                     = 128;
     uint16_t  displayHeight                    = 64;
     uint16_t  displayBufferSize                = 1024;
+    
+    // Set the correct height, width and buffer for the geometry
+    void setGeometry(OLEDDISPLAY_GEOMETRY g);
 
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
     OLEDDISPLAY_COLOR            color         = WHITE;

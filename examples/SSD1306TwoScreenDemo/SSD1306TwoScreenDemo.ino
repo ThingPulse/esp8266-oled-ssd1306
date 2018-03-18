@@ -34,8 +34,8 @@
 #include "images.h"
 
 // Initialize the OLED display using Wire library
-SSD1306  display(GEOMETRY_128_64, 0x3c, D3, D5);
-SSD1306  display2(GEOMETRY_128_64, 0x3c, D1, D2);
+SSD1306  display(0x3c, D3, D5);
+SSD1306  display2(0x3c, D1, D2);
 
 
 #define DEMO_DURATION 3000
