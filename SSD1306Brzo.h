@@ -44,21 +44,8 @@ class SSD1306Brzo : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-    SSD1306Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl) : SSD1306Brzo(GEOMETRY_128_64, _address, _sda, _scl) {
-
-    }
-
-    SSD1306Brzo(OLEDDISPLAY_GEOMETRY g, uint8_t _address, uint8_t _sda, uint8_t _scl) {
-      this->geometry = g;
-      if (g == GEOMETRY_128_64) {
-        this->displayWidth                     = 128;
-        this->displayHeight                    = 64;
-        this->displayBufferSize                = 1024;
-      } else if (g == GEOMETRY_128_32) {
-        this->displayWidth                     = 128;
-        this->displayHeight                    = 32;
-        this->displayBufferSize                = 512;
-      }
+    SSD1306Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+      setGeometry(g);
 
       this->_address = _address;
       this->_sda = _sda;
