@@ -2,7 +2,7 @@
 
 # ESP8266 OLED SSD1306
 
-> We just released version 3.0.0. Please have a look at our [upgrade guide](UPGRADE-3.0.md)
+> We just released version 4.0.0. Please have a look at our [upgrade guide](UPGRADE-4.0.md)
 
 This is a driver for the SSD1306 based 128x64 pixel OLED display running on the Arduino/ESP8266 platform.
 Can be used with either the I2C or SPI version of the display
@@ -15,6 +15,7 @@ platformio lib install 562
 ```
 
 ## Credits
+
 This library has initially been written by Daniel Eichhorn (@squix78). Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs.
 The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
 
@@ -26,7 +27,7 @@ Check out the examples folder for a few comprehensive demonstrations how to use 
 
 The API changed a lot with the 3.0 release. If you were using this library with older versions please have a look at the [Upgrade Guide](UPGRADE-3.0.md).
 
-Going from 3.x version to 4.0 a lot of internals changed and compatibility for more displays was added. Please read the [Upgrade Guide](UPGRADE-4.0.md)
+Going from 3.x version to 4.0 a lot of internals changed and compatibility for more displays was added. Please read the [Upgrade Guide](UPGRADE-4.0.md).
 
 ## Features
 
@@ -60,16 +61,16 @@ The library supports different protocols to access the OLED display. Currently t
 
 ```C++
 #include <Wire.h>  
-#include "SSD1306.h"
+#include "SSD1306Wire.h"
 
-SSD1306  display(ADDRESS, SDA, SDC);
+SSD1306Wire display(ADDRESS, SDA, SDC);
 ```
 or for a SH1106:
 ```C++
 #include <Wire.h>  
-#include "SH1106.h"
+#include "SH1106Wire.h"
 
-SH1106  display(ADDRESS, SDA, SDC);
+SH1106Wire display(ADDRESS, SDA, SDC);
 ```
 
 ### I2C with brzo_i2c
@@ -140,7 +141,7 @@ void invertDisplay(void);
 void normalDisplay(void);
 
 // Set display contrast
-void setContrast(char contrast);
+void setContrast(uint8_t contrast);
 
 // Turn the display upside down
 void flipScreenVertically();
@@ -186,7 +187,7 @@ void drawVerticalLine(int16_t x, int16_t y, int16_t length);
 void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
 
 // Draw a bitmap in the internal image format
-void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
+void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *image);
 
 // Draw a XBM
 void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char* xbm);
@@ -217,7 +218,7 @@ void setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment);
 // Sets the current font. Available default fonts
 // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
 // Or create one with the font tool at http://oleddisplay.squix.ch
-void setFont(const char* fontData);
+void setFont(const uint8_t* fontData);
 ```
 
 ## Ui Library (OLEDDisplayUi)
