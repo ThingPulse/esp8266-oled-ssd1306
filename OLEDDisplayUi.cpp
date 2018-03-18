@@ -61,10 +61,10 @@ void OLEDDisplayUi::setAutoTransitionBackwards(){
   this->lastTransitionDirection = -1;
 }
 void OLEDDisplayUi::setTimePerFrame(uint16_t time){
-  this->ticksPerFrame = (int) ( (float) time / (float) updateInterval);
+  this->ticksPerFrame = (uint16_t) ( (float) time / (float) updateInterval);
 }
 void OLEDDisplayUi::setTimePerTransition(uint16_t time){
-  this->ticksPerTransition = (int) ( (float) time / (float) updateInterval);
+  this->ticksPerTransition = (uint16_t) ( (float) time / (float) updateInterval);
 }
 
 // -/------ Customize indicator position and style -------\-
@@ -190,7 +190,7 @@ OLEDDisplayUiState* OLEDDisplayUi::getUiState(){
 
 
 int8_t OLEDDisplayUi::update(){
-  long frameStart = millis();
+  unsigned long frameStart = millis();
   int8_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
   if ( timeBudget <= 0) {
     // Implement frame skipping to ensure time budget is keept
