@@ -65,10 +65,10 @@ class SH1106Spi : public OLEDDisplay {
 
     void display(void) {
     #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-       uint8_t minBoundY = ~0;
+       uint8_t minBoundY = UINT8_MAX;
        uint8_t maxBoundY = 0;
 
-       uint8_t minBoundX = ~0;
+       uint8_t minBoundX = UINT8_MAX;
        uint8_t maxBoundX = 0;
 
        uint8_t x, y;
@@ -92,7 +92,7 @@ class SH1106Spi : public OLEDDisplay {
        // If the minBoundY wasn't updated
        // we can savely assume that buffer_back[pos] == buffer[pos]
        // holdes true for all values of pos
-       if (minBoundY == ~0) return;
+       if (minBoundY == UINT8_MAX) return;
 
        // Calculate the colum offset
        uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
