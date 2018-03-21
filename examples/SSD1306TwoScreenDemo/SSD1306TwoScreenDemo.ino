@@ -30,12 +30,12 @@
 // Include the correct display library
 // For a connection via I2C using Wire include
 #include <Wire.h>  // Only needed for Arduino 1.6.5 and earlier
-#include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
+#include "SSD1306Wire.h" // legacy include: `#include "SSD1306.h"`
 #include "images.h"
 
 // Initialize the OLED display using Wire library
-SSD1306  display(0x3c, D3, D5);
-SSD1306  display2(0x3c, D1, D2);
+SSD1306Wire  display(0x3c, D3, D5);
+SSD1306Wire  display2(0x3c, D1, D2);
 
 void setup() {
   Serial.begin(115200);
@@ -59,9 +59,6 @@ void setup() {
   display2.flipScreenVertically();
   display2.setFont(ArialMT_Plain_10);
   display2.setTextAlignment(TEXT_ALIGN_LEFT);
-
-
-
 
 }
 
