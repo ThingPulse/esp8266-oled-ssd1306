@@ -578,6 +578,24 @@ void OLEDDisplay::setContrast(uint8_t contrast, uint8_t precharge, uint8_t comde
   sendCommand(DISPLAYON);
 }
 
+void OLEDDisplay::setBrightness(uint8_t brightness) {
+  uint8_t contrast = brightness;
+  if (brightness < 128) {
+    // Magic values to get a smooth/ step-free transition
+    contrast = brightness * 1.171;
+  } else {
+    contrast = brightness * 1.171 - 43;
+  }
+
+  uint8_t precharge = 241;
+  if (brightness == 0) {
+    precharge = 0;
+  }
+  uint8_t comdetect = brightness / 8;
+
+  setContrast(contrast, precharge, comdetect);
+}
+
 void OLEDDisplay::resetOrientation() {
   sendCommand(SEGREMAP);
   sendCommand(COMSCANINC);           //Reset screen rotation or mirroring
