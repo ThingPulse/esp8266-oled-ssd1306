@@ -101,7 +101,7 @@ SOFTWARE.
           <td>Font array name:</td><td><input placeholder="Font array name" type="text" id="name" value="My_Font"/></td>
           <td width="75%" rowspan="5">
             <textarea id="inputText" placeholder="Or paste a char array font definition here">
-const char My_Font[] PROGMEM = {
+const uint8_t My_Font[] PROGMEM = {
   0x0A, // Width: 10
   0x0D, // Height: 13
   0x01, // First char: 1
@@ -350,7 +350,7 @@ const char My_Font[] PROGMEM = {
           Font.output('data', '};');
           
           Font.output('header', "// Font generated or edited with the glyphEditor");
-          Font.output('header', `const char ${name}[] PROGMEM = {`);
+          Font.output('header', `const uint8_t ${name}[] PROGMEM = {`);
           // Comments are used when parsing back a generated font
           Font.output('header', `  ${Font.toHexString(this.width)}, // Width: ${this.width}`);
           Font.output('header', `  ${Font.toHexString(this.height)}, // Height: ${this.height}`);          
