@@ -130,7 +130,7 @@ class SSD1306Wire : public OLEDDisplay {
         sendCommand(0x0);
         sendCommand((this->height() / 8) - 1);
 
-        if (geometry == GEOMETRY_128_64) {
+        if (geometry == GEOMETRY_128_64 || geometry == GEOMETRY_64_48) {
           sendCommand(0x7);
         } else if (geometry == GEOMETRY_128_32) {
           sendCommand(0x3);

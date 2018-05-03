@@ -107,7 +107,8 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
 
 enum OLEDDISPLAY_GEOMETRY {
   GEOMETRY_128_64   = 0,
-  GEOMETRY_128_32   = 1
+  GEOMETRY_128_32   = 1,
+  GEOMETRY_64_48    = 2
 };
 
 typedef byte (*FontTableLookupFunction)(const byte ch);
@@ -177,7 +178,10 @@ class OLEDDisplay : public Print {
     /* Text functions */
 
     // Draws a string at the given location
-    void drawString(int16_t x, int16_t y, String text);
+    void drawString( int16_t x, int16_t y, String text);
+
+    // Draws a formatted string (like printf) at the given location
+    void drawStringf( int16_t x, int16_t y, char* buffer, String format, ... );
 
     // Draws a String with a maximum width at the given location.
     // If the given String is wider than the specified width
@@ -222,7 +226,7 @@ class OLEDDisplay : public Print {
     // normal brightness & contrast:  contrast = 100
     void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
 
-    // Convenience method to access 
+    // Convenience method to access
     void setBrightness(uint8_t);
 
     // Reset display rotation or mirroring
