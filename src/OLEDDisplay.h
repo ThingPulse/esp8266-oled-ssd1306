@@ -222,6 +222,9 @@ class OLEDDisplay : public Print {
     // normal brightness & contrast:  contrast = 100
     void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
 
+    // Set clock divider (lower 4 bits) and oscillator frequency (higher 4 bits)
+    void setClockDiv(uint8_t clockDiv);
+
     // Convenience method to access 
     void setBrightness(uint8_t);
 

@@ -578,6 +578,11 @@ void OLEDDisplay::setContrast(uint8_t contrast, uint8_t precharge, uint8_t comde
   sendCommand(DISPLAYON);
 }
 
+void OLEDDisplay::setClockDiv(uint8_t clockDiv) {
+  sendCommand(SETDISPLAYCLOCKDIV);
+  sendCommand(clockDiv);
+}
+
 void OLEDDisplay::setBrightness(uint8_t brightness) {
   uint8_t contrast = brightness;
   if (brightness < 128) {
