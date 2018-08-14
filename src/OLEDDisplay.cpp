@@ -34,32 +34,41 @@ OLEDDisplay::~OLEDDisplay() {
   end();
 }
 
-bool OLEDDisplay::init() {
+bool OLEDDisplay::resume() {
   if (!this->connect()) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Can't establish connection to display\n");
     return false;
   }
 
   if(this->buffer==NULL) {
-  this->buffer = (uint8_t*) malloc(sizeof(uint8_t) * displayBufferSize);
+    this->buffer = (uint8_t*) malloc(sizeof(uint8_t) * displayBufferSize);
 
-  if(!this->buffer) {
-    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
-    return false;
-  }
+    if(!this->buffer) {
+      DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
+      return false;
+    }
   }
 
   #ifdef OLEDDISPLAY_DOUBLE_BUFFER
   if(this->buffer_back==NULL) {
-  this->buffer_back = (uint8_t*) malloc(sizeof(uint8_t) * displayBufferSize);
+    this->buffer_back = (uint8_t*) malloc(sizeof(uint8_t) * displayBufferSize);
 
-  if(!this->buffer_back) {
-    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
-    free(this->buffer);
-    return false;
-  }
+    if(!this->buffer_back) {
+      DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
+      free(this->buffer);
+      return false;
+    }
   }
   #endif
+
+  return true;
+}
+
+bool OLEDDisplay::init() {
+
+  if(!resume()) {
+    return false;
+  }
 
   sendInitCommands();
   resetDisplay();
