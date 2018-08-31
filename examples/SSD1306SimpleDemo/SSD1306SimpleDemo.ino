@@ -28,29 +28,32 @@
  *
  */
 
+ 
 // Include the correct display library
 
 // For a connection via I2C using the Arduino Wire include:
-#include <Wire.h>  				// Only needed for Arduino 1.6.5 and earlier
-#include "SSD1306Wire.h" 		// legacy: #include "SSD1306.h"
-// OR #include "SH1106Wire.h" 	// legacy: #include "SH1106.h"
+#include <Wire.h>               // Only needed for Arduino 1.6.5 and earlier
+#include "SSD1306Wire.h"        // legacy: #include "SSD1306.h"
+// OR #include "SH1106Wire.h"   // legacy: #include "SH1106.h"
 
 // For a connection via I2C using brzo_i2c (must be installed) include:
-// #include <brzo_i2c.h> 		// Only needed for Arduino 1.6.5 and earlier
+// #include <brzo_i2c.h>        // Only needed for Arduino 1.6.5 and earlier
 // #include "SSD1306Brzo.h"
 // OR #include "SH1106Brzo.h"
 
 // For a connection via SPI include:
-// #include <SPI.h> 			// Only needed for Arduino 1.6.5 and earlier
+// #include <SPI.h>             // Only needed for Arduino 1.6.5 and earlier
 // #include "SSD1306Spi.h"
 // OR #include "SH1106SPi.h"
+
 
 // Optionally include custom images
 #include "images.h"
 
+
 // Initialize the OLED display using Arduino Wire:
 SSD1306Wire display(0x3c, D3, D5);
-// SSD1306Wire display(0x3c, D3, D5, GEOMETRY_128_32);  //optional OLEDDISPLAY_GEOMETRY param required for SSD1306 128x32
+// SSD1306Wire display(0x3c, D3, D5, GEOMETRY_128_32);  //optional OLEDDISPLAY_GEOMETRY param required for 128x32
 // SH1106 display(0x3c, D3, D5);
 
 // Initialize the OLED display using SPI:
