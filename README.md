@@ -71,7 +71,7 @@ The library supports different protocols to access the OLED display. Currently t
 // for 128x64 displays:
 SSD1306Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 // for 128x32 displays:
-// SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, OLEDDISPLAY_GEOMETRY (128x32 or 128x64)
+// SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, GEOMETRY_128_32 (or 128_64)
 ```
 
 for a SH1106:
