@@ -51,9 +51,15 @@
 
 
 // Initialize the OLED display using Arduino Wire:
-SSD1306Wire display(0x3c, D3, D5);
-// SSD1306Wire display(0x3c, D3, D5, GEOMETRY_128_32);  //optional OLEDDISPLAY_GEOMETRY param required for 128x32
-// SH1106 display(0x3c, D3, D5);
+SSD1306Wire display(0x3c, SDA, SCL);   // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h
+// SSD1306Wire display(0x3c, D3, D5);  // ADDRESS, SDA, SCL  -  If not, they can be specified manually.
+// SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, OLEDDISPLAY_GEOMETRY  -  Extra param required for 128x32 displays.
+// SH1106 display(0x3c, SDA, SCL);     // ADDRESS, SDA, SCL
+
+// Initialize the OLED display using brzo_i2c:
+// SSD1306Brzo display(0x3c, D3, D5);  // ADDRESS, SDA, SCL
+// or
+// SH1106Brzo display(0x3c, D3, D5);   // ADDRESS, SDA, SCL
 
 // Initialize the OLED display using SPI:
 // D5 -> CLK
@@ -61,14 +67,9 @@ SSD1306Wire display(0x3c, D3, D5);
 // D0 -> RES
 // D2 -> DC
 // D8 -> CS
-// SSD1306Spi display(D0, D2, D8); 	// RES, DC, CS
+// SSD1306Spi display(D0, D2, D8);  // RES, DC, CS
 // or
-// SH1106Spi display(D0, D2); 		// RES, DC
-
-// Initialize the OLED display using brzo_i2c:
-// SSD1306Brzo display(0x3c, D3, D5); 	// ADDRESS, SDA, SCL
-// or
-// SH1106Brzo display(0x3c, D3, D5); 	// ADDRESS, SDA, SCL
+// SH1106Spi display(D0, D2);       // RES, DC
 
 
 #define DEMO_DURATION 3000
