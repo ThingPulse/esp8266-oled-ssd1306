@@ -27,7 +27,6 @@
  * https://thingpulse.com
  *
  */
-
  
 // Include the correct display library
 
