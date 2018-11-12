@@ -39,22 +39,24 @@ class SSD1306Wire : public OLEDDisplay {
       uint8_t             _address;
       uint8_t             _sda;
       uint8_t             _scl;
+      uint32_t            _wire_clock;
       bool                _doI2cAutoInit = false;
 
   public:
-    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64, uint32_t _wire_clock = 700000) {
       setGeometry(g);
 
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
+      this->_wire_clock = _wire_clock;
     }
 
     bool connect() {
       Wire.begin(this->_sda, this->_scl);
       // Let's use ~700khz if ESP8266 is in 160Mhz mode
-      // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
-      Wire.setClock(700000);
+      // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.      
+      Wire.setClock(this->_wire_clock);
       return true;
     }
 
