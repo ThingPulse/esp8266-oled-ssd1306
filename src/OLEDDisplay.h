@@ -140,6 +140,9 @@ class OLEDDisplay : public Print {
     // Draw a pixel at given position
     void setPixel(int16_t x, int16_t y);
 
+    // Draw a pixel at given position and color
+    void setPixelColor(int16_t x, int16_t y, OLEDDISPLAY_COLOR color);
+
     // Draw a line from position 0 to position 1
     void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 
@@ -173,6 +176,9 @@ class OLEDDisplay : public Print {
 
     // Draw a XBM
     void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *xbm);
+
+    // Draw icon 16x16 xbm format
+    void drawIco16x16(int16_t x, int16_t y, const char *ico, bool inverse = false);
 
     /* Text functions */
 

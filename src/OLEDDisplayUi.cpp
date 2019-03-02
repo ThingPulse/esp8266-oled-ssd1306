@@ -193,9 +193,9 @@ OLEDDisplayUiState* OLEDDisplayUi::getUiState(){
 }
 
 
-int8_t OLEDDisplayUi::update(){
+int16_t OLEDDisplayUi::update(){
   unsigned long frameStart = millis();
-  int8_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
+  int16_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
   if ( timeBudget <= 0) {
     // Implement frame skipping to ensure time budget is keept
     if (this->autoTransition && this->state.lastUpdate != 0) this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);

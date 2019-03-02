@@ -154,7 +154,7 @@ class OLEDDisplayUi {
     OLEDDisplayUiState      state;
 
     // Bookeeping for update
-    uint8_t             updateInterval            = 33;
+    uint16_t            updateInterval            = 33;
 
     uint8_t             getNextFrameNumber();
     void                drawIndicator();
@@ -304,6 +304,6 @@ class OLEDDisplayUi {
     // State Info
     OLEDDisplayUiState* getUiState();
 
-    int8_t update();
+    int16_t update();
 };
 #endif
