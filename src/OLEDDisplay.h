@@ -34,6 +34,10 @@
 #include <Arduino.h>
 #include "OLEDDisplayFonts.h"
 
+#ifndef OLEDDISPLAY_DEFAULTFONT
+#define OLEDDISPLAY_DEFAULTFONT ArialMT_Plain_10
+#endif
+
 //#define DEBUG_OLEDDISPLAY(...) Serial.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_OLEDDISPLAY
@@ -278,7 +282,7 @@ class OLEDDisplay : public Print {
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
     OLEDDISPLAY_COLOR            color         = WHITE;
 
-    const uint8_t          *fontData     = ArialMT_Plain_10;
+    const uint8_t          *fontData     = OLEDDISPLAY_DEFAULTFONT;
 
     // State values for logBuffer
     uint16_t   logBufferSize                   = 0;
