@@ -54,6 +54,11 @@ Going from 3.x version to 4.0 a lot of internals changed and compatibility for m
 Fonts are defined in a proprietary but open format. You can create new font files by choosing from a given list
 of open sourced Fonts from this web app: http://oleddisplay.squix.ch
 Choose the font family, style and size, check the preview image and if you like what you see click the "Create" button. This will create the font array in a text area form where you can copy and paste it into a new or existing header file.
+```C++
+#include "YOUR_FONT.h"
+#define OLEDDISPLAYFONTS_h //Exclude the default fonts file if not required to save memory
+#define OLEDDISPLAY_DEFAULTFONT YOUR_FONT_ARRAY //Change the default ArialMT_Plane_10 to your own choice of font
+```
 
 
 ![FontTool](https://github.com/squix78/esp8266-oled-ssd1306/raw/master/resources/FontTool.png)
