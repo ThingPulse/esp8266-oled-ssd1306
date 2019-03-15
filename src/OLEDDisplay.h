@@ -122,8 +122,8 @@ class OLEDDisplay : public Print {
   public:
     virtual ~OLEDDisplay();
 
-    const uint16_t width(void) const { return displayWidth; };
-    const uint16_t height(void) const { return displayHeight; };
+    const uint16_t width(void)  { return displayWidth; };
+    const uint16_t height(void)  { return displayHeight; };
 
     // Initialize the display
     bool init();
