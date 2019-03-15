@@ -647,11 +647,11 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   }
 }
 
-uint16_t OLEDDisplay::getWidth(void) {
+uint16_t OLEDDisplay::getWidth() {
   return displayWidth;
 }
 
-uint16_t OLEDDisplay::getHeight(void) {
+uint16_t OLEDDisplay::getHeight() {
   return displayHeight;
 }
 
