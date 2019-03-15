@@ -255,8 +255,8 @@ class OLEDDisplay : public Print {
     void drawLogBuffer(uint16_t x, uint16_t y);
 
     // Get screen geometry
-    uint16_t getWidth(void);
-    uint16_t getHeight(void);
+    uint16_t getWidth();
+    uint16_t getHeight();
 
     // Implement needed function to be compatible with Print class
     size_t write(uint8_t c);
