@@ -1,8 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
- * Copyright (c) 2018 by Fabrice Weinberg
+ * Copyright (c) 2019 by Helmut Tschemernjak - www.radioshuttle.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,40 +27,39 @@
  *
  */
 
-#ifndef SSD1306Wire_h
-#define SSD1306Wire_h
+#ifndef SSD1306I2C_h
+#define SSD1306I2C_h
+
+
+#ifdef __MBED__
 
 #include "OLEDDisplay.h"
-#include <Wire.h>
+#include <mbed.h>
 
-class SSD1306Wire : public OLEDDisplay {
-  private:
-      uint8_t             _address;
-      uint8_t             _sda;
-      uint8_t             _scl;
-      bool                _doI2cAutoInit = false;
-
-  public:
-    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+class SSD1306I2C : public OLEDDisplay {
+public:
+    SSD1306I2C(uint8_t _address, PinName _sda, PinName _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
       setGeometry(g);
 
-      this->_address = _address;
+      this->_address = _address << 1;  // convert from 7 to 8 bit for mbed.
       this->_sda = _sda;
       this->_scl = _scl;
+	  _i2c = new I2C(_sda, _scl);
     }
 
     bool connect() {
-      Wire.begin(this->_sda, this->_scl);
-      // Let's use ~700khz if ESP8266 is in 160Mhz mode
-      // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
-      Wire.setClock(700000);
+		// mbed supports 100k and 400k some device maybe 1000k
+#ifdef TARGET_STM32L4
+	  _i2c->frequency(1000000);
+#else
+	  _i2c->frequency(400000);
+#endif
       return true;
     }
 
     void display(void) {
-      initI2cIfNeccesary();
       const int x_offset = (128 - this->width()) / 2;
-      #ifdef OLEDDISPLAY_DOUBLE_BUFFER
+#ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = UINT8_MAX;
         uint8_t maxBoundY = 0;
 
@@ -75,10 +73,10 @@ class SSD1306Wire : public OLEDDisplay {
           for (x = 0; x < this->width(); x++) {
            uint16_t pos = x + y * this->width();
            if (buffer[pos] != buffer_back[pos]) {
-             minBoundY = _min(minBoundY, y);
-             maxBoundY = _max(maxBoundY, y);
-             minBoundX = _min(minBoundX, x);
-             maxBoundX = _max(maxBoundX, x);
+             minBoundY = std::min(minBoundY, y);
+             maxBoundY = std::max(maxBoundY, y);
+             minBoundX = std::min(minBoundX, x);
+             maxBoundX = std::max(maxBoundX, x);
            }
            buffer_back[pos] = buffer[pos];
          }
@@ -92,43 +90,30 @@ class SSD1306Wire : public OLEDDisplay {
         if (minBoundY == UINT8_MAX) return;
 
         sendCommand(COLUMNADDR);
-        sendCommand(x_offset + minBoundX);
-        sendCommand(x_offset + maxBoundX);
+        sendCommand(x_offset + minBoundX);	// column start address (0 = reset)
+        sendCommand(x_offset + maxBoundX);	// column end address (127 = reset)
 
         sendCommand(PAGEADDR);
-        sendCommand(minBoundY);
-        sendCommand(maxBoundY);
+        sendCommand(minBoundY);				// page start address
+        sendCommand(maxBoundY);				// page end address
 
-        byte k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
-          for (x = minBoundX; x <= maxBoundX; x++) {
-            if (k == 0) {
-              Wire.beginTransmission(_address);
-              Wire.write(0x40);
-            }
-
-            Wire.write(buffer[x + y * this->width()]);
-            k++;
-            if (k == 16)  {
-              Wire.endTransmission();
-              k = 0;
-            }
-          }
-          yield();
-        }
-
-        if (k != 0) {
-          Wire.endTransmission();
-        }
-      #else
+			uint8_t *start = &buffer[(minBoundX + y * this->width())-1];
+			uint8_t save = *start;
+			
+			*start = 0x40; // control
+			_i2c->write(_address, (char *)start, (maxBoundX-minBoundX) + 1 + 1);
+			*start = save;
+		}
+#else
 
         sendCommand(COLUMNADDR);
-        sendCommand(x_offset);
-        sendCommand(x_offset + (this->width() - 1));
+        sendCommand(x_offset);						// column start address (0 = reset)
+        sendCommand(x_offset + (this->width() - 1));// column end address (127 = reset)
 
         sendCommand(PAGEADDR);
-        sendCommand(0x0);
-        sendCommand((this->height() / 8) - 1);
+        sendCommand(0x0);							// page start address (0 = reset)
+        sendCommand((this->height() / 8) - 1);		// page end address 7
 
         if (geometry == GEOMETRY_128_64) {
           sendCommand(0x7);
@@ -136,41 +121,29 @@ class SSD1306Wire : public OLEDDisplay {
           sendCommand(0x3);
         }
 
-        for (uint16_t i=0; i < displayBufferSize; i++) {
-          Wire.beginTransmission(this->_address);
-          Wire.write(0x40);
-          for (uint8_t x = 0; x < 16; x++) {
-            Wire.write(buffer[i]);
-            i++;
-          }
-          i--;
-          Wire.endTransmission();
-        }
-      #endif
+		buffer[-1] = 0x40; // control
+		_i2c->write(_address, (char *)&buffer[-1], displayBufferSize + 1);
+#endif
     }
 
-    void setI2cAutoInit(bool doI2cAutoInit) {
-      _doI2cAutoInit = doI2cAutoInit;
-    }
-
-  private:
+private:
 	int getBufferOffset(void) {
 		return 0;
 	}
-    inline void sendCommand(uint8_t command) __attribute__((always_inline)){
-      initI2cIfNeccesary();
-      Wire.beginTransmission(_address);
-      Wire.write(0x80);
-      Wire.write(command);
-      Wire.endTransmission();
+
+    inline void sendCommand(uint8_t command) __attribute__((always_inline)) {
+		char _data[2];
+	  	_data[0] = 0x80; // control
+	  	_data[1] = command;
+	  	int ret = _i2c->write(_address, _data, sizeof(_data));
     }
 
-    void initI2cIfNeccesary() {
-      if (_doI2cAutoInit) {
-        Wire.begin(this->_sda, this->_scl);
-      }
-    }
-
+	uint8_t             _address;
+	PinName             _sda;
+	PinName             _scl;
+	I2C *_i2c;
 };
+
+#endif
 
 #endif
