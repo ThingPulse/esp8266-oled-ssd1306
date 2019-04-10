@@ -144,6 +144,9 @@ class SH1106Wire : public OLEDDisplay {
     }
 
   private:
+	int getBufferOffset(void) {
+		return 0;
+	}
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
       Wire.beginTransmission(_address);
       Wire.write(0x80);
