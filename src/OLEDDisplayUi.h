@@ -90,15 +90,15 @@ struct OLEDDisplayUiState {
   FrameState    frameState;
   uint8_t       currentFrame;
 
-  bool          isIndicatorDrawen         = true;
+  bool          isIndicatorDrawen;
 
   // Normal = 1, Inverse = -1;
   int8_t        frameTransitionDirection;
 
-  bool          manuelControll            = false;
+  bool          manuelControll;
 
   // Custom data that can be used by the user
-  void*         userData                  = NULL;
+  void*         userData;
 };
 
 struct LoadingStage {
@@ -121,7 +121,7 @@ class OLEDDisplayUi {
     const uint8_t*         activeSymbol;
     const uint8_t*         inactiveSymbol;
 
-    bool                shouldDrawIndicators      = true;
+    bool                shouldDrawIndicators;
 
     // Values for the Frames
     AnimationDirection  frameAnimationDirection;
@@ -131,7 +131,7 @@ class OLEDDisplayUi {
     uint16_t            ticksPerFrame; 		// ~ 5000ms at 30 FPS
     uint16_t            ticksPerTransition;	// ~  500ms at 30 FPS
 
-    bool                autoTransition            = true;
+    bool                autoTransition;
 
     FrameCallback*      frameFunctions;
     uint8_t             frameCount;
