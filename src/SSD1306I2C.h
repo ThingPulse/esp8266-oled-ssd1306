@@ -135,7 +135,7 @@ private:
 		char _data[2];
 	  	_data[0] = 0x80; // control
 	  	_data[1] = command;
-	  	int ret = _i2c->write(_address, _data, sizeof(_data));
+	  	_i2c->write(_address, _data, sizeof(_data));
     }
 
 	uint8_t             _address;
