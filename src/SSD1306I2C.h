@@ -36,6 +36,10 @@
 #include "OLEDDisplay.h"
 #include <mbed.h>
 
+#ifndef UINT8_MAX
+ #define UINT8_MAX 0xff
+#endif
+
 class SSD1306I2C : public OLEDDisplay {
 public:
     SSD1306I2C(uint8_t _address, PinName _sda, PinName _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {

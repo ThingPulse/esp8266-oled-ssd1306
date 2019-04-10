@@ -48,6 +48,8 @@ OLEDDisplay::OLEDDisplay() {
 	textAlignment = TEXT_ALIGN_LEFT;
 	fontData = ArialMT_Plain_10;
 	fontTableLookupFunction = DefaultFontTableLookup;
+	buffer = NULL;
+	buffer_back = NULL;
 }
 
 OLEDDisplay::~OLEDDisplay() {

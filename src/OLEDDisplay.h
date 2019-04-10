@@ -303,10 +303,10 @@ class OLEDDisplay : public Stream {
 #endif
 
 
-    uint8_t            *buffer = NULL;
+    uint8_t            *buffer;
 
     #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-    uint8_t            *buffer_back = NULL;
+    uint8_t            *buffer_back;
     #endif
 
   protected:
