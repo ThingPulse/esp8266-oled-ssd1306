@@ -3,6 +3,7 @@
  *
  * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
  * Copyright (c) 2018 by Fabrice Weinberg
+ * Copyright (c) 2019 by Helmut Tschemernjak - www.radioshuttle.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +32,39 @@
 #ifndef OLEDDISPLAY_h
 #define OLEDDISPLAY_h
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#elif __MBED__
+#define pgm_read_byte(addr)   (*(const unsigned char *)(addr))
+
+#include <mbed.h>
+#define delay(x)	wait_ms(x)
+#define yield()		void()
+
+/*
+ * This is a little Arduino String emulation to keep the OLEDDisplay
+ * library code in common between Arduino and mbed-os
+ */
+class String {
+public:
+	String(const char *s) { _str = s; };
+	int length() { return strlen(_str); };
+	const char *c_str() { return _str; };
+    void toCharArray(char *buf, unsigned int bufsize, unsigned int index = 0) const {
+		memcpy(buf, _str + index,  std::min(bufsize, strlen(_str)));
+	};
+private:
+	const char *_str;
+};
+
+#else
+#error "Unkown operating system"
+#endif
+
 #include "OLEDDisplayFonts.h"
 
 //#define DEBUG_OLEDDISPLAY(...) Serial.printf( __VA_ARGS__ )
+//#define DEBUG_OLEDDISPLAY(...) dprintf("%s",  __VA_ARGS__ )
 
 #ifndef DEBUG_OLEDDISPLAY
 #define DEBUG_OLEDDISPLAY(...)
@@ -110,16 +140,24 @@ enum OLEDDISPLAY_GEOMETRY {
   GEOMETRY_128_32   = 1
 };
 
-typedef byte (*FontTableLookupFunction)(const byte ch);
+typedef char (*FontTableLookupFunction)(const char ch);
+char DefaultFontTableLookup(const char ch);
 
 
-class OLEDDisplay : public Print {
+#ifdef ARDUINO
+class OLEDDisplay : public Print  {
+#elif __MBED__
+class OLEDDisplay : public Stream {
+#else
+#error "Unkown operating system"
+#endif
 
   public:
+	OLEDDisplay();
     virtual ~OLEDDisplay();
 
-    const uint16_t width(void) const { return displayWidth; };
-    const uint16_t height(void) const { return displayHeight; };
+	uint16_t width(void) const { return displayWidth; };
+	uint16_t height(void) const { return displayHeight; };
 
     // Initialize the display
     bool init();
@@ -257,6 +295,13 @@ class OLEDDisplay : public Print {
     // Implement needed function to be compatible with Print class
     size_t write(uint8_t c);
     size_t write(const char* s);
+	
+    // Implement needed function to be compatible with Stream class
+#ifdef __MBED__
+	int _putc(int c);
+	int _getc() { return -1; };
+#endif
+
 
     uint8_t            *buffer = NULL;
 
@@ -266,27 +311,31 @@ class OLEDDisplay : public Print {
 
   protected:
 
-    OLEDDISPLAY_GEOMETRY geometry              = GEOMETRY_128_64;
+    OLEDDISPLAY_GEOMETRY geometry;
 
-    uint16_t  displayWidth                     = 128;
-    uint16_t  displayHeight                    = 64;
-    uint16_t  displayBufferSize                = 1024;
+    uint16_t  displayWidth;
+    uint16_t  displayHeight;
+    uint16_t  displayBufferSize;
 
     // Set the correct height, width and buffer for the geometry
     void setGeometry(OLEDDISPLAY_GEOMETRY g);
 
-    OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment = TEXT_ALIGN_LEFT;
-    OLEDDISPLAY_COLOR            color         = WHITE;
+    OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment;
+    OLEDDISPLAY_COLOR            color;
 
-    const uint8_t          *fontData     = ArialMT_Plain_10;
+    const uint8_t	 *fontData;
 
     // State values for logBuffer
-    uint16_t   logBufferSize                   = 0;
-    uint16_t   logBufferFilled                 = 0;
-    uint16_t   logBufferLine                   = 0;
-    uint16_t   logBufferMaxLines               = 0;
-    char      *logBuffer                       = NULL;
+    uint16_t   logBufferSize;
+    uint16_t   logBufferFilled;
+    uint16_t   logBufferLine;
+    uint16_t   logBufferMaxLines;
+    char      *logBuffer;
 
+
+	// the header size of the buffer used, e.g. for the SPI command header
+	virtual int getBufferOffset(void) = 0;
+	
     // Send a command to the display (low level function)
     virtual void sendCommand(uint8_t com) {(void)com;};
 
@@ -302,28 +351,8 @@ class OLEDDisplay : public Print {
     void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
-
-    // UTF-8 to font table index converter
-    // Code form http://playground.arduino.cc/Main/Utf8ascii
-    FontTableLookupFunction fontTableLookupFunction = [](const byte ch) {
-      static uint8_t LASTCHAR;
-
-      if (ch < 128) { // Standard ASCII-set 0..0x7F handling
-        LASTCHAR = 0;
-        return ch;
-      }
-
-      uint8_t last = LASTCHAR;   // get last char
-      LASTCHAR = ch;
-
-      switch (last) {    // conversion depnding on first UTF8-character
-        case 0xC2: return (uint8_t) ch;
-        case 0xC3: return (uint8_t) (ch | 0xC0);
-        case 0x82: if (ch == 0xAC) return (uint8_t) 0x80;    // special case Euro-symbol
-      }
-
-      return (uint8_t) 0; // otherwise: return zero, if character has to be ignored
-    };
+	
+	FontTableLookupFunction fontTableLookupFunction;
 };
 
 #endif
