@@ -49,7 +49,9 @@ OLEDDisplay::OLEDDisplay() {
 	fontData = ArialMT_Plain_10;
 	fontTableLookupFunction = DefaultFontTableLookup;
 	buffer = NULL;
+#ifdef OLEDDISPLAY_DOUBLE_BUFFER
 	buffer_back = NULL;
+#endif
 }
 
 OLEDDisplay::~OLEDDisplay() {
