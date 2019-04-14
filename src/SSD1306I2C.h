@@ -117,7 +117,6 @@ public:
 
         sendCommand(PAGEADDR);
         sendCommand(0x0);							// page start address (0 = reset)
-        sendCommand((this->height() / 8) - 1);		// page end address 7
 
         if (geometry == GEOMETRY_128_64) {
           sendCommand(0x7);
