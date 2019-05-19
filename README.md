@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306)
 
-# ESP8266 OLED SSD1306
+# ThingPulse ESP8266 OLED SSD1306
 
 > We just released version 4.0.0. Please have a look at our [upgrade guide](UPGRADE-4.0.md)
 
@@ -13,6 +13,11 @@ It is also available as a platformio library. Just execute the following command
 ```
 platformio lib install 562
 ```
+
+## Service level promise
+
+<table><tr><td><img src="https://thingpulse.com/assets/ThingPulse-open-source-prime.png" width="150">
+</td><td>This is a ThingPulse <em>prime</em> project. See our <a href="https://thingpulse.com/about/open-source-commitment/">open-source commitment declaration</a> for what this means.</td></tr></table>
 
 ## Credits
 
