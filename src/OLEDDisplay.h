@@ -178,10 +178,10 @@ class OLEDDisplay : public Print {
     /* Text functions */
 
     // Draws a string at the given location
-    void drawString( int16_t x, int16_t y, String text);
+    void drawString(int16_t x, int16_t y, String text);
 
     // Draws a formatted string (like printf) at the given location
-    void drawStringf( int16_t x, int16_t y, char* buffer, String format, ... );
+    void drawStringf(int16_t x, int16_t y, char* buffer, String format, ... );
 
     // Draws a String with a maximum width at the given location.
     // If the given String is wider than the specified width
