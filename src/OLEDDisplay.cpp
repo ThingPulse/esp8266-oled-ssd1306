@@ -42,7 +42,7 @@ OLEDDisplay::OLEDDisplay() {
 
 	displayWidth = 128;
 	displayHeight = 64;
-	displayBufferSize = 1024;
+	displayBufferSize = displayWidth * displayHeight / 8;
 	color = WHITE;
 	geometry = GEOMETRY_128_64;
 	textAlignment = TEXT_ALIGN_LEFT;
@@ -789,19 +789,28 @@ int OLEDDisplay::_putc(int c) {
 #endif
 
 // Private functions
-void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g) {
+void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width, uint16_t height) {
   this->geometry = g;
-  if (g == GEOMETRY_128_64) {
-    this->displayWidth                     = 128;
-    this->displayHeight                    = 64;
-  } else if (g == GEOMETRY_128_32) {
-    this->displayWidth                     = 128;
-    this->displayHeight                    = 32;
+  switch (g) {
+  	case GEOMETRY_128_64:
+    	this->displayWidth = 128;
+    	this->displayHeight = 64;
+		break;
+	case GEOMETRY_128_32:
+    	this->displayWidth = 128;
+    	this->displayHeight = 32;
+		break;
+	case GEOMETRY_RAWMODE:
+		this->displayWidth = width > 0 ? width : 128;
+		this->displayHeight = height > 0 ? height : 64;
+		break;
   }
-  this->displayBufferSize                = displayWidth*displayHeight/8;
+  this->displayBufferSize = displayWidth * displayHeight /8;
 }
 
 void OLEDDisplay::sendInitCommands(void) {
+  if (geometry == GEOMETRY_RAWMODE)
+  	return;
   sendCommand(DISPLAYOFF);
   sendCommand(SETDISPLAYCLOCKDIV);
   sendCommand(0xF0); // Increase speed of the display max ~96Hz

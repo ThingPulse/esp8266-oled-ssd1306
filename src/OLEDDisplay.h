@@ -137,7 +137,8 @@ enum OLEDDISPLAY_TEXT_ALIGNMENT {
 
 enum OLEDDISPLAY_GEOMETRY {
   GEOMETRY_128_64   = 0,
-  GEOMETRY_128_32   = 1
+  GEOMETRY_128_32,
+  GEOMETRY_RAWMODE,
 };
 
 typedef char (*FontTableLookupFunction)(const char ch);
@@ -318,7 +319,7 @@ class OLEDDisplay : public Stream {
     uint16_t  displayBufferSize;
 
     // Set the correct height, width and buffer for the geometry
-    void setGeometry(OLEDDISPLAY_GEOMETRY g);
+    void setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width = 0, uint16_t height = 0);
 
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment;
     OLEDDISPLAY_COLOR            color;
