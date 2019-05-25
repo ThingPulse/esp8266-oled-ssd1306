@@ -158,9 +158,9 @@ void OLEDDisplay::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
 	int16_t dp = 1 - radius;
 	do {
 		if (dp < 0)
-			dp = dp + 2 * (++x) + 3;
+			dp = dp + 2 * (x++) + 3;
 		else
-			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+			dp = dp + 2 * (x++) - 2 * (y--) + 5;
 
 		setPixel(x0 + x, y0 + y);     //For the 8 octants
 		setPixel(x0 - x, y0 + y);
@@ -184,9 +184,9 @@ void OLEDDisplay::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_
   int16_t dp = 1 - radius;
   while (x < y) {
     if (dp < 0)
-      dp = dp + 2 * (++x) + 3;
+      dp = dp + 2 * (x++) + 3;
     else
-      dp = dp + 2 * (++x) - 2 * (--y) + 5;
+      dp = dp + 2 * (x++) - 2 * (y--) + 5;
     if (quads & 0x1) {
       setPixel(x0 + x, y0 - y);
       setPixel(x0 + y, y0 - x);
@@ -224,9 +224,9 @@ void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
 	int16_t dp = 1 - radius;
 	do {
 		if (dp < 0)
-			dp = dp + 2 * (++x) + 3;
+			dp = dp + 2 * (x++) + 3;
 		else
-			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+			dp = dp + 2 * (x++) - 2 * (y--) + 5;
 
     drawHorizontalLine(x0 - x, y0 - y, 2*x);
     drawHorizontalLine(x0 - x, y0 + y, 2*x);
