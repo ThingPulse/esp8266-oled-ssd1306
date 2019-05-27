@@ -954,7 +954,7 @@ void OLEDDisplay::setFontTableLookupFunction(FontTableLookupFunction function) {
 }
 
 
-char DefaultFontTableLookup(const char ch) {
+char DefaultFontTableLookup(const uint8_t ch) {
     // UTF-8 to font table index converter
     // Code form http://playground.arduino.cc/Main/Utf8ascii
 	static uint8_t LASTCHAR;

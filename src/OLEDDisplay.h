@@ -141,8 +141,8 @@ enum OLEDDISPLAY_GEOMETRY {
   GEOMETRY_RAWMODE,
 };
 
-typedef char (*FontTableLookupFunction)(const char ch);
-char DefaultFontTableLookup(const char ch);
+typedef char (*FontTableLookupFunction)(const uint8_t ch);
+char DefaultFontTableLookup(const uint8_t ch);
 
 
 #ifdef ARDUINO
