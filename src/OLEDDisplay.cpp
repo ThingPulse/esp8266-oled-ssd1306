@@ -427,8 +427,8 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, u
   uint8_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t sizeOfJumpTable = pgm_read_byte(fontData + CHAR_NUM_POS)  * JUMPTABLE_BYTES;
 
-  uint8_t cursorX         = 0;
-  uint8_t cursorY         = 0;
+  uint16_t cursorX         = 0;
+  uint16_t cursorY         = 0;
 
   switch (textAlignment) {
     case TEXT_ALIGN_CENTER_BOTH:
