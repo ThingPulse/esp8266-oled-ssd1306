@@ -174,6 +174,9 @@ void setColor(OLEDDISPLAY_COLOR color);
 // Draw a pixel at given position
 void setPixel(int16_t x, int16_t y);
 
+// Clear a pixel at given position FIXME: INVERSE is untested with this function
+void clearPixel(int16_t x, int16_t y);
+
 // Draw a line from position 0 to position 1
 void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 
