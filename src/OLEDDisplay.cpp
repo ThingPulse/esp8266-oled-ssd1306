@@ -33,7 +33,6 @@
   * TODO Helmut
   * - test/finish dislplay.printf() on mbed-os
   * - Finish _putc with drawLogBuffer when running display
-  * - Fix problem that the x is larger than 0 (somehow shifted display) on single buffer
   */
 
 #include "OLEDDisplay.h"
