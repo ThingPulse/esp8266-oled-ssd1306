@@ -118,8 +118,9 @@ SH1106Spi display(RES, DC, CS);
 ### Display Control
 
 ```C++
-// Initialize the display
-void init();
+// Initialize the display via init();
+// Optionally the default fonts can be overwritten to save flash memory, e.g. init(ArialMT_Plain_10)
+void init(const uint8_t *defaultFontData);
 
 // Free the memory used by the display
 void end();

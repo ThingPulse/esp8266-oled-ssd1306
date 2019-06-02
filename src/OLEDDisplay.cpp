@@ -45,7 +45,7 @@ OLEDDisplay::OLEDDisplay() {
 	color = WHITE;
 	geometry = GEOMETRY_128_64;
 	textAlignment = TEXT_ALIGN_LEFT;
-	fontData = ArialMT_Plain_10;
+	fontData = NULL;
 	fontTableLookupFunction = DefaultFontTableLookup;
 	buffer = NULL;
 #ifdef OLEDDISPLAY_DOUBLE_BUFFER
@@ -57,8 +57,9 @@ OLEDDisplay::~OLEDDisplay() {
   end();
 }
 
-bool OLEDDisplay::init() {
+bool OLEDDisplay::init(const uint8_t *defaultFontData) {
 
+	fontData = defaultFontData;
 	logBufferSize = 0;
 	logBufferFilled = 0;
 	logBufferLine = 0;

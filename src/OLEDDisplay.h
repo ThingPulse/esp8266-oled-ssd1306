@@ -161,7 +161,7 @@ class OLEDDisplay : public Stream {
 	uint16_t height(void) const { return displayHeight; };
 
     // Initialize the display
-    bool init();
+    bool init(const uint8_t *defaultFontData = ArialMT_Plain_10);
 
     // Free the memory used by the display
     void end();
