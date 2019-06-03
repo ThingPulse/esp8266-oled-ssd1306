@@ -71,14 +71,18 @@ The library supports different protocols to access the OLED display. Currently t
 #include <Wire.h>  
 #include "SSD1306Wire.h"
 
-SSD1306Wire display(ADDRESS, SDA, SDC);
+// for 128x64 displays:
+SSD1306Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
+// for 128x32 displays:
+// SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, GEOMETRY_128_32 (or 128_64)
 ```
-or for a SH1106:
+
+for a SH1106:
 ```C++
 #include <Wire.h>  
 #include "SH1106Wire.h"
 
-SH1106Wire display(ADDRESS, SDA, SDC);
+SH1106Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 ```
 
 ### I2C with brzo_i2c
@@ -87,14 +91,14 @@ SH1106Wire display(ADDRESS, SDA, SDC);
 #include <brzo_i2c.h>
 #include "SSD1306Brzo.h"
 
-SSD1306Brzo display(ADDRESS, SDA, SDC);
+SSD1306Brzo display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 ```
 or for the SH1106:
 ```C++
 #include <brzo_i2c.h>
 #include "SH1106Brzo.h"
 
-SH1106Brzo display(ADDRESS, SDA, SDC);
+SH1106Brzo display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 ```
 
 ### SPI
@@ -103,14 +107,14 @@ SH1106Brzo display(ADDRESS, SDA, SDC);
 #include <SPI.h>
 #include "SSD1306Spi.h"
 
-SSD1306Spi display(RES, DC, CS);
+SSD1306Spi display(D0, D2, D8);  // RES, DC, CS
 ```
 or for the SH1106:
 ```C++
 #include <SPI.h>
 #include "SH1106Spi.h"
 
-SH1106Spi display(RES, DC, CS);
+SH1106Spi display(D0, D2);  // RES, DC
 ```
 
 ## API
