@@ -60,7 +60,7 @@ Choose the font family, style and size, check the preview image and if you like 
 
 ## Hardware Abstraction
 
-The library supports different protocols to access the OLED display. Currently there is support for I2C using the built in Wire.h library, I2C by using the much faster BRZO I2C library [https://github.com/pasko-zh/brzo_i2c] written in assembler and it also supports displays which come with the SPI interface.
+The library supports different protocols to access the OLED display. Currently there is support for I2C using the built in Wire.h library, I2C by using the much faster [BRZO I2C library](https://github.com/pasko-zh/brzo_i2c) written in assembler and it also supports displays which come with the SPI interface.
 
 ### I2C with Wire.h
 
@@ -407,8 +407,9 @@ This shows how to use define a maximum width after which the driver automaticall
 
 This shows the code working on the SPI version of the display. See demo code for ESP8266 pins used.
 
-## Project using this library
+## Selection of projects using this library
 
  * [QRCode ESP8266](https://github.com/anunpanya/ESP8266_QRcode) (by @anunpanya)
  * [Scan I2C](https://github.com/hallard/Scan-I2C-WiFi) (by @hallard)
- * [Weather Station](https://github.com/squix78/esp8266-weather-station) (by @squix)
+ * [ThingPulse Weather Station](https://github.com/ThingPulse/esp8266-weather-station)
+ * Yours?
