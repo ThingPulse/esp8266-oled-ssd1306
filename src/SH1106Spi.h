@@ -123,6 +123,9 @@ class SH1106Spi : public OLEDDisplay {
     }
 
   private:
+	int getBufferOffset(void) {
+		return 0;
+	}
     inline void sendCommand(uint8_t com) __attribute__((always_inline)){
       digitalWrite(_dc, LOW);
       SPI.transfer(com);
