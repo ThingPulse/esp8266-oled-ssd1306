@@ -34,6 +34,11 @@
 #include "OLEDDisplay.h"
 #include <Wire.h>
 
+#ifdef ARDUINO_ARCH_AVR
+#define _min	min
+#define _max	max
+#endif
+
 class SSD1306Wire : public OLEDDisplay {
   private:
       uint8_t             _address;
@@ -51,7 +56,11 @@ class SSD1306Wire : public OLEDDisplay {
     }
 
     bool connect() {
+#ifdef ARDUINO_ARCH_AVR 
+      Wire.begin();
+#else
       Wire.begin(this->_sda, this->_scl);
+#endif
       // Let's use ~700khz if ESP8266 is in 160Mhz mode
       // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
       Wire.setClock(700000);
@@ -128,7 +137,6 @@ class SSD1306Wire : public OLEDDisplay {
 
         sendCommand(PAGEADDR);
         sendCommand(0x0);
-        sendCommand((this->height() / 8) - 1);
 
         for (uint16_t i=0; i < displayBufferSize; i++) {
           Wire.beginTransmission(this->_address);
@@ -148,6 +156,9 @@ class SSD1306Wire : public OLEDDisplay {
     }
 
   private:
+	int getBufferOffset(void) {
+		return 0;
+	}
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
       initI2cIfNeccesary();
       Wire.beginTransmission(_address);
@@ -158,7 +169,11 @@ class SSD1306Wire : public OLEDDisplay {
 
     void initI2cIfNeccesary() {
       if (_doI2cAutoInit) {
-        Wire.begin(this->_sda, this->_scl);
+#ifdef ARDUINO_ARCH_AVR 
+      	Wire.begin();
+#else
+      	Wire.begin(this->_sda, this->_scl);
+#endif
       }
     }
 

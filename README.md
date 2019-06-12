@@ -1,13 +1,13 @@
 [![Build Status](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306)
 
-# ThingPulse ESP8266 OLED SSD1306
+# ThingPulse OLED SSD1306 (ESP8266/ESP32/Mbed-OS)
 
 > We just released version 4.0.0. Please have a look at our [upgrade guide](UPGRADE-4.0.md)
 
-This is a driver for SSD1306 128x64 and 128x32 OLED displays running on the Arduino/ESP8266 platform.
+This is a driver for SSD1306 128x64 and 128x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
 Can be used with either the I2C or SPI version of the display.
 
-You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display".  
+You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library. 
 
 It is also available as a platformio library. Just execute the following command:
 ```
@@ -21,8 +21,12 @@ platformio lib install 562
 
 ## Credits
 
-This library has initially been written by Daniel Eichhorn (@squix78). Many thanks go to Fabrice Weinberg (@FWeinb) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs.
+This library has initially been written by Daniel Eichhorn ([@squix78](https://github.com/squix78)). Many thanks go to Fabrice Weinberg ([@FWeinb](https://github.com/FWeinb)) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs. Mbed-OS support and other improvements were contributed by Helmut Tschemernjak ([@helmut64](https://github.com/helmut64)).
+
 The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
+
+## mbed-os
+This library has been adopted to support the ARM mbed-os environment. A copy of this library is available in mbed-os under the name OLED_SSD1306 by Helmut Tschemernjak. An alternate installation option is to copy the following files into your mbed-os project: OLEDDisplay.cpp OLEDDisplay.h OLEDDisplayFonts.h OLEDDisplayUi.cpp OLEDDisplayUi.h SSD1306I2C.h
 
 ## Usage
 
@@ -60,7 +64,7 @@ Choose the font family, style and size, check the preview image and if you like 
 
 ## Hardware Abstraction
 
-The library supports different protocols to access the OLED display. Currently there is support for I2C using the built in Wire.h library, I2C by using the much faster BRZO I2C library [https://github.com/pasko-zh/brzo_i2c] written in assembler and it also supports displays which come with the SPI interface.
+The library supports different protocols to access the OLED display. Currently there is support for I2C using the built in Wire.h library, I2C by using the much faster [BRZO I2C library](https://github.com/pasko-zh/brzo_i2c) written in assembler and it also supports displays which come with the SPI interface.
 
 ### I2C with Wire.h
 
@@ -407,8 +411,9 @@ This shows how to use define a maximum width after which the driver automaticall
 
 This shows the code working on the SPI version of the display. See demo code for ESP8266 pins used.
 
-## Project using this library
+## Selection of projects using this library
 
  * [QRCode ESP8266](https://github.com/anunpanya/ESP8266_QRcode) (by @anunpanya)
  * [Scan I2C](https://github.com/hallard/Scan-I2C-WiFi) (by @hallard)
- * [Weather Station](https://github.com/squix78/esp8266-weather-station) (by @squix)
+ * [ThingPulse Weather Station](https://github.com/ThingPulse/esp8266-weather-station)
+ * Yours?
