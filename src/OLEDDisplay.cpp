@@ -146,9 +146,9 @@ void OLEDDisplay::setPixelColor(int16_t x, int16_t y, OLEDDISPLAY_COLOR color) {
 void OLEDDisplay::clearPixel(int16_t x, int16_t y) {
   if (x >= 0 && x < this->width() && y >= 0 && y < this->height()) {
     switch (color) {
-      case BLACK:   buffer[x + (y / 8) * this->width()] |=  (1 << (y & 7)); break;
-      case WHITE:   buffer[x + (y / 8) * this->width()] &= ~(1 << (y & 7)); break;
-      case INVERSE: buffer[x + (y / 8) * this->width()] ^=  (1 << (y & 7)); break;
+      case BLACK:   buffer[x + (y >> 3) * this->width()] |=  (1 << (y & 7)); break;
+      case WHITE:   buffer[x + (y >> 3) * this->width()] &= ~(1 << (y & 7)); break;
+      case INVERSE: buffer[x + (y >> 3) * this->width()] ^=  (1 << (y & 7)); break;
     }
   }
 }
