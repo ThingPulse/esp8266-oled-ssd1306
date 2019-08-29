@@ -1,6 +1,10 @@
 #ifndef OLEDDISPLAYFONTS_h
 #define OLEDDISPLAYFONTS_h
 
+#ifdef __MBED__
+#define PROGMEM
+#endif
+
 const uint8_t ArialMT_Plain_10[] PROGMEM = {
   0x0A, // Width: 10
   0x0D, // Height: 13

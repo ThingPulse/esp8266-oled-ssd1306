@@ -148,6 +148,9 @@ class SSD1306Brzo : public OLEDDisplay {
     }
 
   private:
+	int getBufferOffset(void) {
+		return 0;
+	}
     inline void sendCommand(uint8_t com) __attribute__((always_inline)){
       uint8_t command[2] = {0x80 /* command mode */, com};
       brzo_i2c_start_transaction(_address, BRZO_I2C_SPEED);

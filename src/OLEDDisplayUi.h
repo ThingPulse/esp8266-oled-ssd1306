@@ -3,6 +3,7 @@
  *
  * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
  * Copyright (c) 2018 by Fabrice Weinberg
+ * Copyright (c) 2019 by Helmut Tschemernjak - www.radioshuttle.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +32,14 @@
 #ifndef OLEDDISPLAYUI_h
 #define OLEDDISPLAYUI_h
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#elif __MBED__
+#include <mbed.h>
+#else
+#error "Unkown operating system"
+#endif
+
 #include "OLEDDisplay.h"
 
 //#define DEBUG_OLEDDISPLAYUI(...) Serial.printf( __VA_ARGS__ )
@@ -76,21 +84,21 @@ const uint8_t ANIMATION_inactiveSymbol[] PROGMEM = {
 
 // Structure of the UiState
 struct OLEDDisplayUiState {
-  uint64_t     lastUpdate                = 0;
-  uint16_t      ticksSinceLastStateSwitch = 0;
+  uint64_t     lastUpdate;
+  uint16_t      ticksSinceLastStateSwitch;
 
-  FrameState    frameState                = FIXED;
-  uint8_t       currentFrame              = 0;
+  FrameState    frameState;
+  uint8_t       currentFrame;
 
-  bool          isIndicatorDrawen         = true;
+  bool          isIndicatorDrawen;
 
   // Normal = 1, Inverse = -1;
-  int8_t        frameTransitionDirection  = 1;
+  int8_t        frameTransitionDirection;
 
-  bool          manuelControll            = false;
+  bool          manuelControll;
 
   // Custom data that can be used by the user
-  void*         userData                  = NULL;
+  void*         userData;
 };
 
 struct LoadingStage {
@@ -107,49 +115,44 @@ class OLEDDisplayUi {
     OLEDDisplay             *display;
 
     // Symbols for the Indicator
-    IndicatorPosition   indicatorPosition         = BOTTOM;
-    IndicatorDirection  indicatorDirection        = LEFT_RIGHT;
+    IndicatorPosition   indicatorPosition;
+    IndicatorDirection  indicatorDirection;
 
-    const uint8_t*         activeSymbol              = ANIMATION_activeSymbol;
-    const uint8_t*         inactiveSymbol            = ANIMATION_inactiveSymbol;
+    const uint8_t*         activeSymbol;
+    const uint8_t*         inactiveSymbol;
 
-    bool                shouldDrawIndicators      = true;
+    bool                shouldDrawIndicators;
 
     // Values for the Frames
-    AnimationDirection  frameAnimationDirection   = SLIDE_RIGHT;
+    AnimationDirection  frameAnimationDirection;
 
-    int8_t              lastTransitionDirection   = 1;
+    int8_t              lastTransitionDirection;
 
-    uint16_t            ticksPerFrame             = 151; // ~ 5000ms at 30 FPS
-    uint16_t            ticksPerTransition        = 15;  // ~  500ms at 30 FPS
+    uint16_t            ticksPerFrame; 		// ~ 5000ms at 30 FPS
+    uint16_t            ticksPerTransition;	// ~  500ms at 30 FPS
 
-    bool                autoTransition            = true;
+    bool                autoTransition;
 
     FrameCallback*      frameFunctions;
-    uint8_t             frameCount                = 0;
+    uint8_t             frameCount;
 
     // Internally used to transition to a specific frame
-    int8_t              nextFrameNumber           = -1;
+    int8_t              nextFrameNumber;
 
     // Values for Overlays
     OverlayCallback*    overlayFunctions;
-    uint8_t             overlayCount              = 0;
+    uint8_t             overlayCount;
 
     // Will the Indicator be drawen
     // 3 Not drawn in both frames
     // 2 Drawn this frame but not next
     // 1 Not drown this frame but next
     // 0 Not known yet
-    uint8_t                indicatorDrawState        = 1;
+    uint8_t                indicatorDrawState;
 
     // Loading screen
-    LoadingDrawFunction loadingDrawFunction       = [](OLEDDisplay *display, LoadingStage* stage, uint8_t progress) {
-      display->setTextAlignment(TEXT_ALIGN_CENTER);
-      display->setFont(ArialMT_Plain_10);
-      display->drawString(64, 18, stage->process);
-      display->drawProgressBar(4, 32, 120, 8, progress);
-    };
-
+    LoadingDrawFunction loadingDrawFunction;
+	
     // UI State
     OLEDDisplayUiState      state;
 
