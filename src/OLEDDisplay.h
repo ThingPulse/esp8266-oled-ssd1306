@@ -179,6 +179,9 @@ class OLEDDisplay : public Stream {
     // Draw a pixel at given position
     void setPixel(int16_t x, int16_t y);
 
+    // Draw a pixel at given position and color
+    void setPixelColor(int16_t x, int16_t y, OLEDDISPLAY_COLOR color);
+
     // Clear a pixel at given position FIXME: INVERSE is untested with this function
     void clearPixel(int16_t x, int16_t y);
 
@@ -215,6 +218,9 @@ class OLEDDisplay : public Stream {
 
     // Draw a XBM
     void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *xbm);
+
+    // Draw icon 16x16 xbm format
+    void drawIco16x16(int16_t x, int16_t y, const char *ico, bool inverse = false);
 
     /* Text functions */
 
