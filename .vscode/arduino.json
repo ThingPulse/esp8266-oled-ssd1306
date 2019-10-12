@@ -1,0 +1,5 @@
+{
+    "board": "adafruit:samd:adafruit_feather_m0",
+    "configuration": "usbstack=arduino,debug=off",
+    "port": "COM4"
+}
