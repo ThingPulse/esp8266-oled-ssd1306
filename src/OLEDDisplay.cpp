@@ -126,9 +126,9 @@ OLEDDISPLAY_COLOR OLEDDisplay::getColor() {
 void OLEDDisplay::setPixel(int16_t x, int16_t y) {
   if (x >= 0 && x < this->width() && y >= 0 && y < this->height()) {
     switch (color) {
-      case WHITE:   buffer[x + (y >> 3) * this->width()] |=  (1 << (y & 7)); break;
-      case BLACK:   buffer[x + (y >> 3) * this->width()] &= ~(1 << (y & 7)); break;
-      case INVERSE: buffer[x + (y >> 3) * this->width()] ^=  (1 << (y & 7)); break;
+      case WHITE:   buffer[x + (y / 8) * this->width()] |=  (1 << (y & 7)); break;
+      case BLACK:   buffer[x + (y / 8) * this->width()] &= ~(1 << (y & 7)); break;
+      case INVERSE: buffer[x + (y / 8) * this->width()] ^=  (1 << (y & 7)); break;
     }
   }
 }
@@ -136,9 +136,9 @@ void OLEDDisplay::setPixel(int16_t x, int16_t y) {
 void OLEDDisplay::setPixelColor(int16_t x, int16_t y, OLEDDISPLAY_COLOR color) {
   if (x >= 0 && x < this->width() && y >= 0 && y < this->height()) {
     switch (color) {
-      case WHITE:   buffer[x + (y >> 3) * this->width()] |=  (1 << (y & 7)); break;
-      case BLACK:   buffer[x + (y >> 3) * this->width()] &= ~(1 << (y & 7)); break;
-      case INVERSE: buffer[x + (y >> 3) * this->width()] ^=  (1 << (y & 7)); break;
+      case WHITE:   buffer[x + (y / 8) * this->width()] |=  (1 << (y & 7)); break;
+      case BLACK:   buffer[x + (y / 8) * this->width()] &= ~(1 << (y & 7)); break;
+      case INVERSE: buffer[x + (y / 8) * this->width()] ^=  (1 << (y & 7)); break;
     }
   }
 }
@@ -171,7 +171,7 @@ void OLEDDisplay::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
   dx = x1 - x0;
   dy = abs(y1 - y0);
 
-  int16_t err = dx >> 1;
+  int16_t err = dx / 2;
   int16_t ystep;
 
   if (y0 < y1) {
@@ -289,7 +289,7 @@ void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
 
 
 	} while (x < y);
-  drawHorizontalLine(x0 - radius, y0, radius << 1);
+  drawHorizontalLine(x0 - radius, y0, 2 * radius);
 
 }
 
@@ -400,10 +400,10 @@ void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
 }
 
 void OLEDDisplay::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress) {
-  uint16_t radius = height >> 1;
+  uint16_t radius = height / 2;
   uint16_t xRadius = x + radius;
   uint16_t yRadius = y + radius;
-  uint16_t doubleRadius = radius << 1;
+  uint16_t doubleRadius = 2 * radius;
   uint16_t innerRadius = radius - 2;
 
   setColor(WHITE);
@@ -424,7 +424,7 @@ void OLEDDisplay::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int
 }
 
 void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *xbm) {
-  int16_t widthInXbm = (width + 7) >> 3;
+  int16_t widthInXbm = (width + 7) / 8;
   uint8_t data = 0;
 
   for(int16_t y = 0; y < height; y++) {
@@ -432,7 +432,7 @@ void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t h
       if (x & 7) {
         data >>= 1; // Move a bit
       } else {  // Read new data every 8 bit
-        data = pgm_read_byte(xbm + (x >> 3) + y * widthInXbm);
+        data = pgm_read_byte(xbm + (x / 8) + y * widthInXbm);
       }
       // if there is a bit draw it
       if (data & 0x01) {
@@ -527,7 +527,7 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, String strUser) {
       lb += (text[i] == 10);
     }
     // Calculate center
-    yOffset = (lb * lineHeight) >> 1;
+    yOffset = (lb * lineHeight) / 2;
   }
 
   uint16_t line = 0;
