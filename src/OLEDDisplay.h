@@ -160,7 +160,10 @@ class OLEDDisplay : public Stream {
 	uint16_t width(void) const { return displayWidth; };
 	uint16_t height(void) const { return displayHeight; };
 
-    // Initialize the display
+    // Prepare internal structures for resuming display usage after a deep sleep.
+    bool resume();
+
+    // Initialize the display. Also initializes the library first.
     bool init();
 
     // Free the memory used by the display

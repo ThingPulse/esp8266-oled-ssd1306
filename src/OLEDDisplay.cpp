@@ -57,7 +57,7 @@ OLEDDisplay::~OLEDDisplay() {
   end();
 }
 
-bool OLEDDisplay::init() {
+bool OLEDDisplay::resume() {
 
 	logBufferSize = 0;
 	logBufferFilled = 0;
@@ -92,6 +92,15 @@ bool OLEDDisplay::init() {
   }
   }
   #endif
+
+  return true;
+}
+
+bool OLEDDisplay::init() {
+
+  if(!resume()) {
+    return false;
+  }
 
   sendInitCommands();
   resetDisplay();
