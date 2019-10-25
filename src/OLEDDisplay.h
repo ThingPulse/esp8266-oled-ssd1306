@@ -160,7 +160,12 @@ class OLEDDisplay : public Stream {
 	uint16_t width(void) const { return displayWidth; };
 	uint16_t height(void) const { return displayHeight; };
 
-    // Initialize the display
+    // Prepare the driver for resuming display usage after a deep sleep.
+    // Returns true on success. Returns false on failure (no display detected etc).
+    bool allocateBuffer();
+
+    // Initialize the driver and the display.
+    // Returns true on success. Returns false on failure (no display detected etc).
     bool init();
 
     // Free the memory used by the display
