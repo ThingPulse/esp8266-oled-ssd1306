@@ -1,12 +1,12 @@
 {
   "name": "ESP8266_SSD1306",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "keywords": "ssd1306, oled, display, i2c",
-  "description": "A I2C display driver for SSD1306 oled displays connected to an ESP8266 or ESP32",
+  "description": "I2C display driver for SSD1306 OLED displays connected to ESP8266/ESP32/Mbed-OS",
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/squix78/esp8266-oled-ssd1306.git"
+    "url": "https://github.com/ThingPulse/esp8266-oled-ssd1306"
   },
   "authors":
   [
