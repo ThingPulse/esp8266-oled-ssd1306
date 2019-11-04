@@ -29,6 +29,15 @@
  *
  */
 
+/**
+ * Modification to support additional display types by B. Ratoff, 3 Nov 2019
+ *
+ * The net intent of these changes is to complete the virtualization of the display
+ * hardware, so that other displays with different protocols and different geometries
+ * can be accommodated.
+ */
+
+
 #ifndef OLEDDISPLAY_h
 #define OLEDDISPLAY_h
 
@@ -259,33 +268,33 @@ class OLEDDisplay : public Stream {
     /* Display functions */
 
     // Turn the display on
-    void displayOn(void);
+    virtual void displayOn(void);
 
     // Turn the display offs
-    void displayOff(void);
+    virtual void displayOff(void);
 
     // Inverted display mode
-    void invertDisplay(void);
+    virtual void invertDisplay(void);
 
     // Normal display mode
-    void normalDisplay(void);
+    virtual void normalDisplay(void);
 
     // Set display contrast
     // really low brightness & contrast: contrast = 10, precharge = 5, comdetect = 0
     // normal brightness & contrast:  contrast = 100
-    void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
+    virtual void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
 
     // Convenience method to access 
-    void setBrightness(uint8_t);
+    virtual void setBrightness(uint8_t);
 
     // Reset display rotation or mirroring
-    void resetOrientation();
+    virtual void resetOrientation();
 
     // Turn the display upside down
-    void flipScreenVertically();
+    virtual void flipScreenVertically();
 
     // Mirror the display (to be used in a mirror or as a projector)
-    void mirrorScreen();
+    virtual void mirrorScreen();
 
     // Write the buffer to the display memory
     virtual void display(void) = 0;
@@ -358,7 +367,7 @@ class OLEDDisplay : public Stream {
     virtual bool connect() { return false; };
 
     // Send all the init commands
-    void sendInitCommands();
+    virtual void sendInitCommands();
 
     // converts utf8 characters to extended ascii
     char* utf8ascii(String s);
