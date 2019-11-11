@@ -28,10 +28,11 @@ See more at https://thingpulse.com
  * 01 Oct 2019 : Bruce Ratoff : Add WiFiManager for WiFi config
  * 06 Oct 2019 : Bruce Ratoff : Add conditional build for PCD8544 display
  * 07 Oct 2019 : Bruce Ratoff : Dynamically adjust widths/fonts by display size
+ * 11 Nov 2019 : Bruce Ratoff : Add UTC page and make time pages optional
 */
 
 //#define PCD8544
-//#define SSD1306
+#define SSD1306
 
 #include <ESPWiFi.h>
 
@@ -73,10 +74,12 @@ See more at https://thingpulse.com
 
 #define TZ              -5       // (utc+) TZ in hours
 int UtcOffset = TZ;
-#define DST_FLAG          true      // use 60mn for summer time in some countries
+#define DST_FLAG          false      // use 60mn for summer time in some countries
 boolean dst_flag = DST_FLAG;
 #define US_DATE_ORDER
 #define CLOCK_12_HOUR
+//                                                            #define LOCAL_TIME_PAGE
+#define UTC_TIME_PAGE
 
 // Setup
 const int UPDATE_INTERVAL_SECS = 20 * 60; // Update every 20 minutes
@@ -169,19 +172,34 @@ long timeSinceLastWUpdate = 0;
 //declaring prototypes
 void drawProgress(OLEDDisplay *display, int percentage, String label);
 void updateData(OLEDDisplay *display);
-void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
 void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
 void drawForecast(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
 void drawForecastDetails(OLEDDisplay *display, int x, int y, int dayIndex);
 void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state);
 void setReadyForWeatherUpdate();
-
+#ifdef UTC_TIME_PAGE
+void drawUTCDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
+#endif
+#ifdef LOCAL_TIME_PAGE
+void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
+#endif
 
 // Add frames
 // this array keeps function pointers to all frames
 // frames are the single views that slide from right to left
+#if defined(LOCAL_TIME_PAGE) && defined(UTC_TIME_PAGE)
+FrameCallback frames[] = { drawDateTime, drawUTCDateTime, drawCurrentWeather, drawForecast };
+int numberOfFrames = 4;
+#elif defined(LOCAL_TIME_PAGE)
 FrameCallback frames[] = { drawDateTime, drawCurrentWeather, drawForecast };
 int numberOfFrames = 3;
+#elif defined(UTC_TIME_PAGE)
+FrameCallback frames[] = { drawUTCDateTime, drawCurrentWeather, drawForecast };
+int numberOfFrames = 3;
+#else
+FrameCallback frames[] = { drawCurrentWeather, drawForecast };
+int numberOfFrames = 2;
+#endif
 
 OverlayCallback overlays[] = { drawHeaderOverlay };
 int numberOfOverlays = 1;
@@ -446,8 +464,41 @@ void updateData(OLEDDisplay *display) {
   delay(1000);
 }
 
+#ifdef UTC_TIME_PAGE
+void drawUTCDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  now = time(nullptr) - (UtcOffset * 3600); // Undo local time offset
+  struct tm* timeInfo;
+  timeInfo = gmtime(&now);
+  char buff[16];
+  int16_t w = display->getWidth();
+  int16_t h = display->getHeight();
 
+  display->setTextAlignment(TEXT_ALIGN_CENTER);
+  display->setFont(ArialMT_Plain_10);
+  String date = WDAY_NAMES[timeInfo->tm_wday];
 
+#ifdef US_DATE_ORDER
+  sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_mon+1, timeInfo->tm_mday, timeInfo->tm_year + 1900);
+#else
+  sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_mday, timeInfo->tm_mon+1, timeInfo->tm_year + 1900);
+#endif
+  display->drawString(w/2 + x, 5 + y, String(buff));
+  if(w < 90) {
+    display->setFont(ArialMT_Plain_16);
+  } else {
+    display->setFont(ArialMT_Plain_24);
+  }
+  sprintf_P(buff, PSTR("%02d:%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
+  display->drawString(w/2 + x, 15 + y, String(buff));
+
+  display->setFont(ArialMT_Plain_10);
+  display->drawString(w/2 + x, 38 + y, "UTC");
+
+  display->setTextAlignment(TEXT_ALIGN_LEFT);
+}
+#endif
+
+#ifdef LOCAL_TIME_PAGE
 void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   now = time(nullptr);
   struct tm* timeInfo;
@@ -490,6 +541,7 @@ void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, in
 #endif
   display->setTextAlignment(TEXT_ALIGN_LEFT);
 }
+#endif
 
 void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   int16_t w = display->getWidth();
