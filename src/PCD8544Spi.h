@@ -247,6 +247,10 @@ class PCD8544Spi : public OLEDDisplay {
 
   private:
 
+		int getBufferOffset(void) {
+			return 0;
+		}
+
 		void inline sendCommand(uint8_t com) {
 			writeLcd(LCD_COMMAND, com);
 		}
