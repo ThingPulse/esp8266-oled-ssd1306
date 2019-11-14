@@ -101,7 +101,7 @@ SOFTWARE.
           <td>Font array name:</td><td><input placeholder="Font array name" type="text" id="name" value="My_Font"/></td>
           <td width="75%" rowspan="5">
             <textarea id="inputText" placeholder="Or paste a char array font definition here">
-const char My_Font[] PROGMEM = {
+const uint8_t My_Font[] PROGMEM = {
   0x0A, // Width: 10
   0x0D, // Height: 13
   0x01, // First char: 1
@@ -128,7 +128,12 @@ const char My_Font[] PROGMEM = {
           <td colspan="3"> </td>     <!--slightly improves layout-->
         </tr>
         <tr>
-          <td colspan="2"><button id="create">Create</button> <button id="generate">Generate</button> <button id="savetoFile">Save To File</button> </td>
+          <td colspan="2">
+            <button id="create">Create</button>
+            <button id="shiftUp">Shift all up</button>
+            <button id="generate">Generate</button>
+            <button id="savetoFile">Save To File</button>
+          </td>
           <td><input type="file" id="fileinput" />  <button id="parse">Parse</button></td>
         </tr>
       </table>
@@ -288,6 +293,7 @@ const char My_Font[] PROGMEM = {
         // Read from the <td> css class the pixels that need to be on
         // generates the jump table and font data 
         generate() {
+          // this.width -= 3;  // hack to narrow an existing font
           Font.emptyOutput();
           let chars = this.fontContainer.getElementsByTagName('table');
           let firstCharCode = parseInt(document.getElementById('code').value);
@@ -306,7 +312,7 @@ const char My_Font[] PROGMEM = {
             let charBytes = [];
             let charCode = ch + firstCharCode;
             let rows = chars[ch].getElementsByTagName('tr');
-            let notZero = false;
+            let charNotZero = false;
             // Browse each column
             for(let col = 0; col < this.width ; col++) {
               let bits = ""; // using string because js uses 32b ints when performing bit operations
@@ -328,20 +334,33 @@ const char My_Font[] PROGMEM = {
                 //Font.output('data', `  // ${bits.substr(b-7, 8)}`);  // Debugging help: rotated bitmap
                 let byte = parseInt(bits.substr(b-7, 8), 2);
                 if (byte !== 0) {
-                  notZero = true;
+                  charNotZero = true;
                 }
                 charBytes.push(Font.toHexString(byte));
               } 
             }
-            // Remove bytes with value 0 at the end of the array.
-            while(parseInt(charBytes[charBytes.length-1]) === 0 && charBytes.length !== 1) {
+            // Compute the used width of the character:  
+            // rightmost column with pixels plus one
+            // one column is spread over several bytes...
+            let charWidth = 0;
+            for(let i=charBytes.length - 1; i >= 0; i-=this.bytesForHeight) {
+              let sum = 0;
+              for(let j=0; j < this.bytesForHeight; j++) {
+                sum += parseInt(charBytes[i - j], 16);
+              }
+              if(sum !== 0) {
+                charWidth = (i + 1)/this.bytesForHeight + 1;
+                break;
+              }
+            }
+
+            // Memory optim: Remove bytes with value 0 at the end of the array.
+            while(parseInt(charBytes[charBytes.length-1], 16) === 0 && charBytes.length > 1) {
               charBytes.pop();
             }
-            
-            if (notZero) {
+            if (charNotZero) {
               Font.output('data', `  ${charBytes.join(', ')},  // ${charCode}`);
-              // TODO: last param width is not the best value. Need to compute the actual occupied width
-              Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(this.width)},  // ${charCode} `);
+              Font.output('jump', `  ${Font.getMsB(charAddr)}, ${Font.getLsB(charAddr)}, ${Font.toHexString(charBytes.length)}, ${Font.toHexString(charWidth)},  // ${charCode} `);
               charAddr += charBytes.length;
             } else {
               Font.output('jump', `  0xFF, 0xFF, 0x00, ${Font.toHexString(this.width)},  // ${charCode} `);
@@ -350,7 +369,7 @@ const char My_Font[] PROGMEM = {
           Font.output('data', '};');
           
           Font.output('header', "// Font generated or edited with the glyphEditor");
-          Font.output('header', `const char ${name}[] PROGMEM = {`);
+          Font.output('header', `const uint8_t ${name}[] PROGMEM = {`);
           // Comments are used when parsing back a generated font
           Font.output('header', `  ${Font.toHexString(this.width)}, // Width: ${this.width}`);
           Font.output('header', `  ${Font.toHexString(this.height)}, // Height: ${this.height}`);          
@@ -381,6 +400,14 @@ const char My_Font[] PROGMEM = {
       
       document.getElementById('savetoFile').addEventListener('click', function() {
         font.saveFile();
+      });
+      
+      document.getElementById('shiftUp').addEventListener('click', function() {
+        var chars = document.getElementById("chars");
+        var tables = chars.getElementsByTagName("table");
+        for(var i=0; i< tables.length; i++) {
+          shiftUp(tables[i]);
+        }
       });
       
       document.getElementById('generate').addEventListener('click', function() {
@@ -462,14 +489,7 @@ const char My_Font[] PROGMEM = {
 
           // Shift pixels up
           case 'up':
-            pixels = currentContainer.getElementsByTagName('td');
-            for(p = 0; p < pixels.length; p++) {
-              if(p < font.width*(font.height -1)) {
-                pixels[p].className = pixels[p + font.width].className;
-              } else {
-                pixels[p].className = '';
-              }
-            }            
+            shiftUp(currentContainer);
             break;
 
           case 'toggle':
@@ -502,6 +522,17 @@ const char My_Font[] PROGMEM = {
         }
         
       });
+      function shiftUp(container) {
+        var pixels = container.getElementsByTagName('td');
+        for(p = 0; p < pixels.length; p++) {
+          if(p < font.width*(font.height -1)) {
+            pixels[p].className = pixels[p + font.width].className;
+          } else {
+            pixels[p].className = '';
+          }
+        }  
+      }
+      
       document.getElementById('chars').addEventListener('mouseover', function(e) {
         let target = e.target;
         let action = target.getAttribute('action');
