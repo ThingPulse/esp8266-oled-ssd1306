@@ -233,13 +233,15 @@ int16_t OLEDDisplayUi::update(){
 	Timer t;
 	t.start();
 	unsigned long frameStart = t.read_ms();
+#elif ESP_PLATFORM
+  unsigned long frameStart = (unsigned long)((esp_timer_get_time() + 500)/1000);
 #else
 #error "Unkown operating system"
 #endif
   int16_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
   if ( timeBudget <= 0) {
     // Implement frame skipping to ensure time budget is keept
-    if (this->autoTransition && this->state.lastUpdate != 0) this->state.ticksSinceLastStateSwitch += ceil((double)-timeBudget / (double)this->updateInterval);
+    if (this->autoTransition && this->state.lastUpdate != 0) this->state.ticksSinceLastStateSwitch += (int16_t)(((int)-timeBudget + this->updateInterval - 1) / this->updateInterval);
 
     this->state.lastUpdate = frameStart;
     this->tick();
@@ -248,6 +250,8 @@ int16_t OLEDDisplayUi::update(){
   return this->updateInterval - (millis() - frameStart);
 #elif __MBED__
   return this->updateInterval - (t.read_ms() - frameStart);
+#elif ESP_PLATFORM
+  return this->updateInterval - ((unsigned long)((esp_timer_get_time() + 500)/1000) - frameStart);
 #else
 #error "Unkown operating system"
 #endif

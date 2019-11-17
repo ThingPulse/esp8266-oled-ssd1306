@@ -36,10 +36,27 @@
 #include <Arduino.h>
 #elif __MBED__
 #define pgm_read_byte(addr)   (*(const unsigned char *)(addr))
-
 #include <mbed.h>
 #define delay(x)	wait_ms(x)
 #define yield()		void()
+#elif ESP_PLATFORM
+#define PROGMEM
+#define pgm_read_byte(addr)   (*(const unsigned char *)(addr))
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#define delay(ms) vTaskDelay(((ms) + (portTICK_PERIOD_MS >> 1)) / portTICK_PERIOD_MS)
+#define yield() vPortYield()
+#else
+#error "Unkown operating system"
+#endif
+
+#ifndef ARDUINO
+
+#include <stdio.h>
+#include <string.h>
+#include <algorithm>
+using std::min;
+using std::max;
 
 /*
  * This is a little Arduino String emulation to keep the OLEDDisplay
@@ -51,23 +68,22 @@ public:
 	int length() { return strlen(_str); };
 	const char *c_str() { return _str; };
     void toCharArray(char *buf, unsigned int bufsize, unsigned int index = 0) const {
-		memcpy(buf, _str + index,  std::min(bufsize, strlen(_str)));
+		memcpy(buf, _str + index, std::min(bufsize, strlen(_str + index)));
 	};
 private:
 	const char *_str;
 };
 
-#else
-#error "Unkown operating system"
 #endif
 
 #include "OLEDDisplayFonts.h"
 
 //#define DEBUG_OLEDDISPLAY(...) Serial.printf( __VA_ARGS__ )
 //#define DEBUG_OLEDDISPLAY(...) dprintf("%s",  __VA_ARGS__ )
+//#define DEBUG_OLEDDISPLAY(...) printf(__VA_ARGS__)
 
 #ifndef DEBUG_OLEDDISPLAY
-#define DEBUG_OLEDDISPLAY(...)
+#define DEBUG_OLEDDISPLAY(...) { }
 #endif
 
 // Use DOUBLE BUFFERING by default
@@ -149,6 +165,8 @@ char DefaultFontTableLookup(const uint8_t ch);
 class OLEDDisplay : public Print  {
 #elif __MBED__
 class OLEDDisplay : public Stream {
+#elif ESP_PLATFORM
+class OLEDDisplay {
 #else
 #error "Unkown operating system"
 #endif

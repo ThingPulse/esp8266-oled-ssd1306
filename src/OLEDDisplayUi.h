@@ -36,6 +36,8 @@
 #include <Arduino.h>
 #elif __MBED__
 #include <mbed.h>
+#elif ESP_PLATFORM
+#include "esp_timer.h"
 #else
 #error "Unkown operating system"
 #endif
