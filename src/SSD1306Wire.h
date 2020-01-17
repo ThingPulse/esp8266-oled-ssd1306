@@ -34,7 +34,7 @@
 #include "OLEDDisplay.h"
 #include <Wire.h>
 
-#ifdef ARDUINO_ARCH_AVR
+#if defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_STM32)
 #define _min	min
 #define _max	max
 #endif
