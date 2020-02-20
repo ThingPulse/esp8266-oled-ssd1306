@@ -236,7 +236,7 @@ int16_t OLEDDisplayUi::update(){
 #else
 #error "Unkown operating system"
 #endif
-  int16_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
+  int32_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
   if ( timeBudget <= 0) {
     // Implement frame skipping to ensure time budget is keept
     if (this->autoTransition && this->state.lastUpdate != 0) this->state.ticksSinceLastStateSwitch += ceil((double)-timeBudget / (double)this->updateInterval);
