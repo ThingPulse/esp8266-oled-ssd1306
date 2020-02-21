@@ -159,6 +159,9 @@ class OLEDDisplayUi {
     // Bookeeping for update
     uint16_t            updateInterval            = 33;
 
+    uint16_t            timePerFrame;
+    uint16_t            timePerTransition;
+
     uint8_t             getNextFrameNumber();
     void                drawIndicator();
     void                drawFrame();
