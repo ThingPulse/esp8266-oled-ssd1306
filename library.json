@@ -23,6 +23,7 @@
   "frameworks": "arduino",
   "platforms": [
     "espressif8266",
-    "espressif32"
+    "espressif32",
+    "nordicnrf52"
   ]
 }

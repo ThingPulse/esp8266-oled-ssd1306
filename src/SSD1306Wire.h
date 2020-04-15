@@ -56,7 +56,7 @@ class SSD1306Wire : public OLEDDisplay {
     }
 
     bool connect() {
-#ifdef ARDUINO_ARCH_AVR 
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       Wire.begin();
 #else
       Wire.begin(this->_sda, this->_scl);
@@ -84,10 +84,10 @@ class SSD1306Wire : public OLEDDisplay {
           for (x = 0; x < this->width(); x++) {
            uint16_t pos = x + y * this->width();
            if (buffer[pos] != buffer_back[pos]) {
-             minBoundY = _min(minBoundY, y);
-             maxBoundY = _max(maxBoundY, y);
-             minBoundX = _min(minBoundX, x);
-             maxBoundX = _max(maxBoundX, x);
+             minBoundY = std::min(minBoundY, y);
+             maxBoundY = std::max(maxBoundY, y);
+             minBoundX = std::min(minBoundX, x);
+             maxBoundX = std::max(maxBoundX, x);
            }
            buffer_back[pos] = buffer[pos];
          }
@@ -175,7 +175,7 @@ class SSD1306Wire : public OLEDDisplay {
 
     void initI2cIfNeccesary() {
       if (_doI2cAutoInit) {
-#ifdef ARDUINO_ARCH_AVR 
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       	Wire.begin();
 #else
       	Wire.begin(this->_sda, this->_scl);
