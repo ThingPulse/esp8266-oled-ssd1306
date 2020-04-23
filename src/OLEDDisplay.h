@@ -200,14 +200,17 @@ class OLEDDisplay : public Stream {
     void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
     // Draw the border of a circle
-    void drawCircle(int16_t x, int16_t y, int16_t radius);
+    uint8_t drawCircle(int16_t x, int16_t y, uint16_t radius, uint8_t quads = B1111, bool improve = false);
 
-    // Draw all Quadrants specified in the quads bit mask
-    void drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads);
+    // Draw all Quadrants specified in the quads bit mask (backward compatibility)
+    void drawCircleQuads(int16_t x0, int16_t y0, uint16_t radius, uint8_t quads);
 
     // Fill circle
-    void fillCircle(int16_t x, int16_t y, int16_t radius);
+    uint8_t fillCircle(int16_t x, int16_t y, uint16_t radius, bool improve = false);
 
+    // Fill ring (added by NoobTracker)
+    uint8_t fillRing(int16_t x0, int16_t y0, uint16_t radius, uint16_t radius2, uint8_t quads = B1111, bool improve = false);
+    
     // Draw a line horizontally
     void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
