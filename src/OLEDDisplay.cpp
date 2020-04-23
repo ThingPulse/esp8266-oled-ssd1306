@@ -291,15 +291,15 @@ void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
     else
       dp = dp + (x++) * 2 - (y--) * 2 + 5;
 
-    drawHorizontalLine(x0 - x, y0 - y, 2*x);
-    drawHorizontalLine(x0 - x, y0 + y, 2*x);
-    drawHorizontalLine(x0 - y, y0 - x, 2*y);
-    drawHorizontalLine(x0 - y, y0 + x, 2*y);
+    drawHorizontalLine(x0 - x, y0 - y, 2*x + 1);
+    drawHorizontalLine(x0 - x, y0 + y, 2*x + 1);
+    drawHorizontalLine(x0 - y, y0 - x, 2*y + 1);
+    drawHorizontalLine(x0 - y, y0 + x, 2*y + 1);
 
 
 	} while (x < y);
-  drawHorizontalLine(x0 - radius, y0, 2 * radius);
-
+  drawHorizontalLine(x0 - radius, y0, (2 * radius) + 1);  
+  drawVerticalLine(x0, y0 - radius, 2 * radius);
 }
 
 void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
