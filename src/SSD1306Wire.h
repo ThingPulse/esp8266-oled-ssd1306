@@ -42,12 +42,12 @@
 class SSD1306Wire : public OLEDDisplay {
   private:
       uint8_t             _address;
-      uint8_t             _sda;
-      uint8_t             _scl;
+      int                 _sda;
+      int                 _scl;
       bool                _doI2cAutoInit = false;
 
   public:
-    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+    SSD1306Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
       setGeometry(g);
 
       this->_address = _address;
@@ -59,7 +59,9 @@ class SSD1306Wire : public OLEDDisplay {
 #if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       Wire.begin();
 #else
-      Wire.begin(this->_sda, this->_scl);
+      // On ESP32 arduino, -1 means 'don't change pins', someone else has called begin for us.
+      if(this->_sda != -1)
+        Wire.begin(this->_sda, this->_scl);
 #endif
       // Let's use ~700khz if ESP8266 is in 160Mhz mode
       // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
