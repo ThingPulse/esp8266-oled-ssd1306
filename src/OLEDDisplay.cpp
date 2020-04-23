@@ -1,55 +1,55 @@
 /**
- * The MIT License (MIT)
- *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
- * Copyright (c) 2018 by Fabrice Weinberg
- * Copyright (c) 2019 by Helmut Tschemernjak - www.radioshuttle.de
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * ThingPulse invests considerable time and money to develop these open source libraries.
- * Please support us by buying our products (and not the clones) from
- * https://thingpulse.com
- *
- */
+   The MIT License (MIT)
 
- /*
-  * TODO Helmut
-  * - test/finish dislplay.printf() on mbed-os
-  * - Finish _putc with drawLogBuffer when running display
-  */
+   Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+   Copyright (c) 2018 by Fabrice Weinberg
+   Copyright (c) 2019 by Helmut Tschemernjak - www.radioshuttle.de
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+   ThingPulse invests considerable time and money to develop these open source libraries.
+   Please support us by buying our products (and not the clones) from
+   https://thingpulse.com
+
+*/
+
+/*
+   TODO Helmut
+   - test/finish dislplay.printf() on mbed-os
+   - Finish _putc with drawLogBuffer when running display
+*/
 
 #include "OLEDDisplay.h"
 
 OLEDDisplay::OLEDDisplay() {
 
-	displayWidth = 128;
-	displayHeight = 64;
-	displayBufferSize = displayWidth * displayHeight / 8;
-	color = WHITE;
-	geometry = GEOMETRY_128_64;
-	textAlignment = TEXT_ALIGN_LEFT;
-	fontData = ArialMT_Plain_10;
-	fontTableLookupFunction = DefaultFontTableLookup;
-	buffer = NULL;
+  displayWidth = 128;
+  displayHeight = 64;
+  displayBufferSize = displayWidth * displayHeight / 8;
+  color = WHITE;
+  geometry = GEOMETRY_128_64;
+  textAlignment = TEXT_ALIGN_LEFT;
+  fontData = ArialMT_Plain_10;
+  fontTableLookupFunction = DefaultFontTableLookup;
+  buffer = NULL;
 #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-	buffer_back = NULL;
+  buffer_back = NULL;
 #endif
 }
 
@@ -64,41 +64,41 @@ bool OLEDDisplay::allocateBuffer() {
   logBufferLine = 0;
   logBufferMaxLines = 0;
   logBuffer = NULL;
-	
+
   if (!this->connect()) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Can't establish connection to display\n");
     return false;
   }
 
-  if(this->buffer==NULL) {
+  if (this->buffer == NULL) {
     this->buffer = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + getBufferOffset());
     this->buffer += getBufferOffset();
 
-    if(!this->buffer) {
+    if (!this->buffer) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
       return false;
     }
   }
 
-  #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-  if(this->buffer_back==NULL) {
+#ifdef OLEDDISPLAY_DOUBLE_BUFFER
+  if (this->buffer_back == NULL) {
     this->buffer_back = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + getBufferOffset());
     this->buffer_back += getBufferOffset();
-  
-    if(!this->buffer_back) {
+
+    if (!this->buffer_back) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
       free(this->buffer - getBufferOffset());
       return false;
     }
   }
-  #endif
+#endif
 
   return true;
 }
 
 bool OLEDDisplay::init() {
 
-  if(!allocateBuffer()) {
+  if (!allocateBuffer()) {
     return false;
   }
 
@@ -109,18 +109,27 @@ bool OLEDDisplay::init() {
 }
 
 void OLEDDisplay::end() {
-  if (this->buffer) { free(this->buffer - getBufferOffset()); this->buffer = NULL; }
-  #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-  if (this->buffer_back) { free(this->buffer_back - getBufferOffset()); this->buffer_back = NULL; }
-  #endif
-  if (this->logBuffer != NULL) { free(this->logBuffer); this->logBuffer = NULL; }
+  if (this->buffer) {
+    free(this->buffer - getBufferOffset());
+    this->buffer = NULL;
+  }
+#ifdef OLEDDISPLAY_DOUBLE_BUFFER
+  if (this->buffer_back) {
+    free(this->buffer_back - getBufferOffset());
+    this->buffer_back = NULL;
+  }
+#endif
+  if (this->logBuffer != NULL) {
+    free(this->logBuffer);
+    this->logBuffer = NULL;
+  }
 }
 
 void OLEDDisplay::resetDisplay(void) {
   clear();
-  #ifdef OLEDDISPLAY_DOUBLE_BUFFER
+#ifdef OLEDDISPLAY_DOUBLE_BUFFER
   memset(buffer_back, 1, displayBufferSize);
-  #endif
+#endif
   display();
 }
 
@@ -189,7 +198,7 @@ void OLEDDisplay::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
     ystep = -1;
   }
 
-  for (; x0<=x1; x0++) {
+  for (; x0 <= x1; x0++) {
     if (steep) {
       setPixel(y0, x0);
     } else {
@@ -216,94 +225,234 @@ void OLEDDisplay::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t 
   }
 }
 
-void OLEDDisplay::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
-  int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-	do {
-		if (dp < 0)
-			dp = dp + (x++) * 2 + 3;
-		else
-			dp = dp + (x++) * 2 - (y--) * 2 + 5;
-
-		setPixel(x0 + x, y0 + y);     //For the 8 octants
-		setPixel(x0 - x, y0 + y);
-		setPixel(x0 + x, y0 - y);
-		setPixel(x0 - x, y0 - y);
-		setPixel(x0 + y, y0 + x);
-		setPixel(x0 - y, y0 + x);
-		setPixel(x0 + y, y0 - x);
-		setPixel(x0 - y, y0 - x);
-
-	} while (x < y);
-
-  setPixel(x0 + radius, y0);
-  setPixel(x0, y0 + radius);
-  setPixel(x0 - radius, y0);
-  setPixel(x0, y0 - radius);
-}
-
-void OLEDDisplay::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads) {
+uint8_t OLEDDisplay::drawCircle(int16_t x0, int16_t y0, uint16_t radius, uint8_t quads, bool improve) {
+  quads &= B1111;
+  if (improve) {
+    if ((((x0 + radius) < 0) || ((y0 + radius) < 0)) || ((x0 > 127) || (y0 > 63))) {
+      quads &= B0111;
+    }
+    if ((((x0 - radius) > 127) || ((y0 + radius) < 0)) || ((x0 < 0) || (y0 > 63))) {
+      quads &= B1011;
+    }
+    if ((((x0 + radius) < 0) || ((y0 - radius) > 63)) || ((x0 > 127) || (y0 < 0))) {
+      quads &= B1110;
+    }
+    if ((((x0 - radius) > 127) || ((y0 - radius) > 63)) || ((x0 < 0) || (y0 < 0))) {
+      quads &= B1101;
+    }
+    if (!quads) {
+      return false;
+    }
+  }
   int16_t x = 0, y = radius;
   int16_t dp = 1 - radius;
-  while (x < y) {
+  if (quads == B1111) {
+    while (x < y) {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
+      setPixel(x0 + x, y0 - y);
+      setPixel(x0 + y, y0 - x);
+      setPixel(x0 - y, y0 - x);
+      setPixel(x0 - x, y0 - y);
+      setPixel(x0 - y, y0 + x);
+      setPixel(x0 - x, y0 + y);
+      setPixel(x0 + x, y0 + y);
+      setPixel(x0 + y, y0 + x);
+    }
+    setPixel(x0 + radius, y0);
+    setPixel(x0, y0 + radius);
+    setPixel(x0 - radius, y0);
+    setPixel(x0, y0 - radius);
+  }
+  else {
+    while (x < y) {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
+      if (quads & 0x1) {
+        setPixel(x0 + x, y0 - y);
+        setPixel(x0 + y, y0 - x);
+      }
+      if (quads & 0x2) {
+        setPixel(x0 - y, y0 - x);
+        setPixel(x0 - x, y0 - y);
+      }
+      if (quads & 0x4) {
+        setPixel(x0 - y, y0 + x);
+        setPixel(x0 - x, y0 + y);
+      }
+      if (quads & 0x8) {
+        setPixel(x0 + x, y0 + y);
+        setPixel(x0 + y, y0 + x);
+      }
+    }
+
+    if (quads & B1001) {
+      setPixel(x0 + radius, y0);
+    }
+    if (quads & B1100) {
+      setPixel(x0, y0 + radius);
+    }
+    if (quads & B0110) {
+      setPixel(x0 - radius, y0);
+    }
+    if (quads & B0011) {
+      setPixel(x0, y0 - radius);
+    }
+  }
+  return quads;
+}
+
+void OLEDDisplay::drawCircleQuads(int16_t x0, int16_t y0, uint16_t radius, uint8_t quads) { //Only for backward compatibility
+  drawCircle(x0, y0, radius, quads);
+}
+
+uint8_t OLEDDisplay::fillCircle(int16_t x0, int16_t y0, uint16_t radius, bool improve) {
+  if (improve) {
+    return fillRing(x0, y0, radius, 0, B1111, true);
+  }
+  int16_t x = 0, y = radius;
+  int16_t dp = 1 - radius;
+  do {
     if (dp < 0)
       dp = dp + (x++) * 2 + 3;
     else
       dp = dp + (x++) * 2 - (y--) * 2 + 5;
-    if (quads & 0x1) {
-      setPixel(x0 + x, y0 - y);
-      setPixel(x0 + y, y0 - x);
-    }
-    if (quads & 0x2) {
-      setPixel(x0 - y, y0 - x);
-      setPixel(x0 - x, y0 - y);
-    }
-    if (quads & 0x4) {
-      setPixel(x0 - y, y0 + x);
-      setPixel(x0 - x, y0 + y);
-    }
-    if (quads & 0x8) {
-      setPixel(x0 + x, y0 + y);
-      setPixel(x0 + y, y0 + x);
-    }
-  }
-  if (quads & 0x1 && quads & 0x8) {
-    setPixel(x0 + radius, y0);
-  }
-  if (quads & 0x4 && quads & 0x8) {
-    setPixel(x0, y0 + radius);
-  }
-  if (quads & 0x2 && quads & 0x4) {
-    setPixel(x0 - radius, y0);
-  }
-  if (quads & 0x1 && quads & 0x2) {
-    setPixel(x0, y0 - radius);
-  }
+
+    drawHorizontalLine(x0 - x, y0 - y, 2 * x + 1);
+    drawHorizontalLine(x0 - x, y0 + y, 2 * x + 1);
+    drawHorizontalLine(x0 - y, y0 - x, 2 * y + 1);
+    drawHorizontalLine(x0 - y, y0 + x, 2 * y + 1);
+
+
+  } while (x < y);
+  drawHorizontalLine(x0 - radius, y0, (2 * radius) + 1);
+  drawVerticalLine(x0, y0 - radius, 2 * radius);
+  return B1111;
 }
 
-
-void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
+uint8_t OLEDDisplay::fillRing(int16_t x0, int16_t y0, uint16_t radius, uint16_t radius2, byte quads, bool improve) {
+  quads &= B1111;
+  if (radius < radius2) {
+    _swap_int16_t(radius, radius2);
+  }
+  if (improve) {
+    if ((((x0 + radius) < 0) || ((y0 + radius) < 0)) || ((x0 > 127) || (y0 > 63))) {
+      quads &= B0111;
+    }
+    if ((((x0 - radius) > 127) || ((y0 + radius) < 0)) || ((x0 < 0) || (y0 > 63))) {
+      quads &= B1011;
+    }
+    if ((((x0 + radius) < 0) || ((y0 - radius) > 63)) || ((x0 > 127) || (y0 < 0))) {
+      quads &= B1110;
+    }
+    if ((((x0 - radius) > 127) || ((y0 - radius) > 63)) || ((x0 < 0) || (y0 < 0))) {
+      quads &= B1101;
+    }
+  }
+  if (quads == 0) {
+    return false;
+  }
+  if(radius2 == 0){
+    setPixel(x0, y0);
+    radius2 = 1;
+  }
   int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-	do {
-		if (dp < 0)
-      dp = dp + (x++) * 2 + 3;
-    else
-      dp = dp + (x++) * 2 - (y--) * 2 + 5;
+  int16_t dp = 1 - radius;
 
-    drawHorizontalLine(x0 - x, y0 - y, 2*x + 1);
-    drawHorizontalLine(x0 - x, y0 + y, 2*x + 1);
-    drawHorizontalLine(x0 - y, y0 - x, 2*y + 1);
-    drawHorizontalLine(x0 - y, y0 + x, 2*y + 1);
+  int16_t x2 = 0, y2 = radius2;
+  int16_t dp2 = 1 - radius2;
+  if (quads == B1111) {
+    do {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
 
+      if (x2 < y2 + 1) {
+        if (dp2 < 0)
+          dp2 = dp2 + (x2++) * 2 + 3;
+        else
+          dp2 = dp2 + (x2++) * 2 - (y2--) * 2 + 5;
+      }
+      else {
+        x2++;
+        y2++;
+      }
 
-	} while (x < y);
-  drawHorizontalLine(x0 - radius, y0, (2 * radius) + 1);  
-  drawVerticalLine(x0, y0 - radius, 2 * radius);
+      drawVerticalLine(x0 - x, y0 - y, y - y2 + 1);
+      drawHorizontalLine(x0 - y, y0 - x, y - y2 + 1);
+      drawVerticalLine(x0 + x, y0 - y, y - y2 + 1);
+      drawHorizontalLine(x0 + y2, y0 - x, y - y2 + 1);
+      drawVerticalLine(x0 - x, y0 + y2, y - y2 + 1);
+      drawHorizontalLine(x0 - y, y0 + x, y - y2 + 1);
+      drawVerticalLine(x0 + x, y0 + y2, y - y2 + 1);
+      drawHorizontalLine(x0 + y2, y0 + x, y - y2 + 1);
+    } while (x < y);
+    drawVerticalLine(x0, y0 - radius, radius - radius2 + 1);
+    drawVerticalLine(x0, y0 + radius2, radius - radius2 + 1);
+    drawHorizontalLine(x0 - radius, y0, radius - radius2 + 1);
+    drawHorizontalLine(x0 + radius2, y0, radius - radius2 + 1);
+  }
+  else {
+    do {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
+
+      if (x2 < y2 + 1) {
+        if (dp2 < 0)
+          dp2 = dp2 + (x2++) * 2 + 3;
+        else
+          dp2 = dp2 + (x2++) * 2 - (y2--) * 2 + 5;
+      }
+      else {
+        x2++;
+        y2++;
+      }
+
+      if (quads & B0010) {
+        drawVerticalLine(x0 - x, y0 - y, y - y2 + 1);
+        drawHorizontalLine(x0 - y, y0 - x, y - y2 + 1);
+      }
+      if (quads & B0001) {
+        drawVerticalLine(x0 + x, y0 - y, y - y2 + 1);
+        drawHorizontalLine(x0 + y2, y0 - x, y - y2 + 1);
+      }
+      if (quads & B0100) {
+        drawVerticalLine(x0 - x, y0 + y2, y - y2 + 1);
+        drawHorizontalLine(x0 - y, y0 + x, y - y2 + 1);
+      }
+      if (quads & B1000) {
+        drawVerticalLine(x0 + x, y0 + y2, y - y2 + 1);
+        drawHorizontalLine(x0 + y2, y0 + x, y - y2 + 1);
+      }
+    } while (x < y);
+    if (quads & B0011) {
+      drawVerticalLine(x0, y0 - radius, radius - radius2 + 1);
+    }
+    if (quads & B1100) {
+      drawVerticalLine(x0, y0 + radius2, radius - radius2 + 1);
+    }
+    if (quads & B0110) {
+      drawHorizontalLine(x0 - radius, y0, radius - radius2 + 1);
+    }
+    if (quads & B1001) {
+      drawHorizontalLine(x0 + radius2, y0, radius - radius2 + 1);
+    }
+  }
+  
+  return quads;
 }
 
 void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
-  if (y < 0 || y >= this->height()) { return; }
+  if (y < 0 || y >= this->height()) {
+    return;
+  }
 
   if (x < 0) {
     length += x;
@@ -314,7 +463,9 @@ void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
     length = (this->width() - x);
   }
 
-  if (length <= 0) { return; }
+  if (length <= 0) {
+    return;
+  }
 
   uint8_t * bufferPtr = buffer;
   bufferPtr += (y >> 3) * this->width();
@@ -436,8 +587,8 @@ void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t h
   int16_t widthInXbm = (width + 7) / 8;
   uint8_t data = 0;
 
-  for(int16_t y = 0; y < height; y++) {
-    for(int16_t x = 0; x < width; x++ ) {
+  for (int16_t y = 0; y < height; y++) {
+    for (int16_t x = 0; x < width; x++ ) {
       if (x & 7) {
         data >>= 1; // Move a bit
       } else {  // Read new data every 8 bit
@@ -454,9 +605,9 @@ void OLEDDisplay::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t h
 void OLEDDisplay::drawIco16x16(int16_t xMove, int16_t yMove, const char *ico, bool inverse) {
   uint16_t data;
 
-  for(int16_t y = 0; y < 16; y++) {
+  for (int16_t y = 0; y < 16; y++) {
     data = pgm_read_byte(ico + (y << 1)) + (pgm_read_byte(ico + (y << 1) + 1) << 8);
-    for(int16_t x = 0; x < 16; x++ ) {
+    for (int16_t x = 0; x < 16; x++ ) {
       if ((data & 0x01) ^ inverse) {
         setPixelColor(xMove + x, yMove + y, WHITE);
       } else {
@@ -490,8 +641,12 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, u
   }
 
   // Don't draw anything if it is not on the screen.
-  if (xMove + textWidth  < 0 || xMove > this->width() ) {return;}
-  if (yMove + textHeight < 0 || yMove > this->width() ) {return;}
+  if (xMove + textWidth  < 0 || xMove > this->width() ) {
+    return;
+  }
+  if (yMove + textHeight < 0 || yMove > this->width() ) {
+    return;
+  }
 
   for (uint16_t j = 0; j < textLength; j++) {
     int16_t xPos = xMove + cursorX;
@@ -532,7 +687,7 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, String strUser) {
   if (textAlignment == TEXT_ALIGN_CENTER_BOTH) {
     uint16_t lb = 0;
     // Find number of linebreaks in text
-    for (uint16_t i=0;text[i] != 0; i++) {
+    for (uint16_t i = 0; text[i] != 0; i++) {
       lb += (text[i] == 10);
     }
     // Calculate center
@@ -540,7 +695,7 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, String strUser) {
   }
 
   uint16_t line = 0;
-  char* textPart = strtok(text,"\n");
+  char* textPart = strtok(text, "\n");
   while (textPart != NULL) {
     uint16_t length = strlen(textPart);
     drawStringInternal(xMove, yMove - yOffset + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
@@ -567,7 +722,7 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
     strWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[i] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
 
     // Always try to break on a space or dash
-    if (text[i] == ' ' || text[i]== '-') {
+    if (text[i] == ' ' || text[i] == '-') {
       preferredBreakpoint = i;
       widthAtBreakpoint = strWidth;
     }
@@ -703,7 +858,7 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   uint16_t line     = 0;
   uint16_t lastPos  = 0;
 
-  for (uint16_t i=0;i<this->logBufferFilled;i++){
+  for (uint16_t i = 0; i < this->logBufferFilled; i++) {
     // Everytime we have a \n print
     if (this->logBuffer[i] == 10) {
       length++;
@@ -733,7 +888,7 @@ uint16_t OLEDDisplay::getHeight(void) {
   return displayHeight;
 }
 
-bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
+bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars) {
   if (logBuffer != NULL) free(logBuffer);
   uint16_t size = lines * chars;
   if (size > 0) {
@@ -742,7 +897,7 @@ bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
     this->logBufferMaxLines = lines;  // Lines max printable
     this->logBufferSize     = size;   // Total number of characters the buffer can hold
     this->logBuffer         = (char *) malloc(size * sizeof(uint8_t));
-    if(!this->logBuffer) {
+    if (!this->logBuffer) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][setLogBuffer] Not enough memory to create log buffer\n");
       return false;
     }
@@ -775,8 +930,8 @@ size_t OLEDDisplay::write(uint8_t c) {
 
       // Find the end of the first line
       uint16_t firstLineEnd = 0;
-      for (uint16_t i=0;i<this->logBufferFilled;i++) {
-        if (this->logBuffer[i] == 10){
+      for (uint16_t i = 0; i < this->logBufferFilled; i++) {
+        if (this->logBuffer[i] == 10) {
           // Include last char too
           firstLineEnd = i + 1;
           break;
@@ -815,21 +970,21 @@ size_t OLEDDisplay::write(const char* str) {
 #ifdef __MBED__
 int OLEDDisplay::_putc(int c) {
 
-	if (!fontData)
-		return 1;
-	if (!logBufferSize) {
-		uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
-		uint16_t lines =  this->displayHeight / textHeight;
-		uint16_t chars =   2 * (this->displayWidth / textHeight);
-		
-		if (this->displayHeight % textHeight)
-			lines++;
-		if (this->displayWidth % textHeight)
-			chars++;
-		setLogBuffer(lines, chars);
-	}
+  if (!fontData)
+    return 1;
+  if (!logBufferSize) {
+    uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
+    uint16_t lines =  this->displayHeight / textHeight;
+    uint16_t chars =   2 * (this->displayWidth / textHeight);
 
-	return this->write((uint8_t)c);
+    if (this->displayHeight % textHeight)
+      lines++;
+    if (this->displayWidth % textHeight)
+      chars++;
+    setLogBuffer(lines, chars);
+  }
+
+  return this->write((uint8_t)c);
 }
 #endif
 
@@ -837,25 +992,25 @@ int OLEDDisplay::_putc(int c) {
 void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width, uint16_t height) {
   this->geometry = g;
   switch (g) {
-  	case GEOMETRY_128_64:
-    	this->displayWidth = 128;
-    	this->displayHeight = 64;
-		break;
-	case GEOMETRY_128_32:
-    	this->displayWidth = 128;
-    	this->displayHeight = 32;
-		break;
-	case GEOMETRY_RAWMODE:
-		this->displayWidth = width > 0 ? width : 128;
-		this->displayHeight = height > 0 ? height : 64;
-		break;
+    case GEOMETRY_128_64:
+      this->displayWidth = 128;
+      this->displayHeight = 64;
+      break;
+    case GEOMETRY_128_32:
+      this->displayWidth = 128;
+      this->displayHeight = 32;
+      break;
+    case GEOMETRY_RAWMODE:
+      this->displayWidth = width > 0 ? width : 128;
+      this->displayHeight = height > 0 ? height : 64;
+      break;
   }
-  this->displayBufferSize = displayWidth * displayHeight /8;
+  this->displayBufferSize = displayWidth * displayHeight / 8;
 }
 
 void OLEDDisplay::sendInitCommands(void) {
   if (geometry == GEOMETRY_RAWMODE)
-  	return;
+    return;
   sendCommand(DISPLAYOFF);
   sendCommand(SETDISPLAYCLOCKDIV);
   sendCommand(0xF0); // Increase speed of the display max ~96Hz
@@ -923,7 +1078,7 @@ void inline OLEDDisplay::drawInternal(int16_t xMove, int16_t yMove, int16_t widt
     int16_t xPos = xMove + (i / rasterHeight);
     int16_t yPos = ((yMove >> 3) + (i % rasterHeight)) * this->width();
 
-//    int16_t yScreenPos = yMove + yOffset;
+    //    int16_t yScreenPos = yMove + yOffset;
     int16_t dataPos    = xPos  + yPos;
 
     if (dataPos >=  0  && dataPos < displayBufferSize &&
@@ -973,7 +1128,7 @@ char* OLEDDisplay::utf8ascii(String str) {
 
   // Copy the string into a char array
   char* s = (char*) malloc(length * sizeof(char));
-  if(!s) {
+  if (!s) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][utf8ascii] Can't allocate another char array. Drop support for UTF-8.\n");
     return (char*) str.c_str();
   }
@@ -981,14 +1136,14 @@ char* OLEDDisplay::utf8ascii(String str) {
 
   length--;
 
-  for (uint16_t i=0; i < length; i++) {
+  for (uint16_t i = 0; i < length; i++) {
     char c = (this->fontTableLookupFunction)(s[i]);
-    if (c!=0) {
-      s[k++]=c;
+    if (c != 0) {
+      s[k++] = c;
     }
   }
 
-  s[k]=0;
+  s[k] = 0;
 
   // This will leak 's' be sure to free it in the calling function.
   return s;
@@ -1000,23 +1155,23 @@ void OLEDDisplay::setFontTableLookupFunction(FontTableLookupFunction function) {
 
 
 char DefaultFontTableLookup(const uint8_t ch) {
-    // UTF-8 to font table index converter
-    // Code form http://playground.arduino.cc/Main/Utf8ascii
-	static uint8_t LASTCHAR;
+  // UTF-8 to font table index converter
+  // Code form http://playground.arduino.cc/Main/Utf8ascii
+  static uint8_t LASTCHAR;
 
-	if (ch < 128) { // Standard ASCII-set 0..0x7F handling
-		LASTCHAR = 0;
-		return ch;
-	}
+  if (ch < 128) { // Standard ASCII-set 0..0x7F handling
+    LASTCHAR = 0;
+    return ch;
+  }
 
-	uint8_t last = LASTCHAR;   // get last char
-	LASTCHAR = ch;
+  uint8_t last = LASTCHAR;   // get last char
+  LASTCHAR = ch;
 
-	switch (last) {    // conversion depnding on first UTF8-character
-		case 0xC2: return (uint8_t) ch;
-		case 0xC3: return (uint8_t) (ch | 0xC0);
-		case 0x82: if (ch == 0xAC) return (uint8_t) 0x80;    // special case Euro-symbol
-	}
+  switch (last) {    // conversion depnding on first UTF8-character
+    case 0xC2: return (uint8_t) ch;
+    case 0xC3: return (uint8_t) (ch | 0xC0);
+    case 0x82: if (ch == 0xAC) return (uint8_t) 0x80;    // special case Euro-symbol
+  }
 
-	return (uint8_t) 0; // otherwise: return zero, if character has to be ignored
+  return (uint8_t) 0; // otherwise: return zero, if character has to be ignored
 }
