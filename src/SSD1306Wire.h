@@ -33,6 +33,7 @@
 
 #include "OLEDDisplay.h"
 #include <Wire.h>
+#include <algorithm>
 
 #if defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_STM32)
 #define _min	min
