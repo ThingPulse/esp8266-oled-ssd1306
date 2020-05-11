@@ -64,9 +64,10 @@
  SSD1306Wire  display(0x3c, SDA, SCL);
  // SH1106 display(0x3c, SDA, SCL);
 
-void ring(byte quad, byte pos){
-  float angle = (pos * PI) / 256;
-  display.fillRing(display.getWidth() / 2, display.getHeight() / 2, sin(angle) * 30, cos(angle) * 20);
+void ring(byte quads, byte pos){
+  float angle = (pos * PI * 2) / 256;
+  float angle2 = ((pos + 0x20) * PI * 2) / 256;
+  display.fillRing(display.getWidth() / 2, display.getHeight() / 2, abs(sin(angle) * 30), abs(sin(angle2) * 25), quads);
 }
 
 void setup() {
@@ -74,7 +75,7 @@ void setup() {
   display.flipScreenVertically();
   display.setColor(WHITE);
 }
-uint16_t pos = 0;
+uint16_t pos = 0x100;
 void loop() { 
   display.clear();
   ring(pos >> 8, pos & 0xFF);
