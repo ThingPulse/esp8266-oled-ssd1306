@@ -143,6 +143,29 @@ class SH1106Wire : public OLEDDisplay {
       #endif
     }
 
+    //unlike SSD1306, SH1106 goes black when VCOM is adjusted, so we'll override setBrightness so we can leave VCOM alone during brightness adjustment.
+    void setBrightness(uint8_t brightness) override
+    {
+    	sendCommand(SETPRECHARGE); //0xD9
+    	sendCommand(brightness / 19 + 242); // empirically determined. brightness / 18 + 241 goes a bit darker but is too contrasty without VCOM adjustment
+
+    	uint8_t contrast=brightness;
+
+    	if(brightness<19)
+    	{
+    	  // Prevent jump between brightness 19 and 18 by multiplying contrast by 3.5 (56 / 16)
+    		contrast = (((uint16_t) brightness * 56)>>4);
+    	}
+    	else if(brightness<38)
+    	{
+    		// Prevent jump between brightness 38 and 37 by multiplying contrast by 1.5 (24 / 16)
+    		contrast = (((uint16_t) brightness * 24)>>4);
+    	}
+
+    	sendCommand(SETCONTRAST);
+    	sendCommand(contrast); // 0-255
+    };
+
   private:
 	int getBufferOffset(void) {
 		return 0;
