@@ -216,123 +216,228 @@ void OLEDDisplay::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t 
   }
 }
 
-void OLEDDisplay::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
-  int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-	do {
-		if (dp < 0)
-			dp = dp + (x++) * 2 + 3;
-		else
-			dp = dp + (x++) * 2 - (y--) * 2 + 5;
-
-		setPixel(x0 + x, y0 + y);     //For the 8 octants
-		setPixel(x0 - x, y0 + y);
-		setPixel(x0 + x, y0 - y);
-		setPixel(x0 - x, y0 - y);
-		setPixel(x0 + y, y0 + x);
-		setPixel(x0 - y, y0 + x);
-		setPixel(x0 + y, y0 - x);
-		setPixel(x0 - y, y0 - x);
-
-	} while (x < y);
-
-  setPixel(x0 + radius, y0);
-  setPixel(x0, y0 + radius);
-  setPixel(x0 - radius, y0);
-  setPixel(x0, y0 - radius);
-}
-
-void OLEDDisplay::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads) {
+uint8_t OLEDDisplay::drawCircle(int16_t x0, int16_t y0, uint16_t radius, uint8_t quads, bool improve) {
+  quads &= B1111;
+  if (improve) {
+    if ((((x0 + radius) < 0) || ((y0 + radius) < 0)) || ((x0 > 127) || (y0 > 63))) {
+      quads &= B0111;
+    }
+    if ((((x0 - radius) > 127) || ((y0 + radius) < 0)) || ((x0 < 0) || (y0 > 63))) {
+      quads &= B1011;
+    }
+    if ((((x0 + radius) < 0) || ((y0 - radius) > 63)) || ((x0 > 127) || (y0 < 0))) {
+      quads &= B1110;
+    }
+    if ((((x0 - radius) > 127) || ((y0 - radius) > 63)) || ((x0 < 0) || (y0 < 0))) {
+      quads &= B1101;
+    }
+    if (!quads) {
+      return false;
+    }
+  }
   int16_t x = 0, y = radius;
   int16_t dp = 1 - radius;
-  while (x < y) {
+  if (quads == B1111) {
+    while (x < y) {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
+      setPixel(x0 + x, y0 - y);
+      setPixel(x0 + y, y0 - x);
+      setPixel(x0 - y, y0 - x);
+      setPixel(x0 - x, y0 - y);
+      setPixel(x0 - y, y0 + x);
+      setPixel(x0 - x, y0 + y);
+      setPixel(x0 + x, y0 + y);
+      setPixel(x0 + y, y0 + x);
+    }
+    setPixel(x0 + radius, y0);
+    setPixel(x0, y0 + radius);
+    setPixel(x0 - radius, y0);
+    setPixel(x0, y0 - radius);
+  }
+  else {
+    while (x < y) {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
+      if (quads & 0x1) {
+        setPixel(x0 + x, y0 - y);
+        setPixel(x0 + y, y0 - x);
+      }
+      if (quads & 0x2) {
+        setPixel(x0 - y, y0 - x);
+        setPixel(x0 - x, y0 - y);
+      }
+      if (quads & 0x4) {
+        setPixel(x0 - y, y0 + x);
+        setPixel(x0 - x, y0 + y);
+      }
+      if (quads & 0x8) {
+        setPixel(x0 + x, y0 + y);
+        setPixel(x0 + y, y0 + x);
+      }
+    }
+
+    if (quads & B1001) {
+      setPixel(x0 + radius, y0);
+    }
+    if (quads & B1100) {
+      setPixel(x0, y0 + radius);
+    }
+    if (quads & B0110) {
+      setPixel(x0 - radius, y0);
+    }
+    if (quads & B0011) {
+      setPixel(x0, y0 - radius);
+    }
+  }
+  return quads;
+}
+
+void OLEDDisplay::drawCircleQuads(int16_t x0, int16_t y0, uint16_t radius, uint8_t quads) { //Only for backward compatibility
+  drawCircle(x0, y0, radius, quads);
+}
+
+uint8_t OLEDDisplay::fillCircle(int16_t x0, int16_t y0, uint16_t radius, bool improve) {
+  if (improve) {
+    return fillRing(x0, y0, radius, 0, B1111, true);
+  }
+  int16_t x = 0, y = radius;
+  int16_t dp = 1 - radius;
+  do {
     if (dp < 0)
       dp = dp + (x++) * 2 + 3;
     else
       dp = dp + (x++) * 2 - (y--) * 2 + 5;
-    if (quads & 0x1) {
-      setPixel(x0 + x, y0 - y);
-      setPixel(x0 + y, y0 - x);
-    }
-    if (quads & 0x2) {
-      setPixel(x0 - y, y0 - x);
-      setPixel(x0 - x, y0 - y);
-    }
-    if (quads & 0x4) {
-      setPixel(x0 - y, y0 + x);
-      setPixel(x0 - x, y0 + y);
-    }
-    if (quads & 0x8) {
-      setPixel(x0 + x, y0 + y);
-      setPixel(x0 + y, y0 + x);
-    }
-  }
-  if (quads & 0x1 && quads & 0x8) {
-    setPixel(x0 + radius, y0);
-  }
-  if (quads & 0x4 && quads & 0x8) {
-    setPixel(x0, y0 + radius);
-  }
-  if (quads & 0x2 && quads & 0x4) {
-    setPixel(x0 - radius, y0);
-  }
-  if (quads & 0x1 && quads & 0x2) {
-    setPixel(x0, y0 - radius);
-  }
+
+    drawHorizontalLine(x0 - x, y0 - y, 2 * x + 1);
+    drawHorizontalLine(x0 - x, y0 + y, 2 * x + 1);
+    drawHorizontalLine(x0 - y, y0 - x, 2 * y + 1);
+    drawHorizontalLine(x0 - y, y0 + x, 2 * y + 1);
+
+
+  } while (x < y);
+  drawHorizontalLine(x0 - radius, y0, (2 * radius) + 1);
+  drawVerticalLine(x0, y0 - radius, 2 * radius);
+  return B1111;
 }
 
-
-void OLEDDisplay::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
+uint8_t OLEDDisplay::fillRing(int16_t x0, int16_t y0, uint16_t radius, uint16_t radius2, byte quads, bool improve) {
+  quads &= B1111;
+  if (radius < radius2) {
+    _swap_int16_t(radius, radius2);
+  }
+  if (improve) {
+    if ((((x0 + radius) < 0) || ((y0 + radius) < 0)) || ((x0 > 127) || (y0 > 63))) {
+      quads &= B0111;
+    }
+    if ((((x0 - radius) > 127) || ((y0 + radius) < 0)) || ((x0 < 0) || (y0 > 63))) {
+      quads &= B1011;
+    }
+    if ((((x0 + radius) < 0) || ((y0 - radius) > 63)) || ((x0 > 127) || (y0 < 0))) {
+      quads &= B1110;
+    }
+    if ((((x0 - radius) > 127) || ((y0 - radius) > 63)) || ((x0 < 0) || (y0 < 0))) {
+      quads &= B1101;
+    }
+  }
+  if (quads == 0) {
+    return false;
+  }
+  if(radius2 == 0){
+    setPixel(x0, y0);
+    radius2 = 1;
+  }
   int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-	do {
-		if (dp < 0)
-      dp = dp + (x++) * 2 + 3;
-    else
-      dp = dp + (x++) * 2 - (y--) * 2 + 5;
+  int16_t dp = 1 - radius;
 
-    drawHorizontalLine(x0 - x, y0 - y, 2*x);
-    drawHorizontalLine(x0 - x, y0 + y, 2*x);
-    drawHorizontalLine(x0 - y, y0 - x, 2*y);
-    drawHorizontalLine(x0 - y, y0 + x, 2*y);
+  int16_t x2 = 0, y2 = radius2;
+  int16_t dp2 = 1 - radius2;
+  if (quads == B1111) {
+    do {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
 
+      if (x2 < y2 + 1) {
+        if (dp2 < 0)
+          dp2 = dp2 + (x2++) * 2 + 3;
+        else
+          dp2 = dp2 + (x2++) * 2 - (y2--) * 2 + 5;
+      }
+      else {
+        x2++;
+        y2++;
+      }
 
-	} while (x < y);
-  drawHorizontalLine(x0 - radius, y0, 2 * radius);
-
-}
-
-void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
-  if (y < 0 || y >= this->height()) { return; }
-
-  if (x < 0) {
-    length += x;
-    x = 0;
+      drawVerticalLine(x0 - x, y0 - y, y - y2 + 1);
+      drawHorizontalLine(x0 - y, y0 - x, y - y2 + 1);
+      drawVerticalLine(x0 + x, y0 - y, y - y2 + 1);
+      drawHorizontalLine(x0 + y2, y0 - x, y - y2 + 1);
+      drawVerticalLine(x0 - x, y0 + y2, y - y2 + 1);
+      drawHorizontalLine(x0 - y, y0 + x, y - y2 + 1);
+      drawVerticalLine(x0 + x, y0 + y2, y - y2 + 1);
+      drawHorizontalLine(x0 + y2, y0 + x, y - y2 + 1);
+    } while (x < y);
+    drawVerticalLine(x0, y0 - radius, radius - radius2 + 1);
+    drawVerticalLine(x0, y0 + radius2, radius - radius2 + 1);
+    drawHorizontalLine(x0 - radius, y0, radius - radius2 + 1);
+    drawHorizontalLine(x0 + radius2, y0, radius - radius2 + 1);
   }
+  else {
+    do {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
 
-  if ( (x + length) > this->width()) {
-    length = (this->width() - x);
+      if (x2 < y2 + 1) {
+        if (dp2 < 0)
+          dp2 = dp2 + (x2++) * 2 + 3;
+        else
+          dp2 = dp2 + (x2++) * 2 - (y2--) * 2 + 5;
+      }
+      else {
+        x2++;
+        y2++;
+      }
+
+      if (quads & B0010) {
+        drawVerticalLine(x0 - x, y0 - y, y - y2 + 1);
+        drawHorizontalLine(x0 - y, y0 - x, y - y2 + 1);
+      }
+      if (quads & B0001) {
+        drawVerticalLine(x0 + x, y0 - y, y - y2 + 1);
+        drawHorizontalLine(x0 + y2, y0 - x, y - y2 + 1);
+      }
+      if (quads & B0100) {
+        drawVerticalLine(x0 - x, y0 + y2, y - y2 + 1);
+        drawHorizontalLine(x0 - y, y0 + x, y - y2 + 1);
+      }
+      if (quads & B1000) {
+        drawVerticalLine(x0 + x, y0 + y2, y - y2 + 1);
+        drawHorizontalLine(x0 + y2, y0 + x, y - y2 + 1);
+      }
+    } while (x < y);
+    if (quads & B0011) {
+      drawVerticalLine(x0, y0 - radius, radius - radius2 + 1);
+    }
+    if (quads & B1100) {
+      drawVerticalLine(x0, y0 + radius2, radius - radius2 + 1);
+    }
+    if (quads & B0110) {
+      drawHorizontalLine(x0 - radius, y0, radius - radius2 + 1);
+    }
+    if (quads & B1001) {
+      drawHorizontalLine(x0 + radius2, y0, radius - radius2 + 1);
+    }
   }
-
-  if (length <= 0) { return; }
-
-  uint8_t * bufferPtr = buffer;
-  bufferPtr += (y >> 3) * this->width();
-  bufferPtr += x;
-
-  uint8_t drawBit = 1 << (y & 7);
-
-  switch (color) {
-    case WHITE:   while (length--) {
-        *bufferPtr++ |= drawBit;
-      }; break;
-    case BLACK:   drawBit = ~drawBit;   while (length--) {
-        *bufferPtr++ &= drawBit;
-      }; break;
-    case INVERSE: while (length--) {
-        *bufferPtr++ ^= drawBit;
-      }; break;
-  }
+  
+  return quads;
 }
 
 void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
