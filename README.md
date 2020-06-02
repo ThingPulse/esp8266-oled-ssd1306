@@ -174,6 +174,7 @@ void mirrorScreen();
 
 /* Drawing functions */
 // Sets the color of all pixel operations
+// color : BLACK, WHITE, INVERSE
 void setColor(OLEDDISPLAY_COLOR color);
 
 // Draw a pixel at given position
