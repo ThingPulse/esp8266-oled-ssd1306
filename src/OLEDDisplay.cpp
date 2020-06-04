@@ -440,6 +440,42 @@ uint8_t OLEDDisplay::fillRing(int16_t x0, int16_t y0, uint16_t radius, uint16_t 
   return quads;
 }
 
+void OLEDDisplay::drawHorizontalLine(int16_t x, int16_t y, int16_t length) {
+  if (y < 0 || y >= this->height()) {
+    return;
+  }
+
+  if (x < 0) {
+    length += x;
+    x = 0;
+  }
+
+  if ( (x + length) > this->width()) {
+    length = (this->width() - x);
+  }
+
+  if (length <= 0) {
+    return;
+  }
+
+  uint8_t * bufferPtr = buffer;
+  bufferPtr += (y >> 3) * this->width();
+  bufferPtr += x;
+
+  uint8_t drawBit = 1 << (y & 7);
+
+  switch (color) {
+    case WHITE:   while (length--) {
+        *bufferPtr++ |= drawBit;
+      }; break;
+    case BLACK:   drawBit = ~drawBit;   while (length--) {
+        *bufferPtr++ &= drawBit;
+      }; break;
+    case INVERSE: while (length--) {
+        *bufferPtr++ ^= drawBit;
+      }; break;
+  }
+}
 void OLEDDisplay::drawVerticalLine(int16_t x, int16_t y, int16_t length) {
   if (x < 0 || x >= this->width()) return;
 
