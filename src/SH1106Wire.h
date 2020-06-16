@@ -45,6 +45,7 @@ class SH1106Wire : public OLEDDisplay {
       uint8_t             _address;
       uint8_t             _sda;
       uint8_t             _scl;
+      bool                _doI2cAutoInit = false;
 
   public:
     SH1106Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
@@ -64,6 +65,7 @@ class SH1106Wire : public OLEDDisplay {
     }
 
     void display(void) {
+      initI2cIfNeccesary();
       #ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = UINT8_MAX;
         uint8_t maxBoundY = 0;
@@ -143,6 +145,10 @@ class SH1106Wire : public OLEDDisplay {
       #endif
     }
 
+    void setI2cAutoInit(bool doI2cAutoInit) {
+      _doI2cAutoInit = doI2cAutoInit;
+    }
+
   private:
 	int getBufferOffset(void) {
 		return 0;
@@ -154,6 +160,15 @@ class SH1106Wire : public OLEDDisplay {
       Wire.endTransmission();
     }
 
+    void initI2cIfNeccesary() {
+      if (_doI2cAutoInit) {
+#ifdef ARDUINO_ARCH_AVR
+        Wire.begin();
+#else
+        Wire.begin(this->_sda, this->_scl);
+#endif
+      }
+    }
 
 };
 
