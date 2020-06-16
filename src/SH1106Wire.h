@@ -48,8 +48,7 @@ class SH1106Wire : public OLEDDisplay {
       bool                _doI2cAutoInit = false;
 
   public:
-    SH1106Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64)
-    {
+    SH1106Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
       setGeometry(g);
 
       this->_address = _address;
@@ -161,10 +160,8 @@ class SH1106Wire : public OLEDDisplay {
       Wire.endTransmission();
     }
 
-    void initI2cIfNeccesary()
-    {
-      if (_doI2cAutoInit)
-      {
+    void initI2cIfNeccesary() {
+      if (_doI2cAutoInit) {
 #ifdef ARDUINO_ARCH_AVR
         Wire.begin();
 #else
