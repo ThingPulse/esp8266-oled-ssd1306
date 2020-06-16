@@ -43,11 +43,12 @@
 class SH1106Wire : public OLEDDisplay {
   private:
       uint8_t             _address;
-      uint8_t             _sda;
-      uint8_t             _scl;
+      int                 _sda;
+      int                 _scl;
+      boolean             _doI2cAutoInit = false;
 
   public:
-    SH1106Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+    SH1106Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
       setGeometry(g);
 
       this->_address = _address;
@@ -56,7 +57,13 @@ class SH1106Wire : public OLEDDisplay {
     }
 
     bool connect() {
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
+      Wire.begin();
+#else
+      // On ESP32 arduino, -1 means 'don't change pins', someone else has called begin for us.
+      if(this->_sda != -1)
       Wire.begin(this->_sda, this->_scl);
+#endif
       // Let's use ~700khz if ESP8266 is in 160Mhz mode
       // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
       Wire.setClock(700000);
@@ -64,6 +71,7 @@ class SH1106Wire : public OLEDDisplay {
     }
 
     void display(void) {
+      initI2cIfNeccesary();
       #ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = UINT8_MAX;
         uint8_t maxBoundY = 0;
@@ -143,17 +151,31 @@ class SH1106Wire : public OLEDDisplay {
       #endif
     }
 
+    void setI2cAutoInit(boolean doI2cAutoInit){
+      _doI2cAutoInit = doI2cAutoInit;
+    }
+
   private:
 	int getBufferOffset(void) {
 		return 0;
 	}
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
+      initI2cIfNeccesary();
       Wire.beginTransmission(_address);
       Wire.write(0x80);
       Wire.write(command);
       Wire.endTransmission();
     }
 
+    void initI2cIfNeccesary() {
+      if (_doI2cAutoInit) {
+#ifdef ARDUINO_ARCH_AVR 
+      	Wire.begin();
+#else
+      	Wire.begin(this->_sda, this->_scl);
+#endif
+      }
+    }
 
 };
 
