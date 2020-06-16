@@ -33,6 +33,7 @@
 
 #include "OLEDDisplay.h"
 #include <Wire.h>
+#include <algorithm>
 
 #if defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_STM32)
 #define _min	min
@@ -42,12 +43,12 @@
 class SSD1306Wire : public OLEDDisplay {
   private:
       uint8_t             _address;
-      uint8_t             _sda;
-      uint8_t             _scl;
+      int                 _sda;
+      int                 _scl;
       bool                _doI2cAutoInit = false;
 
   public:
-    SSD1306Wire(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+    SSD1306Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
       setGeometry(g);
 
       this->_address = _address;
@@ -56,10 +57,12 @@ class SSD1306Wire : public OLEDDisplay {
     }
 
     bool connect() {
-#ifdef ARDUINO_ARCH_AVR 
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       Wire.begin();
 #else
-      Wire.begin(this->_sda, this->_scl);
+      // On ESP32 arduino, -1 means 'don't change pins', someone else has called begin for us.
+      if(this->_sda != -1)
+        Wire.begin(this->_sda, this->_scl);
 #endif
       // Let's use ~700khz if ESP8266 is in 160Mhz mode
       // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
@@ -84,10 +87,10 @@ class SSD1306Wire : public OLEDDisplay {
           for (x = 0; x < this->width(); x++) {
            uint16_t pos = x + y * this->width();
            if (buffer[pos] != buffer_back[pos]) {
-             minBoundY = _min(minBoundY, y);
-             maxBoundY = _max(maxBoundY, y);
-             minBoundX = _min(minBoundX, x);
-             maxBoundX = _max(maxBoundX, x);
+             minBoundY = std::min(minBoundY, y);
+             maxBoundY = std::max(maxBoundY, y);
+             minBoundX = std::min(minBoundX, x);
+             maxBoundX = std::max(maxBoundX, x);
            }
            buffer_back[pos] = buffer[pos];
          }
@@ -175,7 +178,7 @@ class SSD1306Wire : public OLEDDisplay {
 
     void initI2cIfNeccesary() {
       if (_doI2cAutoInit) {
-#ifdef ARDUINO_ARCH_AVR 
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       	Wire.begin();
 #else
       	Wire.begin(this->_sda, this->_scl);
