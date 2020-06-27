@@ -29,6 +29,7 @@ See more at https://thingpulse.com
  * 06 Oct 2019 : Bruce Ratoff : Add conditional build for PCD8544 display
  * 07 Oct 2019 : Bruce Ratoff : Dynamically adjust widths/fonts by display size
  * 11 Nov 2019 : Bruce Ratoff : Add UTC page and make time pages optional
+ * 27 Jun 2020 : Bruce Ratoff : Fix time zone issues and add DST setting to WiFiManager parameters
 */
 
 //#define PCD8544
@@ -72,17 +73,23 @@ See more at https://thingpulse.com
  * Begin Settings
  **************************/
 
-#define TZ              -5       // (utc+) TZ in hours
-int UtcOffset = TZ;
-#define DST_FLAG          false      // use 60mn for summer time in some countries
-boolean dst_flag = DST_FLAG;
+// Time Zone - in hours BEHIND UTC (i.e., local time = UTC - TZ)
+#define TZ 5
+// DST flag - if true, enable offset for summer time change
+#define DST_NOW true
+// If defined show mmm/dd/yyyy, else dd/mm/yyyy
 #define US_DATE_ORDER
+// If defined use am/pm, else 24 hour time
 #define CLOCK_12_HOUR
-//                                                            #define LOCAL_TIME_PAGE
-#define UTC_TIME_PAGE
+// Define one but not both of these to choose either local time or UTC
+#define LOCAL_TIME_PAGE
+//#define UTC_TIME_PAGE
 
 // Setup
 const int UPDATE_INTERVAL_SECS = 20 * 60; // Update every 20 minutes
+#define DST_SHIFT -3600
+int UtcOffset = TZ;
+int dst_offset = DST_NOW ? DST_SHIFT : 0;
 
 // Display Settings
 #if defined PCD8544
@@ -99,7 +106,7 @@ const int CE_PIN = 15;
 const int I2C_DISPLAY_ADDRESS = 0x3c;
 #if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 const int SDA_PIN = D2; // Values for Wemos D1 mini
-const int SDC_PIN = D5;
+const int SDC_PIN = D5; // Could also be D1
 #elif defined(ARDUINO_ESP8266_OAK)
 const int SDA_PIN = P0;   // Values for Digistump Oak
 const int SDC_PIN = P2;
@@ -109,7 +116,7 @@ const int SDC_PIN = 0; //SCL
 #endif
 #endif
 
-const int RX_PIN = 3;
+// const int RX_PIN = 3;
 
 // OpenWeatherMap Settings
 // Sign up here to get an API key:
@@ -212,6 +219,7 @@ void writeSettings() {
   } else {
     Serial.println("Saving settings now...");
     f.println("UtcOffset=" + String(UtcOffset));
+    f.println("dst_offset=" + String(dst_offset));
     f.println("weatherKey=" + OPEN_WEATHER_MAP_APP_ID);
     f.println("CityID=" + OPEN_WEATHER_MAP_LOCATION_ID);
     f.println("isMetric=" + String(IS_METRIC));
@@ -219,7 +227,7 @@ void writeSettings() {
   }
   f.close();
   readSettings();
-  configTime(UtcOffset*3600, (dst_flag ? 3600 : 0), "pool.ntp.org");
+  configTime(UtcOffset*3600, dst_offset, "pool.ntp.org");
 }
 
 void readSettings() {
@@ -236,6 +244,10 @@ void readSettings() {
     if (line.indexOf("UtcOffset=") >= 0) {
       UtcOffset = line.substring(line.lastIndexOf("UtcOffset=") + 10).toInt();
       Serial.println("UtcOffset=" + String(UtcOffset));
+    }
+    if (line.indexOf("dst_offset=") >= 0) {
+      dst_offset = line.substring(line.lastIndexOf("dst_offset=") + 11).toInt();
+      Serial.println("dst_offset=" + String(dst_offset));
     }
     if (line.indexOf("weatherKey=") >= 0) {
       OPEN_WEATHER_MAP_APP_ID = line.substring(line.lastIndexOf("weatherKey=") + 11);
@@ -258,7 +270,7 @@ void readSettings() {
     }
   }
   fr.close();
-  configTime(UtcOffset*3600, (dst_flag ? 3600 : 0), "pool.ntp.org");
+  configTime(UtcOffset*3600, dst_offset, "pool.ntp.org");
   timeSinceLastWUpdate = 0;
 }
 
@@ -272,16 +284,18 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(ArialMT_Plain_10);
-  display.drawString(w/2, 0, "Wifi Manager");
+  display.drawString(w/2, 0, "WxW Setup");
   display.drawString(w/2, 10, "Connect to AP");
-  display.drawString(w/2, 23, myWiFiManager->getConfigPortalSSID());
-  display.drawString(w/2, 35, "To setup Wifi");
+  display.drawString(w/2, 20, myWiFiManager->getConfigPortalSSID());
+  display.drawString(w/2, 30, "192.168.4.1");
+  display.drawString(w/2, 40, "To configure");
   display.display();
   
-  Serial.println("Wifi Manager");
+  Serial.println("Weather Widget Setup");
   Serial.println("Please connect to AP");
   Serial.println(myWiFiManager->getConfigPortalSSID());
-  Serial.println("To setup Wifi Configuration");
+  Serial.println("192.168.4.1");
+  Serial.println("To setup WxW Configuration");
 }
 
 bool shouldSaveConfig = false;
@@ -293,6 +307,9 @@ void saveConfigCallback() {
 void setup() {
   Serial.begin(115200);
   Serial.println();
+  while(Serial.available()) {
+    Serial.read();
+  }
   SPIFFS.begin();
   delay(10);
   Serial.println();
@@ -323,6 +340,8 @@ void setup() {
   String s_UtcOffset(UtcOffset);
   WiFiManagerParameter c_UtcOffset("UtcOffset", "UTC Offset", s_UtcOffset.c_str(), 3);
   wifiManager.addParameter(&c_UtcOffset);
+  WiFiManagerParameter c_is_dst("is_dst", "DST (y/n)?", (dst_offset == 0 ? "n" : "y"), 1);
+  wifiManager.addParameter(&c_is_dst);
   WiFiManagerParameter c_OPEN_WEATHER_MAP_APP_ID("OPEN_WEATHER_MAP_APP_ID", "APP ID", (const char *)OPEN_WEATHER_MAP_APP_ID.c_str(), 40);
   wifiManager.addParameter(&c_OPEN_WEATHER_MAP_APP_ID);
   WiFiManagerParameter c_OPEN_WEATHER_MAP_LOCATION_ID("OPEN_WEATHER_MAP_LOCATION_ID", "Location ID", (const char *)OPEN_WEATHER_MAP_LOCATION_ID.c_str(), 8);
@@ -342,6 +361,9 @@ void setup() {
   if(shouldSaveConfig) {
     UtcOffset = atoi(c_UtcOffset.getValue());
     Serial.println("Setup: WM got UtcOffset="+String(UtcOffset));
+    String d_flag(c_is_dst.getValue());
+    dst_offset = (d_flag == "y" | d_flag == "Y") ? DST_SHIFT : 0;
+    Serial.println("Setup: WM got dst_offset="+String(dst_offset));
     OPEN_WEATHER_MAP_APP_ID = c_OPEN_WEATHER_MAP_APP_ID.getValue();
     Serial.println("Setup: WM got OPEN_WEATHER_MAP_APP_ID="+OPEN_WEATHER_MAP_APP_ID);
     OPEN_WEATHER_MAP_LOCATION_ID = c_OPEN_WEATHER_MAP_LOCATION_ID.getValue();
@@ -371,7 +393,7 @@ void setup() {
   }
   
   // Get time from network time service
-  configTime(UtcOffset*3600, (dst_flag ? 3600 : 0), "pool.ntp.org");
+  configTime(UtcOffset*3600, dst_offset, "pool.ntp.org");
 
   ui.setTargetFPS(30);
 
@@ -400,19 +422,29 @@ void setup() {
 
   updateData(&display);
 
-  pinMode(RX_PIN, INPUT);
+//  pinMode(RX_PIN, INPUT);
 
 }
 
 void loop() {
-
+/*
   if(!digitalRead(RX_PIN)) {
     delay(30);
     WiFi.disconnect(true);
     ESP.restart();
     delay(5000);
   }
-  
+*/
+
+  if(Serial.available()) {
+    if((char)Serial.read() == '$') {
+      delay(30);
+      WiFi.disconnect(true);
+      ESP.restart();
+      delay(5000);
+    }
+  }
+
   if (millis() - timeSinceLastWUpdate > (1000L*UPDATE_INTERVAL_SECS)) {
     setReadyForWeatherUpdate();
     timeSinceLastWUpdate = millis();
@@ -447,12 +479,12 @@ void drawProgress(OLEDDisplay *display, int percentage, String label) {
 }
 
 void updateData(OLEDDisplay *display) {
-  drawProgress(display, 10, "Updating time...");
-  drawProgress(display, 30, "Updating weather...");
+  drawProgress(display, 10, "Update time...");
+  drawProgress(display, 30, "Update wx...");
   currentWeatherClient.setMetric(IS_METRIC);
   currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
   currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
-  drawProgress(display, 50, "Updating forecasts...");
+  drawProgress(display, 50, "Update fcast...");
   forecastClient.setMetric(IS_METRIC);
   forecastClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
   uint8_t allowedHours[] = {12};
@@ -492,7 +524,11 @@ void drawUTCDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x,
   display->drawString(w/2 + x, 15 + y, String(buff));
 
   display->setFont(ArialMT_Plain_10);
-  display->drawString(w/2 + x, 38 + y, "UTC");
+  if(h < 64) {
+    display->drawString(w/2 + x, 29 + y, "UTC");
+  } else {
+    display->drawString(w/2 + x, 38 + y, "UTC");
+  }
 
   display->setTextAlignment(TEXT_ALIGN_LEFT);
 }
