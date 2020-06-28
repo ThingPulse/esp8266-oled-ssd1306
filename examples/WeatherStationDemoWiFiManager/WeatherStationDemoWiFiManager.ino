@@ -30,10 +30,12 @@ See more at https://thingpulse.com
  * 07 Oct 2019 : Bruce Ratoff : Dynamically adjust widths/fonts by display size
  * 11 Nov 2019 : Bruce Ratoff : Add UTC page and make time pages optional
  * 27 Jun 2020 : Bruce Ratoff : Fix time zone issues and add DST setting to WiFiManager parameters
+ *                            : Listen for '$' on serial port to reset into WiFi Manager
+ * 28 Jun 2020 : Bruce Ratoff : Make time in frame header always local time
 */
 
 //#define PCD8544
-#define SSD1306
+//#define SSD1306
 
 #include <ESPWiFi.h>
 
@@ -81,9 +83,9 @@ See more at https://thingpulse.com
 #define US_DATE_ORDER
 // If defined use am/pm, else 24 hour time
 #define CLOCK_12_HOUR
-// Define one but not both of these to choose either local time or UTC
-#define LOCAL_TIME_PAGE
-//#define UTC_TIME_PAGE
+// Define one or both of these to include local time or UTC
+//#define LOCAL_TIME_PAGE
+#define UTC_TIME_PAGE
 
 // Setup
 const int UPDATE_INTERVAL_SECS = 20 * 60; // Update every 20 minutes
@@ -106,7 +108,7 @@ const int CE_PIN = 15;
 const int I2C_DISPLAY_ADDRESS = 0x3c;
 #if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 const int SDA_PIN = D2; // Values for Wemos D1 mini
-const int SDC_PIN = D5; // Could also be D1
+const int SDC_PIN = D1; // Could also be D5
 #elif defined(ARDUINO_ESP8266_OAK)
 const int SDA_PIN = P0;   // Values for Digistump Oak
 const int SDC_PIN = P2;
@@ -195,7 +197,7 @@ void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, in
 // this array keeps function pointers to all frames
 // frames are the single views that slide from right to left
 #if defined(LOCAL_TIME_PAGE) && defined(UTC_TIME_PAGE)
-FrameCallback frames[] = { drawDateTime, drawUTCDateTime, drawCurrentWeather, drawForecast };
+FrameCallback frames[] = { drawUTCDateTime, drawDateTime, drawCurrentWeather, drawForecast };
 int numberOfFrames = 4;
 #elif defined(LOCAL_TIME_PAGE)
 FrameCallback frames[] = { drawDateTime, drawCurrentWeather, drawForecast };
@@ -498,9 +500,9 @@ void updateData(OLEDDisplay *display) {
 
 #ifdef UTC_TIME_PAGE
 void drawUTCDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  now = time(nullptr) - (UtcOffset * 3600); // Undo local time offset
+  now = time(nullptr);  // get local time
   struct tm* timeInfo;
-  timeInfo = gmtime(&now);
+  timeInfo = gmtime(&now);  // convert to formatted UTC
   char buff[16];
   int16_t w = display->getWidth();
   int16_t h = display->getHeight();
@@ -658,7 +660,7 @@ void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
   }
   display->setTextAlignment(TEXT_ALIGN_LEFT);
 
-#ifdef CLOCK_12_HOUR
+#if defined(CLOCK_12_HOUR)
   int adj_hour = timeInfo->tm_hour;
   String ampm("A");
   if(adj_hour > 12) {
