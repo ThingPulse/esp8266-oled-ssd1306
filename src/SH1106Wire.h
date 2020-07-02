@@ -166,6 +166,10 @@ class SH1106Wire : public OLEDDisplay {
     	sendCommand(contrast); // 0-255
     };
 
+    void setI2cAutoInit(bool doI2cAutoInit) {
+      _doI2cAutoInit = doI2cAutoInit;
+    }
+
   private:
 	int getBufferOffset(void) {
 		return 0;
