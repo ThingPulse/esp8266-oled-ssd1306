@@ -76,8 +76,8 @@ The library supports different protocols to access the OLED display. Currently t
 SSD1306Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 // for 128x32 displays:
 // SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, GEOMETRY_128_32 (or 128_64)
-// for using 2nd Hardware I2C (if availbale)
-// SSD1306Wire(0x3c, SDA, SCL, GEOMETRY_128_32, I2C_TWO); //default value is I2C_ONE
+// for using 2nd Hardware I2C (if available)
+// SSD1306Wire(0x3c, SDA, SCL, GEOMETRY_128_32, I2C_TWO); //default value is I2C_ONE if not mentioned
 ```
 
 for a SH1106:
