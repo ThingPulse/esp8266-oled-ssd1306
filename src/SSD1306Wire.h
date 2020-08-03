@@ -39,11 +39,7 @@
 #define _min	min
 #define _max	max
 #endif
-
-enum HW_I2C {
-  I2C_ONE,
-  I2C_TWO
-};
+//--------------------------------------
 
 class SSD1306Wire : public OLEDDisplay {
   private:
