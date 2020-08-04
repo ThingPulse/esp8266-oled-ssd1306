@@ -89,7 +89,7 @@ for a SH1106:
 #include "SH1106Wire.h"
 
 SH1106Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
-// By default SD1306Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
+// By default SH1106Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
 // SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, 400000); //set I2C frequency to 400kHz
 // SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, -1); //skip setting the I2C bus frequency
 ```
