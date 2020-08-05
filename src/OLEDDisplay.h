@@ -141,6 +141,11 @@ enum OLEDDISPLAY_GEOMETRY {
   GEOMETRY_RAWMODE,
 };
 
+enum HW_I2C {
+  I2C_ONE,
+  I2C_TWO
+};
+
 typedef char (*FontTableLookupFunction)(const uint8_t ch);
 char DefaultFontTableLookup(const uint8_t ch);
 
