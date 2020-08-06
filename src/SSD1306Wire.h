@@ -73,7 +73,11 @@ class SSD1306Wire : public OLEDDisplay {
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
+      this->_wire =&Wire;
+#else
       this->_wire = (_i2cBus==I2C_ONE)?&Wire:&Wire1;
+#endif
       this->_frequency = _frequency;
     }
 
