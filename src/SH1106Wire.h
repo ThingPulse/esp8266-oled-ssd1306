@@ -71,7 +71,11 @@ class SH1106Wire : public OLEDDisplay {
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
-      this->_wire = (_i2cBus==I2C_ONE)?&Wire:&Wire1;
+#if !defined(ARDUINO_ARCH_ESP32)
+      this->_wire = &Wire;
+#else
+      this->_wire = (_i2cBus==I2C_ONE) ? &Wire : &Wire1;
+#endif
       this->_frequency = _frequency;
     }
 
