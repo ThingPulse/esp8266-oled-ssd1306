@@ -26,7 +26,7 @@
  * https://thingpulse.com
  *
  */
-#include <Arduino.h>
+
 #include <TimeLib.h>
 
 // Include the correct display library
