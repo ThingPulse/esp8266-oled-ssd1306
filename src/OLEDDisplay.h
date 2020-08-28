@@ -235,19 +235,19 @@ class OLEDDisplay : public Stream {
     /* Text functions */
 
     // Draws a string at the given location
-    void drawString(int16_t x, int16_t y, String text);
+    void drawString(int16_t x, int16_t y, const String& text);
 
     // Draws a String with a maximum width at the given location.
     // If the given String is wider than the specified width
     // The text will be wrapped to the next line at a space or dash
-    void drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, String text);
+    void drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, const String& text);
 
     // Returns the width of the const char* with the current
     // font settings
     uint16_t getStringWidth(const char* text, uint16_t length);
 
     // Convencience method for the const char version
-    uint16_t getStringWidth(String text);
+    uint16_t getStringWidth(const String& text);
 
     // Specifies relative to which anchor point
     // the text is rendered. Available constants:
@@ -353,8 +353,8 @@ class OLEDDisplay : public Stream {
     char      *logBuffer;
 
 
-	// the header size of the buffer used, e.g. for the SPI command header
-	virtual int getBufferOffset(void) = 0;
+    // the header size of the buffer used, e.g. for the SPI command header
+    virtual int getBufferOffset(void) = 0;
 	
     // Send a command to the display (low level function)
     virtual void sendCommand(uint8_t com) {(void)com;};
@@ -366,7 +366,7 @@ class OLEDDisplay : public Stream {
     void sendInitCommands();
 
     // converts utf8 characters to extended ascii
-    char* utf8ascii(String s);
+    char* utf8ascii(const String& s);
 
     void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
