@@ -49,6 +49,8 @@ class SSD1306Wire : public OLEDDisplay {
       bool                _doI2cAutoInit = false;
       TwoWire*            _wire = NULL;
       int                 _frequency;
+      uint8_t             _muxPin = 8;
+      uint8_t             _muxAddress = 0;
 
   public:
 
@@ -67,12 +69,14 @@ class SSD1306Wire : public OLEDDisplay {
      * @param _i2cBus on ESP32 with 2 I2C HW buses, I2C_ONE for 1st Bus, I2C_TWO fot 2nd bus, default I2C_ONE
      * @param _frequency for Frequency by default Let's use ~700khz if ESP8266 is in 160Mhz mode, this will be limited to ~400khz if the ESP8266 in 80Mhz mode
      */
-    SSD1306Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64, HW_I2C _i2cBus = I2C_ONE, int _frequency = 700000) {
+    SSD1306Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64, HW_I2C _i2cBus = I2C_ONE, int _frequency = 700000, uint8_t _muxPin=8, uint8_t _mux_addr=0) {
       setGeometry(g);
 
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
+      this->_muxPin = _muxPin;
+      this->_muxAddress = _mux_addr;
 #if !defined(ARDUINO_ARCH_ESP32)
       this->_wire = &Wire;
 #else
@@ -85,6 +89,7 @@ class SSD1306Wire : public OLEDDisplay {
 #if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       _wire->begin();
 #else
+      selectMultiplexBus();
       // On ESP32 arduino, -1 means 'don't change pins', someone else has called begin for us.
       if(this->_sda != -1)
         _wire->begin(this->_sda, this->_scl);
@@ -194,6 +199,17 @@ class SSD1306Wire : public OLEDDisplay {
 	int getBufferOffset(void) {
 		return 0;
 	}
+
+    inline void selectMultiplexBus()
+    {
+      if (_muxPin < 8)
+      {
+          Wire.beginTransmission(_muxAddress);
+          Wire.write(1 << _muxPin);
+          Wire.endTransmission();
+      }
+    }
+
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
       initI2cIfNeccesary();
       _wire->beginTransmission(_address);
@@ -207,6 +223,7 @@ class SSD1306Wire : public OLEDDisplay {
 #if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
       	_wire->begin();
 #else
+        selectMultiplexBus();
       	_wire->begin(this->_sda, this->_scl);
 #endif
       }
