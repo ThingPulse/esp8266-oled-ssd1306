@@ -39,6 +39,20 @@
 #define _min	min
 #define _max	max
 #endif
+
+// remove below define if external memory is supported
+#define USE_ONLY_INTERNAL_MEMORY
+
+#ifndef USE_ONLY_INTERNAL_MEMORY
+#define USE_EXTERNAL_MEMORY_FOR_CLASS                            \
+    void * operator new(size_t size)                             \
+    {                                                            \
+        void * p = heap_caps_malloc(size, MALLOC_CAP_SPIRAM);   \
+        return p;                                               \
+    }  
+#else 
+#define USE_EXTERNAL_MEMORY_FOR_CLASS    
+#endif
 //--------------------------------------
 
 class SSD1306Wire : public OLEDDisplay {
@@ -84,6 +98,8 @@ class SSD1306Wire : public OLEDDisplay {
 #endif
       this->_frequency = _frequency;
     }
+
+    USE_EXTERNAL_MEMORY_FOR_CLASS
 
     bool connect() {
 #if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
