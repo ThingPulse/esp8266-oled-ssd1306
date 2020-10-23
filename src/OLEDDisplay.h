@@ -358,7 +358,7 @@ class OLEDDisplay : public Stream {
     virtual bool connect() { return false; };
 
     // Send all the init commands
-    void sendInitCommands();
+    virtual void sendInitCommands();
 
     // converts utf8 characters to extended ascii
     char* utf8ascii(String s);
