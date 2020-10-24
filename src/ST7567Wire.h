@@ -47,8 +47,6 @@ class ST7567Wire : public OLEDDisplay
   public:
     ST7567Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64)
     {
-        setGeometry(g);
-
         this->_address = _address;
         this->_sda = _sda;
         this->_scl = _scl;
@@ -67,6 +65,12 @@ class ST7567Wire : public OLEDDisplay
         // this will be limited to ~400khz if the ESP8266 in 80Mhz mode.
         Wire.setClock(700000);
         return true;
+    }
+
+    virtual void setBrightness(uint8_t b) {
+        uint8_t evLevel = b / 4; // convert 0-255 to 0 to 63 for the LCD controller
+        sendCommand(SETCONTRAST); // Electronic Volume Mode Set
+        sendCommand(evLevel); // Electronic Volume Register Set()	25H&31H 10.55V  26H&31H 11.5V
     }
 
     void display(void)
@@ -94,7 +98,8 @@ class ST7567Wire : public OLEDDisplay
                 }
                 buffer_back[pos] = buffer[pos];
             }
-            yield();
+            // our CPU is super fast and this array is small, no need to yield
+            // yield();
         }
 
         // If the minBoundY wasn't updated
@@ -104,8 +109,9 @@ class ST7567Wire : public OLEDDisplay
             return;
 
         // Calculate the colum offset
-        uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
-        uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4);
+        uint8_t offset = 0; // some displays need a slight extra offset
+        uint8_t minBoundXp2H = (minBoundX + offset) & 0x0F;
+        uint8_t minBoundXp2L = 0x10 | ((minBoundX + offset) >> 4);
 
         byte k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
@@ -128,7 +134,8 @@ class ST7567Wire : public OLEDDisplay
                 Wire.endTransmission();
                 k = 0;
             }
-            yield();
+            // Our i2c bus is fast, don't stall until the whole frame is done
+            // yield();
         }
 
         if (k != 0) {
@@ -138,8 +145,8 @@ class ST7567Wire : public OLEDDisplay
         uint8_t *p = &buffer[0];
         for (uint8_t y = 0; y < 8; y++) {
             sendCommand(0xB0 + y);
-            sendCommand(0x02);
-            sendCommand(0x10);
+            sendCommand(0x00); // col address LSB
+            sendCommand(0x10); // col address MSB
             for (uint8_t x = 0; x < 8; x++) {
                 Wire.beginTransmission(_address);
                 Wire.write(0x40);
@@ -158,19 +165,16 @@ class ST7567Wire : public OLEDDisplay
     // Send all the init commands
     virtual void sendInitCommands()
     {
-        if (geometry == GEOMETRY_RAWMODE)
-            return;
-
         sendCommand(0xe2); // software reset
         delay(200);
 
         sendCommand(0xa2); // 1/9 Bias
-        sendCommand(0xa0); // ADC set (SEG) a1
-        sendCommand(0xc8); // COM reves c8
+        sendCommand(SEGREMAP); // 0xa1 SEG direction for columns mirrored (or 0xa0 for normal)
+        sendCommand(COMSCANDEC); // COM direction reversed (for rows)
 
         sendCommand(0x24); // V0 Voltage Resistor Ratio Set(1+RA/RB=5.0)(3.5)
-        sendCommand(0x81); // Electronic Volume Mode Set
-        sendCommand(0x20); // Electronic Volume Register Set()	25H&31H 10.55V  26H&31H 11.5V
+
+        setBrightness(128);
 
         sendCommand(0xf8); // The Booster set 4x
         sendCommand(0x01); // The Booster set 4x
@@ -184,10 +188,7 @@ class ST7567Wire : public OLEDDisplay
         sendCommand(0x2f); //
         delay(100);        //
 
-        // clealddram(); FIXME
-        // delay(50);
-
-        sendCommand(0xaf); // Lcd Disply ON
+        sendCommand(DISPLAYON); // Lcd Disply ON
     }
 
   private:
@@ -196,7 +197,7 @@ class ST7567Wire : public OLEDDisplay
     {
         initI2cIfNeccesary();
         Wire.beginTransmission(_address);
-        Wire.write(0x80);
+        Wire.write(0x00);
         Wire.write(command);
         Wire.endTransmission();
     }
