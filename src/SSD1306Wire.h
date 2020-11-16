@@ -167,12 +167,6 @@ class SSD1306Wire : public OLEDDisplay {
         sendCommand(PAGEADDR);
         sendCommand(0x0);
 
-        if (geometry == GEOMETRY_128_64) {
-          sendCommand(0x7);
-        } else if (geometry == GEOMETRY_128_32) {
-          sendCommand(0x3);
-        }
-
         for (uint16_t i=0; i < displayBufferSize; i++) {
           _wire->beginTransmission(this->_address);
           _wire->write(0x40);
