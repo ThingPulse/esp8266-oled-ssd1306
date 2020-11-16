@@ -64,7 +64,7 @@ bool OLEDDisplay::allocateBuffer() {
   logBufferLine = 0;
   logBufferMaxLines = 0;
   logBuffer = NULL;
-	
+
   if (!this->connect()) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Can't establish connection to display\n");
     return false;
@@ -84,7 +84,7 @@ bool OLEDDisplay::allocateBuffer() {
   if(this->buffer_back==NULL) {
     this->buffer_back = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + getBufferOffset());
     this->buffer_back += getBufferOffset();
-  
+
     if(!this->buffer_back) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
       free(this->buffer - getBufferOffset());
@@ -830,7 +830,7 @@ int OLEDDisplay::_putc(int c) {
 		uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
 		uint16_t lines =  this->displayHeight / textHeight;
 		uint16_t chars =   2 * (this->displayWidth / textHeight);
-		
+
 		if (this->displayHeight % textHeight)
 			lines++;
 		if (this->displayWidth % textHeight)
@@ -847,24 +847,24 @@ void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width, uint16_t h
   this->geometry = g;
 
   switch (g) {
-  	case GEOMETRY_128_64:
-    	this->displayWidth = 128;
-    	this->displayHeight = 64;
-		break;
-	  case GEOMETRY_128_32:
-    	this->displayWidth = 128;
-    	this->displayHeight = 32;
-		break;
+    case GEOMETRY_128_64:
+      this->displayWidth = 128;
+      this->displayHeight = 64;
+      break;
+    case GEOMETRY_128_32:
+      this->displayWidth = 128;
+      this->displayHeight = 32;
+      break;
     case GEOMETRY_64_48:
       this->displayWidth = 64;
       this->displayHeight = 48;
-    break;  
-	case GEOMETRY_RAWMODE:
-		this->displayWidth = width > 0 ? width : 128;
-		this->displayHeight = height > 0 ? height : 64;
-		break;
+      break;
+    case GEOMETRY_RAWMODE:
+      this->displayWidth = width > 0 ? width : 128;
+      this->displayHeight = height > 0 ? height : 64;
+      break;
   }
-  this->displayBufferSize = displayWidth * displayHeight /8;
+  this->displayBufferSize = displayWidth * displayHeight / 8;
 }
 
 void OLEDDisplay::sendInitCommands(void) {
