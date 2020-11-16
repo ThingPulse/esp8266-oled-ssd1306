@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+ * Copyright (c) 2018-2020 by ThingPulse, Daniel Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,8 +69,9 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306Wire  display(0x3c, D3, D5);
-// SH1106 display(0x3c, D3, D5);
+// ADDRESS, SDA, SCL - SDA and SCL usually populate automatically based on your board's pins_arduino.h 
+SSD1306Wire display(0x3c, SDA, SCL);
+// SH1106 display(0x3c, SDA, SCL);
 
 OLEDDisplayUi ui ( &display );
 
@@ -158,12 +159,12 @@ void setup() {
   Serial.begin(9600);
   Serial.println();
 
-	// The ESP is capable of rendering 60fps in 80Mhz mode
-	// but that won't give you much time for anything else
-	// run it in 160Mhz mode or just set it to 30 fps
+  // The ESP is capable of rendering 60fps in 80Mhz mode
+  // but that won't give you much time for anything else
+  // run it in 160Mhz mode or just set it to 30 fps
   ui.setTargetFPS(60);
 
-	// Customize the active and inactive symbol
+  // Customize the active and inactive symbol
   ui.setActiveSymbol(activeSymbol);
   ui.setInactiveSymbol(inactiveSymbol);
 
@@ -195,9 +196,7 @@ void setup() {
   // subtract seventy years:
   unsigned long epoch = secsSinceStart - seventyYears * SECS_PER_HOUR;
   setTime(epoch);
-
 }
-
 
 void loop() {
   int remainingTimeBudget = ui.update();
@@ -207,8 +206,5 @@ void loop() {
     // Don't do stuff if you are below your
     // time budget.
     delay(remainingTimeBudget);
-
   }
-
-
 }
