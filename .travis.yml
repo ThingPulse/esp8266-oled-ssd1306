@@ -24,4 +24,4 @@ install:
     - platformio lib install 44
 
 script:
-    - platformio ci --lib="." --board=nodemcuv2
+    - platformio ci --lib="." --board=nodemcuv2 --board=uno
