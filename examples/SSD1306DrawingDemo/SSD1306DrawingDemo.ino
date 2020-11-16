@@ -1,7 +1,7 @@
  /**
   * The MIT License (MIT)
   *
-  * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+  * Copyright (c) 2018-2020 by ThingPulse, Daniel Eichhorn
   * Copyright (c) 2018 by Fabrice Weinberg
   *
   * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,42 +28,43 @@
   *
   */
 
- // Include the correct display library
- // For a connection via I2C using Wire include
- #include <Wire.h>  // Only needed for Arduino 1.6.5 and earlier
+// Include the correct display library
+// For a connection via I2C using Wire include
+#include <Wire.h>  // Only needed for Arduino 1.6.5 and earlier
 #include "SSD1306Wire.h" // legacy include: `#include "SSD1306.h"`
- // or #include "SH1106Wire.h", legacy include: `#include "SH1106.h"`
- // For a connection via I2C using brzo_i2c (must be installed) include
- // #include <brzo_i2c.h> // Only needed for Arduino 1.6.5 and earlier
- // #include "SSD1306Brzo.h"
- // #include "SH1106Brzo.h"
- // For a connection via SPI include
- // #include <SPI.h> // Only needed for Arduino 1.6.5 and earlier
- // #include "SSD1306Spi.h"
- // #include "SH1106SPi.h"
+// or #include "SH1106Wire.h", legacy include: `#include "SH1106.h"`
+// For a connection via I2C using brzo_i2c (must be installed) include
+// #include <brzo_i2c.h> // Only needed for Arduino 1.6.5 and earlier
+// #include "SSD1306Brzo.h"
+// #include "SH1106Brzo.h"
+// For a connection via SPI include
+// #include <SPI.h> // Only needed for Arduino 1.6.5 and earlier
+// #include "SSD1306Spi.h"
+// #include "SH1106SPi.h"
 
- // Use the corresponding display class:
+// Use the corresponding display class:
 
- // Initialize the OLED display using SPI
- // D5 -> CLK
- // D7 -> MOSI (DOUT)
- // D0 -> RES
- // D2 -> DC
- // D8 -> CS
- // SSD1306Spi        display(D0, D2, D8);
- // or
- // SH1106Spi         display(D0, D2);
+// Initialize the OLED display using SPI
+// D5 -> CLK
+// D7 -> MOSI (DOUT)
+// D0 -> RES
+// D2 -> DC
+// D8 -> CS
+// SSD1306Spi        display(D0, D2, D8);
+// or
+// SH1106Spi         display(D0, D2);
 
- // Initialize the OLED display using brzo_i2c
- // D3 -> SDA
- // D5 -> SCL
- // SSD1306Brzo display(0x3c, D3, D5);
- // or
- // SH1106Brzo  display(0x3c, D3, D5);
+// Initialize the OLED display using brzo_i2c
+// D3 -> SDA
+// D5 -> SCL
+// SSD1306Brzo display(0x3c, D3, D5);
+// or
+// SH1106Brzo  display(0x3c, D3, D5);
 
- // Initialize the OLED display using Wire library
- SSD1306Wire  display(0x3c, D3, D5);
- // SH1106 display(0x3c, D3, D5);
+// Initialize the OLED display using Wire library
+// ADDRESS, SDA, SCL - SDA and SCL usually populate automatically based on your board's pins_arduino.h
+SSD1306Wire  display(0x3c, SDA, SCL);
+// SH1106 display(0x3c, SDA, SCL);
 
 // Adapted from Adafruit_SSD1306
 void drawLines() {
