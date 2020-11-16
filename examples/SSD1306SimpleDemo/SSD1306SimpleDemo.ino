@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+ * Copyright (c) 2018-2020 by ThingPulse, Daniel Eichhorn
  * Copyright (c) 2018 by Fabrice Weinberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -45,10 +45,8 @@
 // #include "SSD1306Spi.h"
 // OR #include "SH1106SPi.h"
 
-
 // Optionally include custom images
 #include "images.h"
-
 
 // Initialize the OLED display using Arduino Wire:
 SSD1306Wire display(0x3c, SDA, SCL);   // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h
