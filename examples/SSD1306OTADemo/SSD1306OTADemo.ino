@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+ * Copyright (c) 2018-2020 by ThingPulse, Daniel Eichhorn
  * Copyright (c) 2018 by Fabrice Weinberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,15 +29,14 @@
  */
 
 // WiFi includes
- #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 
- // OTA Includes
- #include <ESP8266mDNS.h>
- #include <ArduinoOTA.h>
+// OTA Includes
+#include <ESP8266mDNS.h>
+#include <ArduinoOTA.h>
 
- const char *ssid         = "[Your SSID]";
- const char *password     = "[Your Password]";
-
+const char *ssid         = "[Your SSID]";
+const char *password     = "[Your Password]";
 
 // Include the correct display library
 // For a connection via I2C using Wire include
@@ -73,8 +72,9 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306Wire  display(0x3c, D3, D5);
-// SH1106 display(0x3c, D3, D5);
+// ADDRESS, SDA, SCL - SDA and SCL usually populate automatically based on your board's pins_arduino.h
+SSD1306Wire  display(0x3c, SDA, SCL);
+// SH1106 display(0x3c, SDA, SCL);
 
 
 void setup() {
