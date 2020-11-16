@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+ * Copyright (c) 2018-2020 by ThingPulse, Daniel Eichhorn
  * Copyright (c) 2018 by Fabrice Weinberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -69,10 +69,11 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306Wire  display(0x3c, D3, D5);
-// SH1106Wire display(0x3c, D3, D5);
+// ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h
+SSD1306Wire display(0x3c, SDA, SCL);
+// SH1106Wire display(0x3c, SDA, SCL);
 
-OLEDDisplayUi ui     ( &display );
+OLEDDisplayUi ui( &display );
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
   display->setTextAlignment(TEXT_ALIGN_RIGHT);
@@ -148,12 +149,12 @@ void setup() {
   Serial.println();
   Serial.println();
 
-	// The ESP is capable of rendering 60fps in 80Mhz mode
-	// but that won't give you much time for anything else
-	// run it in 160Mhz mode or just set it to 30 fps
+  // The ESP is capable of rendering 60fps in 80Mhz mode
+  // but that won't give you much time for anything else
+  // run it in 160Mhz mode or just set it to 30 fps
   ui.setTargetFPS(60);
 
-	// Customize the active and inactive symbol
+  // Customize the active and inactive symbol
   ui.setActiveSymbol(activeSymbol);
   ui.setInactiveSymbol(inactiveSymbol);
 
