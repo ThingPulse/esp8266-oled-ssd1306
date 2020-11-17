@@ -24,4 +24,4 @@ install:
     - platformio lib install 44
 
 script:
-    - platformio ci --lib="." --board=nodemcuv2 --board=uno --board=esp-wrover-kit
+    - platformio ci --lib="." --board=nodemcuv2 --board=d1_mini --board=esp-wrover-kit --board=esp32doit-devkit-v1
