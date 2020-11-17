@@ -36,7 +36,7 @@
 // Initialize the OLED display using Wire library
 // ADDRESS, SDA, SCL - SDA and SCL usually populate automatically based on your board's pins_arduino.h
 SSD1306Wire  display(0x3c, SDA, SCL);
-SSD1306Wire  display2(0x3c, D1, D2);
+SSD1306Wire  display2(0x3c, 1, 2);
 
 void setup() {
   Serial.begin(115200);
