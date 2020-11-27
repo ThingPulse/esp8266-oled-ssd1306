@@ -4,7 +4,7 @@
 
 > We just released version 4.0.0. Please have a look at our [upgrade guide](UPGRADE-4.0.md)
 
-This is a driver for SSD1306 128x64 and 128x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
+This is a driver for SSD1306 128x64, 128x32, 64x48 and 64x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
 Can be used with either the I2C or SPI version of the display.
 
 You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library. 
