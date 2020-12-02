@@ -859,6 +859,10 @@ void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width, uint16_t h
       this->displayWidth = 64;
       this->displayHeight = 48;
       break;
+    case GEOMETRY_64_32:
+      this->displayWidth = 64;
+      this->displayHeight = 32;
+      break;
     case GEOMETRY_RAWMODE:
       this->displayWidth = width > 0 ? width : 128;
       this->displayHeight = height > 0 ? height : 64;
@@ -877,7 +881,10 @@ void OLEDDisplay::sendInitCommands(void) {
   sendCommand(this->height() - 1);
   sendCommand(SETDISPLAYOFFSET);
   sendCommand(0x00);
-  sendCommand(SETSTARTLINE);
+  if(geometry == GEOMETRY_64_32)
+    sendCommand(0x00);  
+  else
+    sendCommand(SETSTARTLINE);
   sendCommand(CHARGEPUMP);
   sendCommand(0x14);
   sendCommand(MEMORYMODE);
@@ -886,7 +893,7 @@ void OLEDDisplay::sendInitCommands(void) {
   sendCommand(COMSCANINC);
   sendCommand(SETCOMPINS);
 
-  if (geometry == GEOMETRY_128_64 || geometry == GEOMETRY_64_48) {
+  if (geometry == GEOMETRY_128_64 || geometry == GEOMETRY_64_48 || geometry == GEOMETRY_64_32) {
     sendCommand(0x12);
   } else if (geometry == GEOMETRY_128_32) {
     sendCommand(0x02);
@@ -894,7 +901,7 @@ void OLEDDisplay::sendInitCommands(void) {
 
   sendCommand(SETCONTRAST);
 
-  if (geometry == GEOMETRY_128_64 || geometry == GEOMETRY_64_48) {
+  if (geometry == GEOMETRY_128_64 || geometry == GEOMETRY_64_48 || geometry == GEOMETRY_64_32) {
     sendCommand(0xCF);
   } else if (geometry == GEOMETRY_128_32) {
     sendCommand(0x8F);
