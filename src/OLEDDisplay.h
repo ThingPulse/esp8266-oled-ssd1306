@@ -359,6 +359,7 @@ class OLEDDisplay : public Stream {
 
 
 	// the header size of the buffer used, e.g. for the SPI command header
+  int BufferOffset;
 	virtual int getBufferOffset(void) = 0;
 	
     // Send a command to the display (low level function)
