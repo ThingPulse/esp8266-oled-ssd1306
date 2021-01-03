@@ -71,8 +71,8 @@ bool OLEDDisplay::allocateBuffer() {
   }
 
   if(this->buffer==NULL) {
-    this->buffer = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + getBufferOffset());
-    this->buffer += getBufferOffset();
+    this->buffer = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + BufferOffset);
+    this->buffer += BufferOffset;
 
     if(!this->buffer) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
@@ -82,12 +82,12 @@ bool OLEDDisplay::allocateBuffer() {
 
   #ifdef OLEDDISPLAY_DOUBLE_BUFFER
   if(this->buffer_back==NULL) {
-    this->buffer_back = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + getBufferOffset());
-    this->buffer_back += getBufferOffset();
+    this->buffer_back = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + BufferOffset);
+    this->buffer_back += BufferOffset;
 
     if(!this->buffer_back) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
-      free(this->buffer - getBufferOffset());
+      free(this->buffer - BufferOffset);
       return false;
     }
   }
@@ -98,6 +98,8 @@ bool OLEDDisplay::allocateBuffer() {
 
 bool OLEDDisplay::init() {
 
+  BufferOffset = getBufferOffset();
+  
   if(!allocateBuffer()) {
     return false;
   }
@@ -109,9 +111,9 @@ bool OLEDDisplay::init() {
 }
 
 void OLEDDisplay::end() {
-  if (this->buffer) { free(this->buffer - getBufferOffset()); this->buffer = NULL; }
+  if (this->buffer) { free(this->buffer - BufferOffset); this->buffer = NULL; }
   #ifdef OLEDDISPLAY_DOUBLE_BUFFER
-  if (this->buffer_back) { free(this->buffer_back - getBufferOffset()); this->buffer_back = NULL; }
+  if (this->buffer_back) { free(this->buffer_back - BufferOffset); this->buffer_back = NULL; }
   #endif
   if (this->logBuffer != NULL) { free(this->logBuffer); this->logBuffer = NULL; }
 }
