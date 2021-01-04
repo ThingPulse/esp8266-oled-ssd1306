@@ -41,7 +41,7 @@ void LoadingDrawDefault(OLEDDisplay *display, LoadingStage* stage, uint8_t progr
 
 OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   this->display = display;
-	
+
   indicatorPosition = BOTTOM;
   indicatorDirection = LEFT_RIGHT;
   activeSymbol = ANIMATION_activeSymbol;
@@ -300,7 +300,10 @@ void OLEDDisplayUi::resetState() {
 void OLEDDisplayUi::drawFrame(){
   switch (this->state.frameState){
      case IN_TRANSITION: {
-       float progress = (float) this->state.ticksSinceLastStateSwitch / (float) this->ticksPerTransition;
+       float progress = 0.f;
+       if (this->ticksPerTransition > 0u) {
+         progress = (float) this->state.ticksSinceLastStateSwitch / (float) this->ticksPerTransition;
+       }
        int16_t x = 0, y = 0, x1 = 0, y1 = 0;
        switch(this->frameAnimationDirection){
         case SLIDE_LEFT:
