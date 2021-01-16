@@ -19,7 +19,7 @@ env:
 
 install:
     - pip install -U platformio
-    - platformio lib install 44
+    - platformio lib install "paulstoffregen/Time@^1.6"
 
 script:
     - platformio ci --lib="." --board=nodemcuv2
