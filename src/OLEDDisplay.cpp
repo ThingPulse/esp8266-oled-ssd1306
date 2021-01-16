@@ -65,7 +65,7 @@ bool OLEDDisplay::allocateBuffer() {
   logBufferMaxLines = 0;
   logBuffer = NULL;
 
-  if (!this->connect()) {
+  if (!connect()) {
     DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Can't establish connection to display\n");
     return false;
   }
