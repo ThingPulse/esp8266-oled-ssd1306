@@ -72,6 +72,11 @@ enum FrameState {
   FIXED
 };
 
+enum TransitionRelationship {
+  NONE,
+  INCOMING,
+  OUTGOING,
+};
 
 const uint8_t ANIMATION_activeSymbol[] PROGMEM = {
   0x00, 0x18, 0x3c, 0x7e, 0x7e, 0x3c, 0x18, 0x00
@@ -89,6 +94,8 @@ struct OLEDDisplayUiState {
 
   FrameState    frameState;
   uint8_t       currentFrame;
+  uint8_t       transitionFrameTarget;
+  TransitionRelationship transitionFrameRelationship;
 
   bool          isIndicatorDrawen;
 
