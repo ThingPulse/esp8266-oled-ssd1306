@@ -429,15 +429,15 @@ void OLEDDisplayUi::drawIndicator() {
       switch (this->indicatorPosition){
         case TOP:
           y = 0 - (8 * indicatorFadeProgress);
-          x = (this->display->width() / 2) - frameStartPos + 12 * i;
+          x = (this->display->width() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case BOTTOM:
           y = (this->display->height() - 8) + (8 * indicatorFadeProgress);
-          x = (this->display->width() / 2) - frameStartPos + 12 * i;
+          x = (this->display->width() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case RIGHT:
           x = (this->display->width() - 8) + (8 * indicatorFadeProgress);
-          y = (this->display->height() / 2) - frameStartPos + 2 + 12 * i;
+          y = (this->display->height() / 2) - frameStartPos + 2 + indicatorSpacing * i;
           break;
         case LEFT:
         default:
