@@ -184,6 +184,7 @@ void OLEDDisplayUi::nextFrame() {
   if (this->state.frameState != IN_TRANSITION) {
     this->state.manuelControll = true;
     this->state.frameState = IN_TRANSITION;
+    this->state.transitionFrameTarget = getNextFrameNumber();
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.frameTransitionDirection;
     this->state.frameTransitionDirection = 1;
@@ -261,6 +262,7 @@ void OLEDDisplayUi::tick() {
         if (this->state.ticksSinceLastStateSwitch >= this->ticksPerTransition){
           this->state.frameState = FIXED;
           this->state.currentFrame = getNextFrameNumber();
+          this->state.transitionFrameTarget = 0;
           this->state.ticksSinceLastStateSwitch = 0;
           this->nextFrameNumber = -1;
         }
@@ -339,10 +341,14 @@ void OLEDDisplayUi::drawFrame(){
 
        // Prope each frameFunction for the indicator Drawen state
        this->enableIndicator();
-       (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y);
+       this->state.transitionFrameRelationship = OUTGOING;
+       //Since we're IN_TRANSITION, draw the old frame in a sliding-out position
+       (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y); 
        drawenCurrentFrame = this->state.isIndicatorDrawen;
 
        this->enableIndicator();
+       this->state.transitionFrameRelationship = INCOMING;
+       //Since we're IN_TRANSITION, draw the mew frame in a sliding-in position
        (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
 
        // Build up the indicatorDrawState
@@ -368,7 +374,9 @@ void OLEDDisplayUi::drawFrame(){
       // And set indicatorDrawState to "not known yet"
       this->indicatorDrawState = 0;
       this->enableIndicator();
-      (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0);
+      this->state.transitionFrameRelationship = NONE;
+      //Since we're not transitioning, just draw the current frame at the origin
+      (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0); 
       break;
   }
 }
@@ -429,15 +437,15 @@ void OLEDDisplayUi::drawIndicator() {
       switch (this->indicatorPosition){
         case TOP:
           y = 0 - (8 * indicatorFadeProgress);
-          x = (this->display->width() / 2) - frameStartPos + 12 * i;
+          x = (this->display->width() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case BOTTOM:
           y = (this->display->height() - 8) + (8 * indicatorFadeProgress);
-          x = (this->display->width() / 2) - frameStartPos + 12 * i;
+          x = (this->display->width() / 2) - frameStartPos + indicatorSpacing * i;
           break;
         case RIGHT:
           x = (this->display->width() - 8) + (8 * indicatorFadeProgress);
-          y = (this->display->height() / 2) - frameStartPos + 2 + 12 * i;
+          y = (this->display->height() / 2) - frameStartPos + 2 + indicatorSpacing * i;
           break;
         case LEFT:
         default:
