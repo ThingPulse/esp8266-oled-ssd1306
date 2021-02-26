@@ -99,7 +99,7 @@ struct OLEDDisplayUiState {
   uint8_t       transitionFrameTarget;
   TransitionRelationship transitionFrameRelationship;
 
-  const uint8_t*      notifyingFrames;
+  uint8_t*      notifyingFrames;
   uint8_t       notifyingFrameCount;
   bool          isIndicatorDrawen;
 
@@ -271,8 +271,8 @@ class OLEDDisplayUi {
 
     /**
      * Set which frames have active notificatoins
-     */
-    void setFrameNotifications(const uint8_t* notifyingFrames, uint8_t notifyingFrameCount);
+     */ 
+    void setFrameNotifications(uint8_t* notifyingFrames, uint8_t notifyingFrameCount);
     
 
     // Frame settings

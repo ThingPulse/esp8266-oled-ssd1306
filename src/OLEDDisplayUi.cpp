@@ -224,10 +224,16 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
-void OLEDDisplayUi::setFrameNotifications(const uint8_t* notifyingFrames, uint8_t notifyingFrameCount) {
-
+void OLEDDisplayUi::setFrameNotifications(uint8_t* notifyingFrames, uint8_t notifyingFrameCount) {
+  Serial.printf("SCREEN: Notifying frame count: ------ %d\n", notifyingFrameCount);
+  Serial.printf("SCREEN: Notifying frame 0: ------ %d\n", (notifyingFrames[0]));
+  Serial.printf("SCREEN: Notifying frame 1: ------ %d\n", (notifyingFrames[1]));
+  Serial.printf("SCREEN: Notifying frame old state ------ %d\n", this->state.notifyingFrames);
   this->state.notifyingFrames = notifyingFrames;
   this->state.notifyingFrameCount = notifyingFrameCount;
+  Serial.printf("SCREEN: Notifying frame new state ------ %d\n", this->state.notifyingFrames);
+  Serial.printf("SCREEN: Notifying frame 0: ------ %d\n", (this->state.notifyingFrames[0]));
+  Serial.printf("SCREEN: Notifying frame 1: ------ %d\n", (this->state.notifyingFrames[1]));
 }
 
 
@@ -473,8 +479,11 @@ void OLEDDisplayUi::drawIndicator() {
 
       display->clear();
       display->drawString(0,15,"NOTFRMS: " +String(this->state.notifyingFrameCount));
+      Serial.printf("SCREEN: Notifying frame new state ------ %d\n", this->state.notifyingFrames);
+      Serial.printf("SCREEN: Notifying frame 0: ------ %d\n", (this->state.notifyingFrames[0]));
+      Serial.printf("SCREEN: Notifying frame 1: ------ %d\n", (this->state.notifyingFrames[1]));
       for(uint8_t q=0;q<this->state.notifyingFrameCount;q++) {
-        display->drawString(0,30,"F("+String(q)+"):" +String((this->state.notifyingFrames[0])));
+        Serial.printf("SCREEN: Eval;uating Notification frame %d: ------ %d\n", q,(this->state.notifyingFrames[q]));
         // if the symbol for the frame we're currently drawing (i) 
         // is equal to the symbol in the array we're looking at (notff[q])
         // then we should adjust `y` by the SIN function (actualOffset)
