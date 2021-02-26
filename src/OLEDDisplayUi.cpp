@@ -46,6 +46,7 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   indicatorDirection = LEFT_RIGHT;
   activeSymbol = ANIMATION_activeSymbol;
   inactiveSymbol = ANIMATION_inactiveSymbol;
+  notifyingFrameOffsetAmplitude = 10;
   frameAnimationDirection   = SLIDE_RIGHT;
   lastTransitionDirection = 1;
   frameCount = 0;
@@ -56,12 +57,15 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   updateInterval = 33;
   state.lastUpdate = 0;
   state.ticksSinceLastStateSwitch = 0;
+  state.ticks = 0;
   state.frameState = FIXED;
   state.currentFrame = 0;
   state.frameTransitionDirection = 1;
   state.isIndicatorDrawen = true;
   state.manuelControll = false;
   state.userData = NULL;
+  state.notifyingFrames = nullptr;
+  state.notifyingFrameCount = 0;
   shouldDrawIndicators = true;
   autoTransition = true;
   setTimePerFrame(5000);
@@ -220,6 +224,12 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
+void OLEDDisplayUi::setFrameNotifications(const uint8_t* notifyingFrames, uint8_t notifyingFrameCount) {
+
+  this->state.notifyingFrames = notifyingFrames;
+  this->state.notifyingFrameCount = notifyingFrameCount;
+}
+
 
 // -/----- State information -----\-
 OLEDDisplayUiState* OLEDDisplayUi::getUiState(){
@@ -256,6 +266,7 @@ int16_t OLEDDisplayUi::update(){
 
 void OLEDDisplayUi::tick() {
   this->state.ticksSinceLastStateSwitch++;
+  this->state.ticks++;
 
   switch (this->state.frameState) {
     case IN_TRANSITION:
@@ -460,9 +471,28 @@ void OLEDDisplayUi::drawIndicator() {
          image = this->inactiveSymbol;
       }
 
+      display->clear();
+      display->drawString(0,15,"NOTFRMS: " +String(this->state.notifyingFrameCount));
+      for(uint8_t q=0;q<this->state.notifyingFrameCount;q++) {
+        display->drawString(0,30,"F("+String(q)+"):" +String((this->state.notifyingFrames[0])));
+        // if the symbol for the frame we're currently drawing (i) 
+        // is equal to the symbol in the array we're looking at (notff[q])
+        // then we should adjust `y` by the SIN function (actualOffset)
+        if (i == (this->state.notifyingFrames[0])) {
+          #define  MILISECONDS_PER_BUBBLE_BOUNDS 5000
+
+          uint8_t actualOffset = abs((sin(this->state.ticks*PI/(MILISECONDS_PER_BUBBLE_BOUNDS/updateInterval)) * notifyingFrameOffsetAmplitude));       
+          // is the indicator (symbol / dot) we're currently drawing one that's requesting notification
+          y = y - actualOffset;
+          //display->drawString(0,0,String(actualOffset));
+          //display->drawString(0,30,String(this->state.ticks));
+        }
+      }
+
       this->display->drawFastImage(x, y, 8, 8, image);
     }
 }
+
 
 void OLEDDisplayUi::drawOverlays() {
  for (uint8_t i=0;i<this->overlayCount;i++){

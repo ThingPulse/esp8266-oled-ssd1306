@@ -91,12 +91,16 @@ const uint8_t ANIMATION_inactiveSymbol[] PROGMEM = {
 struct OLEDDisplayUiState {
   uint64_t     lastUpdate;
   uint16_t      ticksSinceLastStateSwitch;
+  uint16_t      ticks;
+
 
   FrameState    frameState;
   uint8_t       currentFrame;
   uint8_t       transitionFrameTarget;
   TransitionRelationship transitionFrameRelationship;
 
+  const uint8_t*      notifyingFrames;
+  uint8_t       notifyingFrameCount;
   bool          isIndicatorDrawen;
 
   // Normal = 1, Inverse = -1;
@@ -142,6 +146,7 @@ class OLEDDisplayUi {
 
     FrameCallback*      frameFunctions;
     uint8_t             frameCount;
+    uint8_t             notifyingFrameOffsetAmplitude;
 
     // Internally used to transition to a specific frame
     int8_t              nextFrameNumber;
@@ -264,6 +269,11 @@ class OLEDDisplayUi {
      */
     void setInactiveSymbol(const uint8_t* symbol);
 
+    /**
+     * Set which frames have active notificatoins
+     */
+    void setFrameNotifications(const uint8_t* notifyingFrames, uint8_t notifyingFrameCount);
+    
 
     // Frame settings
 
