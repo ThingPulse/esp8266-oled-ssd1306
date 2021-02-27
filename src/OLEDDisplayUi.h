@@ -272,8 +272,10 @@ class OLEDDisplayUi {
      * Set which frames have active notificatoins
      */ 
     void setFrameNotifications(std::vector<uint32_t> notifyingFrames);
-    
 
+
+    void removeFrameFromNotifications(uint32_t FrameToRemove);
+    uint32_t OLEDDisplayUi::getFirstNotifyingFrame();
     // Frame settings
 
     /**

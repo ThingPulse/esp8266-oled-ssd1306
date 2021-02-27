@@ -209,6 +209,7 @@ void OLEDDisplayUi::switchToFrame(uint8_t frame) {
   this->state.frameState = FIXED;
   this->state.currentFrame = frame;
   this->state.isIndicatorDrawen = true;
+  removeFrameFromNotifications(this->state.currentFrame);
 }
 
 void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
@@ -225,6 +226,24 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
 void OLEDDisplayUi::setFrameNotifications(std::vector<uint32_t> notifyingFrames) {
   this->state.notifyingFrames = notifyingFrames;
  }
+
+void OLEDDisplayUi::removeFrameFromNotifications(uint32_t FrameToRemove) {
+  // We've decided that a frame no longer needs to be notifying
+
+  auto it = std::find(this->state.notifyingFrames.begin(), this->state.notifyingFrames.end(), FrameToRemove);
+  if (it != this->state.notifyingFrames.end()) {
+    using std::swap;
+    // swap the one to be removed with the last element
+    // and remove the item at the end of the container
+    // to prevent moving all items after '5' by one
+    swap(*it, this->state.notifyingFrames.back());
+    this->state.notifyingFrames.pop_back();
+  }
+}
+
+uint32_t OLEDDisplayUi::getFirstNotifyingFrame() {
+  return this->state.notifyingFrames[0];
+}
 
 
 // -/----- State information -----\-
@@ -272,6 +291,7 @@ void OLEDDisplayUi::tick() {
           this->state.transitionFrameTarget = 0;
           this->state.ticksSinceLastStateSwitch = 0;
           this->nextFrameNumber = -1;
+          removeFrameFromNotifications(this->state.currentFrame);
         }
       break;
     case FIXED:
@@ -495,6 +515,7 @@ void OLEDDisplayUi::drawOverlays() {
 }
 
 uint8_t OLEDDisplayUi::getNextFrameNumber(){
-  if (this->nextFrameNumber != -1) return this->nextFrameNumber;
+  if (this->nextFrameNumber != -1)
+    return this->nextFrameNumber;
   return (this->state.currentFrame + this->frameCount + this->state.frameTransitionDirection) % this->frameCount;
 }
