@@ -64,8 +64,6 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   state.isIndicatorDrawen = true;
   state.manuelControll = false;
   state.userData = NULL;
-  state.notifyingFrames = nullptr;
-  state.notifyingFrameCount = 0;
   shouldDrawIndicators = true;
   autoTransition = true;
   setTimePerFrame(5000);
@@ -224,17 +222,9 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
-void OLEDDisplayUi::setFrameNotifications(uint8_t* notifyingFrames, uint8_t notifyingFrameCount) {
-  Serial.printf("SCREEN: Notifying frame count: ------ %d\n", notifyingFrameCount);
-  Serial.printf("SCREEN: Notifying frame 0: ------ %d\n", (notifyingFrames[0]));
-  Serial.printf("SCREEN: Notifying frame 1: ------ %d\n", (notifyingFrames[1]));
-  Serial.printf("SCREEN: Notifying frame old state ------ %d\n", this->state.notifyingFrames);
+void OLEDDisplayUi::setFrameNotifications(std::vector<uint32_t> notifyingFrames) {
   this->state.notifyingFrames = notifyingFrames;
-  this->state.notifyingFrameCount = notifyingFrameCount;
-  Serial.printf("SCREEN: Notifying frame new state ------ %d\n", this->state.notifyingFrames);
-  Serial.printf("SCREEN: Notifying frame 0: ------ %d\n", (this->state.notifyingFrames[0]));
-  Serial.printf("SCREEN: Notifying frame 1: ------ %d\n", (this->state.notifyingFrames[1]));
-}
+ }
 
 
 // -/----- State information -----\-
@@ -477,24 +467,19 @@ void OLEDDisplayUi::drawIndicator() {
          image = this->inactiveSymbol;
       }
 
-      display->clear();
-      display->drawString(0,15,"NOTFRMS: " +String(this->state.notifyingFrameCount));
-      Serial.printf("SCREEN: Notifying frame new state ------ %d\n", this->state.notifyingFrames);
-      Serial.printf("SCREEN: Notifying frame 0: ------ %d\n", (this->state.notifyingFrames[0]));
-      Serial.printf("SCREEN: Notifying frame 1: ------ %d\n", (this->state.notifyingFrames[1]));
-      for(uint8_t q=0;q<this->state.notifyingFrameCount;q++) {
-        Serial.printf("SCREEN: Eval;uating Notification frame %d: ------ %d\n", q,(this->state.notifyingFrames[q]));
-        // if the symbol for the frame we're currently drawing (i) 
-        // is equal to the symbol in the array we're looking at (notff[q])
-        // then we should adjust `y` by the SIN function (actualOffset)
-        if (i == (this->state.notifyingFrames[0])) {
-          #define  MILISECONDS_PER_BUBBLE_BOUNDS 5000
-
-          uint8_t actualOffset = abs((sin(this->state.ticks*PI/(MILISECONDS_PER_BUBBLE_BOUNDS/updateInterval)) * notifyingFrameOffsetAmplitude));       
-          // is the indicator (symbol / dot) we're currently drawing one that's requesting notification
-          y = y - actualOffset;
-          //display->drawString(0,0,String(actualOffset));
-          //display->drawString(0,30,String(this->state.ticks));
+      if (this->state.notifyingFrames.size() > 0) {
+        for(uint8_t q=0;q<this->state.notifyingFrames.size();q++) {
+          // if the symbol for the frame we're currently drawing (i) 
+          // is equal to the symbol in the array we're looking at (notff[q])
+          // then we should adjust `y` by the SIN function (actualOffset)
+          if (i == (this->state.notifyingFrames[q])) {
+            #define  MILISECONDS_PER_BUBBLE_BOUNDS 5000
+            uint8_t actualOffset = abs((sin(this->state.ticks*PI/(MILISECONDS_PER_BUBBLE_BOUNDS/updateInterval)) * notifyingFrameOffsetAmplitude));       
+            // is the indicator (symbol / dot) we're currently drawing one that's requesting notification
+            y = y - actualOffset;
+            //display->drawString(0,0,String(actualOffset));
+            //display->drawString(0,30,String(this->state.ticks));
+          }
         }
       }
 
