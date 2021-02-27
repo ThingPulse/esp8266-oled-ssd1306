@@ -275,7 +275,7 @@ class OLEDDisplayUi {
 
 
     void removeFrameFromNotifications(uint32_t FrameToRemove);
-    uint32_t OLEDDisplayUi::getFirstNotifyingFrame();
+    uint32_t getFirstNotifyingFrame();
     // Frame settings
 
     /**
