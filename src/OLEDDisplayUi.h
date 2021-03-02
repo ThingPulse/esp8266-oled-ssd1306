@@ -119,6 +119,7 @@ struct LoadingStage {
 typedef void (*FrameCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y);
 typedef void (*OverlayCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state);
 typedef void (*LoadingDrawFunction)(OLEDDisplay *display, LoadingStage* stage, uint8_t progress);
+typedef void (*FrameNotificationCallback)(uint32_t FrameNumber, void* UI);
 
 class OLEDDisplayUi {
   private:
@@ -144,6 +145,7 @@ class OLEDDisplayUi {
     bool                autoTransition;
 
     FrameCallback*      frameFunctions;
+    FrameNotificationCallback* frameNotificationCallbackFunction;
     uint8_t             frameCount;
     uint8_t             notifyingFrameOffsetAmplitude;
 
@@ -277,6 +279,14 @@ class OLEDDisplayUi {
      * Removes a frame from the list of frames with active notifications
      */
     bool removeFrameFromNotifications(uint32_t frameToRemove);
+
+    /**
+     * Sets a callback function to be called when a frame comes into focus
+     * Normally this function will remove the frame from the list of 
+     * active notifications
+     */
+
+    void setFrameNotificationCallback(FrameNotificationCallback* frameNotificationCallbackFunction);
 
     /**
      * Returns the number of the frist frame having notifications
