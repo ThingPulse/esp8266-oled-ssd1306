@@ -265,6 +265,9 @@ void OLEDDisplayUi::setFrameNotificationCallback(FrameNotificationCallback* fram
 }
 
 uint32_t OLEDDisplayUi::getFirstNotifyingFrame() {
+  if (this->state.notifyingFrames.size() == 0){
+    return -1;
+  }
   return this->state.notifyingFrames[0];
 }
 
