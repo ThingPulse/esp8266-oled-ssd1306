@@ -269,13 +269,22 @@ class OLEDDisplayUi {
     void setInactiveSymbol(const uint8_t* symbol);
 
     /**
-     * Set which frames have active notificatoins
+     * Adds a frame to the list of frames with active notifications
      */ 
-    void setFrameNotifications(std::vector<uint32_t> notifyingFrames);
+    void addFrameToNotifications(uint32_t frameToAdd);
 
+    /**
+     * Removes a frame from the list of frames with active notifications
+     */
+    void removeFrameFromNotifications(uint32_t frameToRemove);
 
-    void removeFrameFromNotifications(uint32_t FrameToRemove);
+    /**
+     * Returns the number of the frist frame having notifications
+     * This is most likely to be used when attempting to "jump"
+     * to the oldest notification
+     */
     uint32_t getFirstNotifyingFrame();
+
     // Frame settings
 
     /**

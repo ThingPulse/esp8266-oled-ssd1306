@@ -223,14 +223,14 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
-void OLEDDisplayUi::setFrameNotifications(std::vector<uint32_t> notifyingFrames) {
-  this->state.notifyingFrames = notifyingFrames;
+void OLEDDisplayUi::addFrameToNotifications(uint32_t frameToAdd) {
+  this->state.notifyingFrames.push_back(frameToAdd);
  }
 
-void OLEDDisplayUi::removeFrameFromNotifications(uint32_t FrameToRemove) {
+void OLEDDisplayUi::removeFrameFromNotifications(uint32_t frameToRemove) {
   // We've decided that a frame no longer needs to be notifying
 
-  auto it = std::find(this->state.notifyingFrames.begin(), this->state.notifyingFrames.end(), FrameToRemove);
+  auto it = std::find(this->state.notifyingFrames.begin(), this->state.notifyingFrames.end(), frameToRemove);
   if (it != this->state.notifyingFrames.end()) {
     using std::swap;
     // swap the one to be removed with the last element
