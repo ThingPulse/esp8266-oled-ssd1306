@@ -271,12 +271,12 @@ class OLEDDisplayUi {
     /**
      * Adds a frame to the list of frames with active notifications
      */ 
-    void addFrameToNotifications(uint32_t frameToAdd);
+    bool addFrameToNotifications(uint32_t frameToAdd, bool force=false);
 
     /**
      * Removes a frame from the list of frames with active notifications
      */
-    void removeFrameFromNotifications(uint32_t frameToRemove);
+    bool removeFrameFromNotifications(uint32_t frameToRemove);
 
     /**
      * Returns the number of the frist frame having notifications

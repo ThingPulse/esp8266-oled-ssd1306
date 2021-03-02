@@ -223,11 +223,28 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
-void OLEDDisplayUi::addFrameToNotifications(uint32_t frameToAdd) {
+bool OLEDDisplayUi::addFrameToNotifications(uint32_t frameToAdd, bool force) {
+  switch (this->state.frameState) {
+    case IN_TRANSITION:
+      if(!force && this->state.transitionFrameTarget == frameToAdd)
+        // if we're in transition, and being asked to set the to-be-current frame 
+        // as having a notifiction, just don't (unless we're forced)
+        return false;
+      break;
+    case FIXED:
+      if(!force && this->state.currentFrame == frameToAdd)
+        // if we're on a fixed frame, and being asked to set the current frame 
+        // as having a notifiction, just don't (unless we're forced)
+        return false;
+      break;
+  }
+  // nothing is preventing us from setting the requested frame as having a notification, so 
+  // do it.
   this->state.notifyingFrames.push_back(frameToAdd);
- }
+  return true;
+}
 
-void OLEDDisplayUi::removeFrameFromNotifications(uint32_t frameToRemove) {
+bool OLEDDisplayUi::removeFrameFromNotifications(uint32_t frameToRemove) {
   // We've decided that a frame no longer needs to be notifying
 
   auto it = std::find(this->state.notifyingFrames.begin(), this->state.notifyingFrames.end(), frameToRemove);
@@ -238,7 +255,9 @@ void OLEDDisplayUi::removeFrameFromNotifications(uint32_t frameToRemove) {
     // to prevent moving all items after '5' by one
     swap(*it, this->state.notifyingFrames.back());
     this->state.notifyingFrames.pop_back();
+    return true;
   }
+  return false;
 }
 
 uint32_t OLEDDisplayUi::getFirstNotifyingFrame() {
