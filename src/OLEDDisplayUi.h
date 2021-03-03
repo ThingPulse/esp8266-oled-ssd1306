@@ -91,12 +91,15 @@ const uint8_t ANIMATION_inactiveSymbol[] PROGMEM = {
 struct OLEDDisplayUiState {
   uint64_t     lastUpdate;
   uint16_t      ticksSinceLastStateSwitch;
+  uint16_t      ticks;
+
 
   FrameState    frameState;
   uint8_t       currentFrame;
   uint8_t       transitionFrameTarget;
   TransitionRelationship transitionFrameRelationship;
 
+  std::vector<uint32_t>     notifyingFrames;
   bool          isIndicatorDrawen;
 
   // Normal = 1, Inverse = -1;
@@ -116,6 +119,7 @@ struct LoadingStage {
 typedef void (*FrameCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y);
 typedef void (*OverlayCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state);
 typedef void (*LoadingDrawFunction)(OLEDDisplay *display, LoadingStage* stage, uint8_t progress);
+typedef void (*FrameNotificationCallback)(uint32_t FrameNumber, void* UI);
 
 class OLEDDisplayUi {
   private:
@@ -141,7 +145,9 @@ class OLEDDisplayUi {
     bool                autoTransition;
 
     FrameCallback*      frameFunctions;
+    FrameNotificationCallback* frameNotificationCallbackFunction;
     uint8_t             frameCount;
+    uint8_t             notifyingFrameOffsetAmplitude;
 
     // Internally used to transition to a specific frame
     int8_t              nextFrameNumber;
@@ -264,6 +270,30 @@ class OLEDDisplayUi {
      */
     void setInactiveSymbol(const uint8_t* symbol);
 
+    /**
+     * Adds a frame to the list of frames with active notifications
+     */ 
+    bool addFrameToNotifications(uint32_t frameToAdd, bool force=false);
+
+    /**
+     * Removes a frame from the list of frames with active notifications
+     */
+    bool removeFrameFromNotifications(uint32_t frameToRemove);
+
+    /**
+     * Sets a callback function to be called when a frame comes into focus
+     * Normally this function will remove the frame from the list of 
+     * active notifications
+     */
+
+    void setFrameNotificationCallback(FrameNotificationCallback* frameNotificationCallbackFunction);
+
+    /**
+     * Returns the number of the frist frame having notifications
+     * This is most likely to be used when attempting to "jump"
+     * to the oldest notification
+     */
+    uint32_t getFirstNotifyingFrame();
 
     // Frame settings
 

@@ -46,6 +46,7 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   indicatorDirection = LEFT_RIGHT;
   activeSymbol = ANIMATION_activeSymbol;
   inactiveSymbol = ANIMATION_inactiveSymbol;
+  notifyingFrameOffsetAmplitude = 10;
   frameAnimationDirection   = SLIDE_RIGHT;
   lastTransitionDirection = 1;
   frameCount = 0;
@@ -56,6 +57,7 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   updateInterval = 33;
   state.lastUpdate = 0;
   state.ticksSinceLastStateSwitch = 0;
+  state.ticks = 0;
   state.frameState = FIXED;
   state.currentFrame = 0;
   state.frameTransitionDirection = 1;
@@ -66,6 +68,7 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   autoTransition = true;
   setTimePerFrame(5000);
   setTimePerTransition(500);
+  frameNotificationCallbackFunction = nullptr;
 }
 
 void OLEDDisplayUi::init() {
@@ -220,6 +223,54 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
 
+bool OLEDDisplayUi::addFrameToNotifications(uint32_t frameToAdd, bool force) {
+  switch (this->state.frameState) {
+    case IN_TRANSITION:
+      if(!force && this->state.transitionFrameTarget == frameToAdd)
+        // if we're in transition, and being asked to set the to-be-current frame 
+        // as having a notifiction, just don't (unless we're forced)
+        return false;
+      break;
+    case FIXED:
+      if(!force && this->state.currentFrame == frameToAdd)
+        // if we're on a fixed frame, and being asked to set the current frame 
+        // as having a notifiction, just don't (unless we're forced)
+        return false;
+      break;
+  }
+  // nothing is preventing us from setting the requested frame as having a notification, so 
+  // do it.
+  this->state.notifyingFrames.push_back(frameToAdd);
+  return true;
+}
+
+bool OLEDDisplayUi::removeFrameFromNotifications(uint32_t frameToRemove) {
+  // We've been told that a frame no longer needs to be notifying
+
+  auto it = std::find(this->state.notifyingFrames.begin(), this->state.notifyingFrames.end(), frameToRemove);
+  if (it != this->state.notifyingFrames.end()) {
+    using std::swap;
+    // swap the one to be removed with the last element
+    // and remove the item at the end of the container
+    // to prevent moving all items after '5' by one
+    swap(*it, this->state.notifyingFrames.back());
+    this->state.notifyingFrames.pop_back();
+    return true;
+  }
+  return false;
+}
+
+void OLEDDisplayUi::setFrameNotificationCallback(FrameNotificationCallback* frameNotificationCallbackFunction) {
+  this->frameNotificationCallbackFunction = frameNotificationCallbackFunction;
+}
+
+uint32_t OLEDDisplayUi::getFirstNotifyingFrame() {
+  if (this->state.notifyingFrames.size() == 0){
+    return -1;
+  }
+  return this->state.notifyingFrames[0];
+}
+
 
 // -/----- State information -----\-
 OLEDDisplayUiState* OLEDDisplayUi::getUiState(){
@@ -256,6 +307,7 @@ int16_t OLEDDisplayUi::update(){
 
 void OLEDDisplayUi::tick() {
   this->state.ticksSinceLastStateSwitch++;
+  this->state.ticks++;
 
   switch (this->state.frameState) {
     case IN_TRANSITION:
@@ -350,6 +402,10 @@ void OLEDDisplayUi::drawFrame(){
        this->state.transitionFrameRelationship = INCOMING;
        //Since we're IN_TRANSITION, draw the mew frame in a sliding-in position
        (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
+       // tell the consumer of this API that the frame that's coming into focus
+       // normally this would be to remove the notifications for this frame
+       if (frameNotificationCallbackFunction != nullptr)
+         (*frameNotificationCallbackFunction)(this->getNextFrameNumber(), this);
 
        // Build up the indicatorDrawState
        if (drawenCurrentFrame && !this->state.isIndicatorDrawen) {
@@ -377,6 +433,10 @@ void OLEDDisplayUi::drawFrame(){
       this->state.transitionFrameRelationship = NONE;
       //Since we're not transitioning, just draw the current frame at the origin
       (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0); 
+      // tell the consumer of this API that the frame that's coming into focus
+      // normally this would be to remove the notifications for this frame
+      if (frameNotificationCallbackFunction != nullptr)
+        (*frameNotificationCallbackFunction)(this->state.currentFrame, this);
       break;
   }
 }
@@ -460,9 +520,26 @@ void OLEDDisplayUi::drawIndicator() {
          image = this->inactiveSymbol;
       }
 
+      if (this->state.notifyingFrames.size() > 0) {
+        for(uint8_t q=0;q<this->state.notifyingFrames.size();q++) {
+          // if the symbol for the frame we're currently drawing (i) 
+          // is equal to the symbol in the array we're looking at (notff[q])
+          // then we should adjust `y` by the SIN function (actualOffset)
+          if (i == (this->state.notifyingFrames[q])) {
+            #define  MILISECONDS_PER_BUBBLE_BOUNDS 5000
+            uint8_t actualOffset = abs((sin(this->state.ticks*PI/(MILISECONDS_PER_BUBBLE_BOUNDS/updateInterval)) * notifyingFrameOffsetAmplitude));       
+            // is the indicator (symbol / dot) we're currently drawing one that's requesting notification
+            y = y - actualOffset;
+            //display->drawString(0,0,String(actualOffset));
+            //display->drawString(0,30,String(this->state.ticks));
+          }
+        }
+      }
+
       this->display->drawFastImage(x, y, 8, 8, image);
     }
 }
+
 
 void OLEDDisplayUi::drawOverlays() {
  for (uint8_t i=0;i<this->overlayCount;i++){
@@ -471,6 +548,7 @@ void OLEDDisplayUi::drawOverlays() {
 }
 
 uint8_t OLEDDisplayUi::getNextFrameNumber(){
-  if (this->nextFrameNumber != -1) return this->nextFrameNumber;
+  if (this->nextFrameNumber != -1)
+    return this->nextFrameNumber;
   return (this->state.currentFrame + this->frameCount + this->state.frameTransitionDirection) % this->frameCount;
 }
