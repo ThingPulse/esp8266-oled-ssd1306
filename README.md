@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306)
+[![Build Status](https://travis-ci.com/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.com/ThingPulse/esp8266-oled-ssd1306)
 
 # ThingPulse OLED SSD1306 (ESP8266/ESP32/Mbed-OS)
 
@@ -9,7 +9,7 @@ This library drives the OLED display included in the [ThingPulse IoT starter kit
 
 [![ThingPulse ESP8266 WeatherStation Classic Kit](https://github.com/ThingPulse/esp8266-weather-station/blob/master/resources/ThingPulse-ESP8266-Weather-Station.jpeg?raw=true)](https://thingpulse.com/product/esp8266-iot-electronics-starter-kit-weatherstation-planespotter-worldclock/)
 
-You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library. 
+You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library.
 
 It is also available as a [PlatformIO library](https://platformio.org/lib/show/2978/ESP8266%20and%20ESP32%20OLED%20driver%20for%20SSD1306%20displays/examples). Just execute the following command:
 ```
@@ -71,7 +71,7 @@ The library supports different protocols to access the OLED display. Currently t
 ### I2C with Wire.h
 
 ```C++
-#include <Wire.h>  
+#include <Wire.h>
 #include "SSD1306Wire.h"
 
 // for 128x64 displays:
@@ -87,7 +87,7 @@ SSD1306Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 
 for a SH1106:
 ```C++
-#include <Wire.h>  
+#include <Wire.h>
 #include "SH1106Wire.h"
 
 SH1106Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
@@ -204,6 +204,12 @@ void drawCircle(int16_t x, int16_t y, int16_t radius);
 
 // Fill circle
 void fillCircle(int16_t x, int16_t y, int16_t radius);
+
+// Draw an empty triangle i.e. only the outline
+void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+
+// Draw a solid triangle i.e. filled
+void fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 
 // Draw a line horizontally
 void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
