@@ -11,9 +11,9 @@ This library drives the OLED display included in the [ThingPulse IoT starter kit
 
 You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library. 
 
-It is also available as a [PlatformIO library](https://platformio.org/lib/show/562/ESP8266%20and%20ESP32%20OLED%20driver%20for%20SSD1306%20displays/examples). Just execute the following command:
+It is also available as a [PlatformIO library](https://platformio.org/lib/show/2978/ESP8266%20and%20ESP32%20OLED%20driver%20for%20SSD1306%20displays/examples). Just execute the following command:
 ```
-platformio lib install 562
+platformio lib install 2978
 ```
 
 ## Service level promise
