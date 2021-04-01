@@ -338,12 +338,12 @@ void setIndicatorDirection(IndicatorDirection dir);
 /**
  * Set the symbol to indicate an active frame in the indicator bar.
  */
-void setActiveSymbol(const char* symbol);
+void setActiveSymbol(const uint8_t* symbol);
 
 /**
  * Set the symbol to indicate an inactive frame in the indicator bar.
  */
-void setInactiveSymbol(const char* symbol);
+void setInactiveSymbol(const uint8_t* symbol);
 
 /**
  * Configure what animation is used to transition from one frame to another
