@@ -238,7 +238,7 @@ class OLEDDisplay : public Stream {
     void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *xbm);
 
     // Draw icon 16x16 xbm format
-    void drawIco16x16(int16_t x, int16_t y, const char *ico, bool inverse = false);
+    void drawIco16x16(int16_t x, int16_t y, const uint8_t *ico, bool inverse = false);
 
     /* Text functions */
 
