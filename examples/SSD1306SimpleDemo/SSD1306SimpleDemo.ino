@@ -54,7 +54,7 @@
 SSD1306Wire display(0x3c, SDA, SCL);   // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h
 // SSD1306Wire display(0x3c, D3, D5);  // ADDRESS, SDA, SCL  -  If not, they can be specified manually.
 // SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, OLEDDISPLAY_GEOMETRY  -  Extra param required for 128x32 displays.
-// SH1106 display(0x3c, SDA, SCL);     // ADDRESS, SDA, SCL
+// SH1106Wire display(0x3c, SDA, SCL);     // ADDRESS, SDA, SCL
 
 // Initialize the OLED display using brzo_i2c:
 // SSD1306Brzo display(0x3c, D3, D5);  // ADDRESS, SDA, SCL
