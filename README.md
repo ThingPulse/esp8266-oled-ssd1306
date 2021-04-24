@@ -231,19 +231,19 @@ void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t 
 ## Text operations
 
 ``` C++
-void drawString(int16_t x, int16_t y, String text);
+void drawString(int16_t x, int16_t y, const String &text);
 
 // Draws a String with a maximum width at the given location.
 // If the given String is wider than the specified width
 // The text will be wrapped to the next line at a space or dash
-void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text);
+void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, const String &text);
 
 // Returns the width of the const char* with the current
 // font settings
 uint16_t getStringWidth(const char* text, uint16_t length);
 
 // Convencience method for the const char version
-uint16_t getStringWidth(String text);
+uint16_t getStringWidth(const String &text);
 
 // Specifies relative to which anchor point
 // the text is rendered. Available constants:
