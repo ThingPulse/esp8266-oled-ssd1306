@@ -1,32 +1,33 @@
 /**
- * The MIT License (MIT)
- *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * ThingPulse invests considerable time and money to develop these open source libraries.
- * Please support us by buying our products (and not the clones) from
- * https://thingpulse.com
- *
- */
+   The MIT License (MIT)
 
+   Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+   ThingPulse invests considerable time and money to develop these open source libraries.
+   Please support us by buying our products (and not the clones) from
+   https://thingpulse.com
+
+*/
+
+// Install https://github.com/PaulStoffregen/Time
 #include <TimeLib.h>
 
 // Include the correct display library
@@ -69,21 +70,21 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306Wire  display(0x3c, D3, D5);
-// SH1106Wire display(0x3c, D3, D5);
+SSD1306Wire display(0x3c, SDA, SCL);   // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h e.g. https://github.com/esp8266/Arduino/blob/master/variants/nodemcu/pins_arduino.h
+// SH1106Wire display(0x3c, SDA, SCL);
 
 OLEDDisplayUi ui ( &display );
 
 int screenW = 128;
 int screenH = 64;
-int clockCenterX = screenW/2;
-int clockCenterY = ((screenH-16)/2)+16;   // top yellow part is 16 px height
+int clockCenterX = screenW / 2;
+int clockCenterY = ((screenH - 16) / 2) + 16; // top yellow part is 16 px height
 int clockRadius = 23;
 
 // utility function for digital clock display: prints leading 0
-String twoDigits(int digits){
-  if(digits < 10) {
-    String i = '0'+String(digits);
+String twoDigits(int digits) {
+  if (digits < 10) {
+    String i = '0' + String(digits);
     return i;
   }
   else {
@@ -96,15 +97,15 @@ void clockOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
 }
 
 void analogClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-//  ui.disableIndicator();
+  //  ui.disableIndicator();
 
   // Draw the clock face
-//  display->drawCircle(clockCenterX + x, clockCenterY + y, clockRadius);
+  //  display->drawCircle(clockCenterX + x, clockCenterY + y, clockRadius);
   display->drawCircle(clockCenterX + x, clockCenterY + y, 2);
   //
   //hour ticks
-  for( int z=0; z < 360;z= z + 30 ){
-  //Begin at 0° and stop at 360°
+  for ( int z = 0; z < 360; z = z + 30 ) {
+    //Begin at 0° and stop at 360°
     float angle = z ;
     angle = ( angle / 57.29577951 ) ; //Convert degrees to radians
     int x2 = ( clockCenterX + ( sin(angle) * clockRadius ) );
@@ -137,7 +138,7 @@ void analogClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x
 }
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  String timenow = String(hour())+":"+twoDigits(minute())+":"+twoDigits(second());
+  String timenow = String(hour()) + ":" + twoDigits(minute()) + ":" + twoDigits(second());
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_24);
   display->drawString(clockCenterX + x , clockCenterY + y, timenow );
@@ -155,15 +156,15 @@ OverlayCallback overlays[] = { clockOverlay };
 int overlaysCount = 1;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println();
 
-	// The ESP is capable of rendering 60fps in 80Mhz mode
-	// but that won't give you much time for anything else
-	// run it in 160Mhz mode or just set it to 30 fps
+  // The ESP is capable of rendering 60fps in 80Mhz mode
+  // but that won't give you much time for anything else
+  // run it in 160Mhz mode or just set it to 30 fps
   ui.setTargetFPS(60);
 
-	// Customize the active and inactive symbol
+  // Customize the active and inactive symbol
   ui.setActiveSymbol(activeSymbol);
   ui.setInactiveSymbol(inactiveSymbol);
 
@@ -207,8 +208,5 @@ void loop() {
     // Don't do stuff if you are below your
     // time budget.
     delay(remainingTimeBudget);
-
   }
-
-
 }
