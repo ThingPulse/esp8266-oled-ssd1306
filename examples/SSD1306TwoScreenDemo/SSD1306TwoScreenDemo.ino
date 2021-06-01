@@ -34,8 +34,8 @@
 #include "images.h"
 
 // Initialize the OLED display using Wire library
-SSD1306Wire  display(0x3c, D3, D5);
-SSD1306Wire  display2(0x3c, D1, D2);
+SSD1306Wire  display(0x3c, 0, 14);
+SSD1306Wire  display2(0x3c, 5, 4);
 
 void setup() {
   Serial.begin(115200);
