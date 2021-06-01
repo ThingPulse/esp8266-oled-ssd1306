@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.com/ThingPulse/esp8266-oled-ssd1306)
+[![Build Status](https://github.com/ThingPulse/esp8266-oled-ssd1306/actions/workflows/main.yml/badge.svg)](https://github.com/ThingPulse/esp8266-oled-ssd1306/actions)
 
 # ThingPulse OLED SSD1306 (ESP8266/ESP32/Mbed-OS)
 
