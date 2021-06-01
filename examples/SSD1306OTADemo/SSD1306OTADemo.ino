@@ -28,11 +28,15 @@
 
 */
 
-// WiFi includes
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
-
-// OTA Includes
 #include <ESP8266mDNS.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#endif
+
 #include <ArduinoOTA.h>
 
 const char *ssid         = "[Your SSID]";
