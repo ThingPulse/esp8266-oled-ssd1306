@@ -90,7 +90,7 @@ struct OLEDDisplayUiState {
   FrameState    frameState;
   uint8_t       currentFrame;
 
-  bool          isIndicatorDrawen;
+  bool          isIndicatorDrawn;
 
   // Normal = 1, Inverse = -1;
   int8_t        frameTransitionDirection;
@@ -143,10 +143,10 @@ class OLEDDisplayUi {
     OverlayCallback*    overlayFunctions;
     uint8_t             overlayCount;
 
-    // Will the Indicator be drawen
+    // Will the Indicator be drawn
     // 3 Not drawn in both frames
     // 2 Drawn this frame but not next
-    // 1 Not drown this frame but next
+    // 1 Not drawn this frame but next
     // 0 Not known yet
     uint8_t                indicatorDrawState;
 
