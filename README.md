@@ -258,7 +258,7 @@ void setFont(const uint8_t* fontData);
 
 ## Ui Library (OLEDDisplayUi)
 
-The Ui Library is used to provide a basic set of user interface elements called, `Frames` and `Overlays`. A `Frame` is used to provide
+The Ui Library is used to provide a basic set of user interface elements called `Frames` and `Overlays`. A `Frame` is used to provide
 information to the user. The default behaviour is to display a `Frame` for a defined time and than move to the next `Frame`. The library also
 provides an `Indicator` element that will be updated accordingly. An `Overlay` on the other hand is a piece of information (e.g. a clock) that
 is always displayed at the same position.
@@ -382,7 +382,7 @@ void previousFrame();
 void switchToFrame(uint8_t frame);
 
 /**
- * Transition to frame `frame`, when the `frame` number is bigger than the current
+ * Transition to frame `frame`. When the `frame` number is bigger than the current
  * frame the forward animation will be used, otherwise the backwards animation is used.
  */
 void transitionToFrame(uint8_t frame);
@@ -403,7 +403,7 @@ int8_t update();
 
 This frame shows three things:
  * How to draw an XMB image
- * How to draw a static text which is not moved by the frame transition
+ * How to draw static text which is not moved by the frame transition
  * The active/inactive frame indicators
 
 ### Frame 2
