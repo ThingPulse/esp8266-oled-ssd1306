@@ -60,7 +60,7 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   state.currentFrame = 0;
   state.frameTransitionDirection = 1;
   state.isIndicatorDrawen = true;
-  state.manuelControll = false;
+  state.manualControl = false;
   state.userData = NULL;
   shouldDrawIndicators = true;
   autoTransition = true;
@@ -179,10 +179,10 @@ void OLEDDisplayUi::runLoadingProcess(LoadingStage* stages, uint8_t stagesCount)
   delay(150);
 }
 
-// -/----- Manuel control -----\-
+// -/----- Manual control -----\-
 void OLEDDisplayUi::nextFrame() {
   if (this->state.frameState != IN_TRANSITION) {
-    this->state.manuelControll = true;
+    this->state.manualControl = true;
     this->state.frameState = IN_TRANSITION;
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.frameTransitionDirection;
@@ -191,7 +191,7 @@ void OLEDDisplayUi::nextFrame() {
 }
 void OLEDDisplayUi::previousFrame() {
   if (this->state.frameState != IN_TRANSITION) {
-    this->state.manuelControll = true;
+    this->state.manualControl = true;
     this->state.frameState = IN_TRANSITION;
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.frameTransitionDirection;
@@ -214,7 +214,7 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   if (frame == this->state.currentFrame) return;
   this->nextFrameNumber = frame;
   this->lastTransitionDirection = this->state.frameTransitionDirection;
-  this->state.manuelControll = true;
+  this->state.manualControl = true;
   this->state.frameState = IN_TRANSITION;
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
@@ -266,10 +266,10 @@ void OLEDDisplayUi::tick() {
         }
       break;
     case FIXED:
-      // Revert manuelControll
-      if (this->state.manuelControll) {
+      // Revert manualControl
+      if (this->state.manualControl) {
         this->state.frameTransitionDirection = this->lastTransitionDirection;
-        this->state.manuelControll = false;
+        this->state.manualControl = false;
       }
       if (this->state.ticksSinceLastStateSwitch >= this->ticksPerFrame){
           if (this->autoTransition){
