@@ -95,7 +95,7 @@ struct OLEDDisplayUiState {
   // Normal = 1, Inverse = -1;
   int8_t        frameTransitionDirection;
 
-  bool          manuelControll;
+  bool          manualControl;
 
   // Custom data that can be used by the user
   void*         userData;
@@ -183,7 +183,7 @@ class OLEDDisplayUi {
      */
     void setTargetFPS(uint8_t fps);
 
-    // Automatic Controll
+    // Automatic Control
     /**
      * Enable automatic transition to next frame after the some time can be configured with `setTimePerFrame` and `setTimePerTransition`.
      */
@@ -201,12 +201,12 @@ class OLEDDisplayUi {
     void setAutoTransitionBackwards();
 
     /**
-     *  Set the approx. time a frame is displayed
+     *  Set the approximate time a frame is displayed
      */
     void setTimePerFrame(uint16_t time);
 
     /**
-     * Set the approx. time a transition will take
+     * Set the approximate time a transition will take
      */
     void setTimePerTransition(uint16_t time);
 
