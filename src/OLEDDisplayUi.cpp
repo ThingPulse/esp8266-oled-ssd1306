@@ -59,8 +59,8 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   state.frameState = FIXED;
   state.currentFrame = 0;
   state.frameTransitionDirection = 1;
-  state.isIndicatorDrawen = true;
-  state.manuelControll = false;
+  state.isIndicatorDrawn = true;
+  state.manualControl = false;
   state.userData = NULL;
   shouldDrawIndicators = true;
   autoTransition = true;
@@ -106,11 +106,11 @@ void OLEDDisplayUi::setTimePerTransition(uint16_t time){
 
 // -/------ Customize indicator position and style -------\-
 void OLEDDisplayUi::enableIndicator(){
-  this->state.isIndicatorDrawen = true;
+  this->state.isIndicatorDrawn = true;
 }
 
 void OLEDDisplayUi::disableIndicator(){
-  this->state.isIndicatorDrawen = false;
+  this->state.isIndicatorDrawn = false;
 }
 
 void OLEDDisplayUi::enableAllIndicators(){
@@ -179,10 +179,10 @@ void OLEDDisplayUi::runLoadingProcess(LoadingStage* stages, uint8_t stagesCount)
   delay(150);
 }
 
-// -/----- Manuel control -----\-
+// -/----- Manual control -----\-
 void OLEDDisplayUi::nextFrame() {
   if (this->state.frameState != IN_TRANSITION) {
-    this->state.manuelControll = true;
+    this->state.manualControl = true;
     this->state.frameState = IN_TRANSITION;
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.frameTransitionDirection;
@@ -191,7 +191,7 @@ void OLEDDisplayUi::nextFrame() {
 }
 void OLEDDisplayUi::previousFrame() {
   if (this->state.frameState != IN_TRANSITION) {
-    this->state.manuelControll = true;
+    this->state.manualControl = true;
     this->state.frameState = IN_TRANSITION;
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.frameTransitionDirection;
@@ -205,7 +205,7 @@ void OLEDDisplayUi::switchToFrame(uint8_t frame) {
   if (frame == this->state.currentFrame) return;
   this->state.frameState = FIXED;
   this->state.currentFrame = frame;
-  this->state.isIndicatorDrawen = true;
+  this->state.isIndicatorDrawn = true;
 }
 
 void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
@@ -214,7 +214,7 @@ void OLEDDisplayUi::transitionToFrame(uint8_t frame) {
   if (frame == this->state.currentFrame) return;
   this->nextFrameNumber = frame;
   this->lastTransitionDirection = this->state.frameTransitionDirection;
-  this->state.manuelControll = true;
+  this->state.manualControl = true;
   this->state.frameState = IN_TRANSITION;
   this->state.frameTransitionDirection = frame < this->state.currentFrame ? -1 : 1;
 }
@@ -237,7 +237,7 @@ int16_t OLEDDisplayUi::update(){
 #endif
   int32_t timeBudget = this->updateInterval - (frameStart - this->state.lastUpdate);
   if ( timeBudget <= 0) {
-    // Implement frame skipping to ensure time budget is keept
+    // Implement frame skipping to ensure time budget is kept
     if (this->autoTransition && this->state.lastUpdate != 0) this->state.ticksSinceLastStateSwitch += ceil((double)-timeBudget / (double)this->updateInterval);
 
     this->state.lastUpdate = frameStart;
@@ -266,10 +266,10 @@ void OLEDDisplayUi::tick() {
         }
       break;
     case FIXED:
-      // Revert manuelControll
-      if (this->state.manuelControll) {
+      // Revert manualControl
+      if (this->state.manualControl) {
         this->state.frameTransitionDirection = this->lastTransitionDirection;
-        this->state.manuelControll = false;
+        this->state.manualControl = false;
       }
       if (this->state.ticksSinceLastStateSwitch >= this->ticksPerFrame){
           if (this->autoTransition){
@@ -294,7 +294,7 @@ void OLEDDisplayUi::resetState() {
   this->state.ticksSinceLastStateSwitch = 0;
   this->state.frameState = FIXED;
   this->state.currentFrame = 0;
-  this->state.isIndicatorDrawen = true;
+  this->state.isIndicatorDrawn = true;
 }
 
 void OLEDDisplayUi::drawFrame(){
@@ -337,32 +337,32 @@ void OLEDDisplayUi::drawFrame(){
        int8_t dir = this->state.frameTransitionDirection >= 0 ? 1 : -1;
        x *= dir; y *= dir; x1 *= dir; y1 *= dir;
 
-       bool drawenCurrentFrame;
+       bool drawnCurrentFrame;
 
 
-       // Prope each frameFunction for the indicator Drawen state
+       // Probe each frameFunction for the indicator drawn state
        this->enableIndicator();
        (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y);
-       drawenCurrentFrame = this->state.isIndicatorDrawen;
+       drawnCurrentFrame = this->state.isIndicatorDrawn;
 
        this->enableIndicator();
        (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
 
        // Build up the indicatorDrawState
-       if (drawenCurrentFrame && !this->state.isIndicatorDrawen) {
-         // Drawen now but not next
+       if (drawnCurrentFrame && !this->state.isIndicatorDrawn) {
+         // Drawn now but not next
          this->indicatorDrawState = 2;
-       } else if (!drawenCurrentFrame && this->state.isIndicatorDrawen) {
-         // Not drawen now but next
+       } else if (!drawnCurrentFrame && this->state.isIndicatorDrawn) {
+         // Not drawn now but next
          this->indicatorDrawState = 1;
-       } else if (!drawenCurrentFrame && !this->state.isIndicatorDrawen) {
-         // Not drawen in both frames
+       } else if (!drawnCurrentFrame && !this->state.isIndicatorDrawn) {
+         // Not drawn in both frames
          this->indicatorDrawState = 3;
        }
 
        // If the indicator isn't draw in the current frame
-       // reflect it in state.isIndicatorDrawen
-       if (!drawenCurrentFrame) this->state.isIndicatorDrawen = false;
+       // reflect it in state.isIndicatorDrawn
+       if (!drawnCurrentFrame) this->state.isIndicatorDrawn = false;
 
        break;
      }
@@ -381,7 +381,7 @@ void OLEDDisplayUi::drawIndicator() {
     // Only draw if the indicator is invisible
     // for both frames or
     // the indiactor is shown and we are IN_TRANSITION
-    if (this->indicatorDrawState == 3 || (!this->state.isIndicatorDrawen && this->state.frameState != IN_TRANSITION)) {
+    if (this->indicatorDrawState == 3 || (!this->state.isIndicatorDrawn && this->state.frameState != IN_TRANSITION)) {
       return;
     }
 
