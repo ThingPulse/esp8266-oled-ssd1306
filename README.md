@@ -401,7 +401,7 @@ int8_t update();
 ![DemoFrame1](https://github.com/squix78/esp8266-oled-ssd1306/raw/master/resources/DemoFrame1.jpg)
 
 This frame shows three things:
- * How to draw a xbm image
+ * How to draw an XMB image
  * How to draw a static text which is not moved by the frame transition
  * The active/inactive frame indicators
 
