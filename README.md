@@ -258,9 +258,10 @@ void setFont(const uint8_t* fontData);
 
 ## Ui Library (OLEDDisplayUi)
 
-The Ui Library is used to provide a basic set of Ui elements called, `Frames` and `Overlays`. A `Frame` is used to provide
-information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a piece of information (e.g. a clock) that is displayed always at the same position.
-
+The Ui Library is used to provide a basic set of user interface elements called, `Frames` and `Overlays`. A `Frame` is used to provide
+information to the user. The default behaviour is to display a `Frame` for a defined time and than move to the next `Frame`. The library also
+provides an `Indicator` element that will be updated accordingly. An `Overlay` on the other hand is a piece of information (e.g. a clock) that
+is always displayed at the same position.
 
 ```C++
 /**
