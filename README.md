@@ -259,7 +259,7 @@ void setFont(const uint8_t* fontData);
 ## Ui Library (OLEDDisplayUi)
 
 The Ui Library is used to provide a basic set of Ui elements called, `Frames` and `Overlays`. A `Frame` is used to provide
-information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a pieces of information (e.g. a clock) that is displayed always at the same position.
+information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a piece of information (e.g. a clock) that is displayed always at the same position.
 
 
 ```C++
@@ -371,7 +371,7 @@ void setLoadingDrawFunction(LoadingDrawFunction loadingDrawFunction);
  */
 void runLoadingProcess(LoadingStage* stages, uint8_t stagesCount);
 
-// Manuell Controll
+// Manual control
 void nextFrame();
 void previousFrame();
 
@@ -401,7 +401,7 @@ int8_t update();
 ![DemoFrame1](https://github.com/squix78/esp8266-oled-ssd1306/raw/master/resources/DemoFrame1.jpg)
 
 This frame shows three things:
- * How to draw an xbm image
+ * How to draw a xbm image
  * How to draw a static text which is not moved by the frame transition
  * The active/inactive frame indicators
 
