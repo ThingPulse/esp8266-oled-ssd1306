@@ -23,7 +23,7 @@ platformio lib install 2978
 
 ## Credits
 
-This library has initially been written by Daniel Eichhorn ([@squix78](https://github.com/squix78)). Many thanks go to Fabrice Weinberg ([@FWeinb](https://github.com/FWeinb)) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs. Mbed-OS support and other improvements were contributed by Helmut Tschemernjak ([@helmut64](https://github.com/helmut64)).
+This library has initially been written by [Daniel Eichhorn](https://github.com/squix78). Many thanks go to [Fabrice Weinberg](https://github.com/FWeinb) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs. Mbed-OS support and other improvements were contributed by [Helmut Tschemernjak](https://github.com/helmut64).
 
 The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
 
