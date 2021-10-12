@@ -339,14 +339,19 @@ void OLEDDisplayUi::drawFrame(){
 
        bool drawnCurrentFrame;
 
-
        // Probe each frameFunction for the indicator drawn state
+       FrameState oldFrameState=this->state.frameState;
+
        this->enableIndicator();
+       this->state.frameState=IN_TRANSITION_OUT;
        (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y);
        drawnCurrentFrame = this->state.isIndicatorDrawn;
 
        this->enableIndicator();
+       this->state.frameState=IN_TRANSITION_IN;
        (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
+
+       this->state.frameState=oldFrameState;
 
        // Build up the indicatorDrawState
        if (drawnCurrentFrame && !this->state.isIndicatorDrawn) {

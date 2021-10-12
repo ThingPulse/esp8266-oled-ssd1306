@@ -69,6 +69,8 @@ enum IndicatorDirection {
 
 enum FrameState {
   IN_TRANSITION,
+  IN_TRANSITION_IN,
+  IN_TRANSITION_OUT,
   FIXED
 };
 
