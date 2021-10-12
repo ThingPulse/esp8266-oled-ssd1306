@@ -146,8 +146,8 @@ class OLEDDisplayUi {
     OverlayCallback*    overlayFunctions;
     uint8_t             overlayCount;
 
-    uint8_t*            noOverlayFrames;
-    uint8_t             noOverlayFramesCount;
+    uint8_t*            fixedOverlayFrames;
+    uint8_t             fixedOverlayFramesCount;
     FixedOverlayCallback fixedOverlayCallback;
 
     // Will the Indicator be drawn
@@ -289,12 +289,12 @@ class OLEDDisplayUi {
     /**
      * Set the list of frames with no fixed overlay
      */
-    void setFixedOverlayFrames(const uint8_t* nooverlayFramesList, int noOverlayFramesCount);
+    void setFixedOverlayFrames(const uint8_t* fixedOverlayFramesList, int fixedOverlayFramesCount);
 
     /**
      * Set the list of frames with no fixed overlay
      */
-    void setFixedOverlayFrames(const FrameCallback*  nooverlayFramesList, int noOverlayFramesCount);
+    void setFixedOverlayFrames(const FrameCallback*  fixedOverlayFramesList, int fixedOverlayFramesCount);
 
     /**
      * Set fixed overlay drawing function that will be drawn on fixed overlay frames only

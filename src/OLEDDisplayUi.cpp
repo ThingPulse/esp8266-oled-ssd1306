@@ -51,8 +51,8 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   frameCount = 0;
   nextFrameNumber = -1;
   overlayCount = 0;
-  noOverlayFramesCount =0 ;
-  noOverlayFrames = nullptr;
+  fixedOverlayFramesCount =0 ;
+  fixedOverlayFrames = nullptr;
   fixedOverlayCallback = nullptr;
   indicatorDrawState = 1;
   loadingDrawFunction = LoadingDrawDefault;
@@ -72,7 +72,7 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
 }
 
 OLEDDisplayUi::~OLEDDisplayUi() {
-  if(noOverlayFramesCount>0) free(noOverlayFrames);
+  if(fixedOverlayFramesCount>0) free(fixedOverlayFrames);
 }
 
 void OLEDDisplayUi::init() {
@@ -162,34 +162,34 @@ void OLEDDisplayUi::setFixedOverlay(FixedOverlayCallback fixedOverlayCallback) {
   this->fixedOverlayCallback = fixedOverlayCallback;
 }
 
-void OLEDDisplayUi::setFixedOverlayFrames(const uint8_t* noOverlayFramesList, int noOverlayFramesCount) {
-  this->noOverlayFrames = (uint8_t*)calloc(noOverlayFramesCount, sizeof(int8_t));
-  if(this->noOverlayFrames != nullptr) {
-    this->noOverlayFramesCount = noOverlayFramesCount;
+void OLEDDisplayUi::setFixedOverlayFrames(const uint8_t* fixedOverlayFramesList, int fixedOverlayFramesCount) {
+  this->fixedOverlayFrames = (uint8_t*)calloc(fixedOverlayFramesCount, sizeof(int8_t));
+  if(this->fixedOverlayFrames != nullptr) {
+    this->fixedOverlayFramesCount = fixedOverlayFramesCount;
   }
-  memcpy((void*) this->noOverlayFrames, (void*) noOverlayFramesList, noOverlayFramesCount * sizeof(int8_t));
+  memcpy((void*) this->fixedOverlayFrames, (void*) fixedOverlayFramesList, fixedOverlayFramesCount * sizeof(int8_t));
 }
 
-void OLEDDisplayUi::setFixedOverlayFrames(const FrameCallback*  noOverlayFramesList, int noOverlayFramesCount) {
-  this->noOverlayFrames = (uint8_t*)calloc(noOverlayFramesCount, sizeof(int8_t));
-  if(this->noOverlayFrames != nullptr) {
-    this->noOverlayFramesCount = noOverlayFramesCount;
+void OLEDDisplayUi::setFixedOverlayFrames(const FrameCallback*  fixedOverlayFramesList, int fixedOverlayFramesCount) {
+  this->fixedOverlayFrames = (uint8_t*)calloc(fixedOverlayFramesCount, sizeof(int8_t));
+  if(this->fixedOverlayFrames != nullptr) {
+    this->fixedOverlayFramesCount = fixedOverlayFramesCount;
     uint8_t foundFrameNo=0;
-    for(uint8_t noOverlayFrameNo = 0; noOverlayFrameNo < noOverlayFramesCount; noOverlayFrameNo++) {
+    for(uint8_t noOverlayFrameNo = 0; noOverlayFrameNo < fixedOverlayFramesCount; noOverlayFrameNo++) {
       for(uint8_t frameNo = 0; frameNo < frameCount; frameNo++) {
-        if(noOverlayFramesList[noOverlayFrameNo] == frameFunctions[frameNo])
+        if(fixedOverlayFramesList[noOverlayFrameNo] == frameFunctions[frameNo])
         {
-          this->noOverlayFrames[foundFrameNo++] = frameNo;
+          this->fixedOverlayFrames[foundFrameNo++] = frameNo;
           break;
         }
       }
     }
-    if(foundFrameNo != noOverlayFramesCount) {
-      this->noOverlayFramesCount = 0;
-      this->noOverlayFrames = (uint8_t*)realloc(this->noOverlayFrames, foundFrameNo * sizeof(int8_t));
+    if(foundFrameNo != fixedOverlayFramesCount) {
+      this->fixedOverlayFramesCount = 0;
+      this->fixedOverlayFrames = (uint8_t*)realloc(this->fixedOverlayFrames, foundFrameNo * sizeof(int8_t));
       {
-        if(this->noOverlayFrames != nullptr) {
-          this->noOverlayFramesCount = foundFrameNo;
+        if(this->fixedOverlayFrames != nullptr) {
+          this->fixedOverlayFramesCount = foundFrameNo;
         }
       }
     }
@@ -348,11 +348,11 @@ void OLEDDisplayUi::drawFixedOverlay(int16_t x, int16_t y, int16_t x1, int16_t y
   bool currentFrameHasFixedOverlay = false;
   bool nextFrameHasFixedOverlay = false;
 
-  for(int i = 0; i < noOverlayFramesCount; i++) {
-    if(this->state.currentFrame == noOverlayFrames[i]) {
+  for(int i = 0; i < fixedOverlayFramesCount; i++) {
+    if(this->state.currentFrame == fixedOverlayFrames[i]) {
       currentFrameHasFixedOverlay = true;
     }
-    if(this->getNextFrameNumber() == noOverlayFrames[i]) {
+    if(this->getNextFrameNumber() == fixedOverlayFrames[i]) {
       nextFrameHasFixedOverlay = true;
     }
   }
