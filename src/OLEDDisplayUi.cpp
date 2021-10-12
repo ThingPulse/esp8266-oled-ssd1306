@@ -546,5 +546,6 @@ void OLEDDisplayUi::drawOverlays() {
 
 uint8_t OLEDDisplayUi::getNextFrameNumber(){
   if (this->nextFrameNumber != -1) return this->nextFrameNumber;
+  if(this->frameCount == 0) return(-1);
   return (this->state.currentFrame + this->frameCount + this->state.frameTransitionDirection) % this->frameCount;
 }
