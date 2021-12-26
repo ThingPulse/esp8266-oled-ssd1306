@@ -399,7 +399,7 @@ void OLEDDisplayUi::drawFrame(){
        this->state.transitionFrameRelationship = OUTGOING;
        //Since we're IN_TRANSITION, draw the old frame in a sliding-out position
        (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y); 
-       drawenCurrentFrame = this->state.isIndicatorDrawen;
+       drawnCurrentFrame = this->state.isIndicatorDrawn;
 
        this->enableIndicator();
        this->state.transitionFrameRelationship = INCOMING;
