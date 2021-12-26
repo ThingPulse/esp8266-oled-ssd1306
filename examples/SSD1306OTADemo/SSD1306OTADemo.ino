@@ -1,42 +1,46 @@
 /**
- * The MIT License (MIT)
- *
- * Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
- * Copyright (c) 2018 by Fabrice Weinberg
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * ThingPulse invests considerable time and money to develop these open source libraries.
- * Please support us by buying our products (and not the clones) from
- * https://thingpulse.com
- *
- */
+   The MIT License (MIT)
 
-// WiFi includes
- #include <ESP8266WiFi.h>
+   Copyright (c) 2018 by ThingPulse, Daniel Eichhorn
+   Copyright (c) 2018 by Fabrice Weinberg
 
- // OTA Includes
- #include <ESP8266mDNS.h>
- #include <ArduinoOTA.h>
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
- const char *ssid         = "[Your SSID]";
- const char *password     = "[Your Password]";
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+   ThingPulse invests considerable time and money to develop these open source libraries.
+   Please support us by buying our products (and not the clones) from
+   https://thingpulse.com
+
+*/
+
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#endif
+
+#include <ArduinoOTA.h>
+
+const char *ssid         = "[Your SSID]";
+const char *password     = "[Your Password]";
 
 
 // Include the correct display library
@@ -73,8 +77,8 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306Wire  display(0x3c, D3, D5);
-// SH1106 display(0x3c, D3, D5);
+SSD1306Wire display(0x3c, SDA, SCL);   // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h e.g. https://github.com/esp8266/Arduino/blob/master/variants/nodemcu/pins_arduino.h
+// SH1106Wire display(0x3c, SDA, SCL);
 
 
 void setup() {
@@ -94,7 +98,7 @@ void setup() {
     display.clear();
     display.setFont(ArialMT_Plain_10);
     display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    display.drawString(display.getWidth()/2, display.getHeight()/2 - 10, "OTA Update");
+    display.drawString(display.getWidth() / 2, display.getHeight() / 2 - 10, "OTA Update");
     display.display();
   });
 
@@ -107,14 +111,14 @@ void setup() {
     display.clear();
     display.setFont(ArialMT_Plain_10);
     display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    display.drawString(display.getWidth()/2, display.getHeight()/2, "Restart");
+    display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Restart");
     display.display();
   });
 
   // Align text vertical/horizontal center
   display.setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
   display.setFont(ArialMT_Plain_10);
-  display.drawString(display.getWidth()/2, display.getHeight()/2, "Ready for OTA:\n" + WiFi.localIP().toString());
+  display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Ready for OTA:\n" + WiFi.localIP().toString());
   display.display();
 }
 

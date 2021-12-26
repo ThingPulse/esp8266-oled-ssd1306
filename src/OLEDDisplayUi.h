@@ -105,7 +105,7 @@ struct OLEDDisplayUiState {
   // Normal = 1, Inverse = -1;
   int8_t        frameTransitionDirection;
 
-  bool          manuelControll;
+  bool          manualControl;
 
   // Custom data that can be used by the user
   void*         userData;
@@ -156,10 +156,10 @@ class OLEDDisplayUi {
     OverlayCallback*    overlayFunctions;
     uint8_t             overlayCount;
 
-    // Will the Indicator be drawen
+    // Will the Indicator be drawn
     // 3 Not drawn in both frames
     // 2 Drawn this frame but not next
-    // 1 Not drown this frame but next
+    // 1 Not drawn this frame but next
     // 0 Not known yet
     uint8_t                indicatorDrawState;
 
@@ -196,7 +196,7 @@ class OLEDDisplayUi {
      */
     void setTargetFPS(uint8_t fps);
 
-    // Automatic Controll
+    // Automatic Control
     /**
      * Enable automatic transition to next frame after the some time can be configured with `setTimePerFrame` and `setTimePerTransition`.
      */
@@ -214,12 +214,12 @@ class OLEDDisplayUi {
     void setAutoTransitionBackwards();
 
     /**
-     *  Set the approx. time a frame is displayed
+     *  Set the approximate time a frame is displayed
      */
     void setTimePerFrame(uint16_t time);
 
     /**
-     * Set the approx. time a transition will take
+     * Set the approximate time a transition will take
      */
     void setTimePerTransition(uint16_t time);
 
