@@ -130,7 +130,7 @@ class SSD1306Spi : public OLEDDisplay {
        sendCommand(PAGEADDR);
        sendCommand(0x0);
 
-       if (geometry == GEOMETRY_128_64) {
+       if (geometry == GEOMETRY_128_64 || geometry == GEOMETRY_64_48 || geometry == GEOMETRY_64_32 ) {
          sendCommand(0x7);
        } else if (geometry == GEOMETRY_128_32) {
          sendCommand(0x3);

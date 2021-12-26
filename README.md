@@ -1,17 +1,19 @@
-[![Build Status](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306.svg?branch=master)](https://travis-ci.org/ThingPulse/esp8266-oled-ssd1306)
+[![Build Status](https://github.com/ThingPulse/esp8266-oled-ssd1306/actions/workflows/main.yml/badge.svg)](https://github.com/ThingPulse/esp8266-oled-ssd1306/actions)
 
 # ThingPulse OLED SSD1306 (ESP8266/ESP32/Mbed-OS)
 
-> We just released version 4.0.0. Please have a look at our [upgrade guide](UPGRADE-4.0.md)
-
-This is a driver for SSD1306 128x64 and 128x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
+This is a driver for SSD1306 128x64, 128x32, 64x48 and 64x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
 Can be used with either the I2C or SPI version of the display.
 
-You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library. 
+This library drives the OLED display included in the [ThingPulse IoT starter kit](https://thingpulse.com/product/esp8266-iot-electronics-starter-kit-weatherstation-planespotter-worldclock/) aka classic kit aka weather station kit.
 
-It is also available as a platformio library. Just execute the following command:
+[![ThingPulse ESP8266 WeatherStation Classic Kit](https://github.com/ThingPulse/esp8266-weather-station/blob/master/resources/ThingPulse-ESP8266-Weather-Station.jpeg?raw=true)](https://thingpulse.com/product/esp8266-iot-electronics-starter-kit-weatherstation-planespotter-worldclock/)
+
+You can either download this library as a zip file and unpack it to your Arduino/libraries folder or find it in the Arduino library manager under "ESP8266 and ESP32 Oled Driver for SSD1306 display". For mbed-os a copy of the files are available as an mbed-os library.
+
+It is also available as a [PlatformIO library](https://platformio.org/lib/show/2978/ESP8266%20and%20ESP32%20OLED%20driver%20for%20SSD1306%20displays/examples). Just execute the following command:
 ```
-platformio lib install 562
+platformio lib install 2978
 ```
 
 ## Service level promise
@@ -21,7 +23,7 @@ platformio lib install 562
 
 ## Credits
 
-This library has initially been written by Daniel Eichhorn ([@squix78](https://github.com/squix78)). Many thanks go to Fabrice Weinberg ([@FWeinb](https://github.com/FWeinb)) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs. Mbed-OS support and other improvements were contributed by Helmut Tschemernjak ([@helmut64](https://github.com/helmut64)).
+This library has initially been written by [Daniel Eichhorn](https://github.com/squix78). Many thanks go to [Fabrice Weinberg](https://github.com/FWeinb) for optimizing and refactoring many aspects of the library. Also many thanks to the many committers who helped to add new features and who fixed many bugs. Mbed-OS support and other improvements were contributed by [Helmut Tschemernjak](https://github.com/helmut64).
 
 The init sequence for the SSD1306 was inspired by Adafruit's library for the same display.
 
@@ -69,21 +71,29 @@ The library supports different protocols to access the OLED display. Currently t
 ### I2C with Wire.h
 
 ```C++
-#include <Wire.h>  
+#include <Wire.h>
 #include "SSD1306Wire.h"
 
 // for 128x64 displays:
 SSD1306Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
 // for 128x32 displays:
 // SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);  // ADDRESS, SDA, SCL, GEOMETRY_128_32 (or 128_64)
+// for using 2nd Hardware I2C (if available)
+// SSD1306Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_TWO); //default value is I2C_ONE if not mentioned
+// By default SD1306Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
+// SSD1306Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, 400000); //set I2C frequency to 400kHz
+// SSD1306Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, -1); //skip setting the I2C bus frequency
 ```
 
 for a SH1106:
 ```C++
-#include <Wire.h>  
+#include <Wire.h>
 #include "SH1106Wire.h"
 
 SH1106Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL
+// By default SH1106Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
+// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, 400000); //set I2C frequency to 400kHz
+// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, -1); //skip setting the I2C bus frequency
 ```
 
 ### I2C with brzo_i2c
@@ -174,6 +184,7 @@ void mirrorScreen();
 
 /* Drawing functions */
 // Sets the color of all pixel operations
+// color : BLACK, WHITE, INVERSE
 void setColor(OLEDDISPLAY_COLOR color);
 
 // Draw a pixel at given position
@@ -194,6 +205,12 @@ void drawCircle(int16_t x, int16_t y, int16_t radius);
 // Fill circle
 void fillCircle(int16_t x, int16_t y, int16_t radius);
 
+// Draw an empty triangle i.e. only the outline
+void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+
+// Draw a solid triangle i.e. filled
+void fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+
 // Draw a line horizontally
 void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
 
@@ -208,25 +225,25 @@ void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, ui
 void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *image);
 
 // Draw a XBM
-void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char* xbm);
+void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *xbm);
 ```
 
 ## Text operations
 
 ``` C++
-void drawString(int16_t x, int16_t y, String text);
+void drawString(int16_t x, int16_t y, const String &text);
 
 // Draws a String with a maximum width at the given location.
 // If the given String is wider than the specified width
 // The text will be wrapped to the next line at a space or dash
-void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, String text);
+void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, const String &text);
 
 // Returns the width of the const char* with the current
 // font settings
 uint16_t getStringWidth(const char* text, uint16_t length);
 
 // Convencience method for the const char version
-uint16_t getStringWidth(String text);
+uint16_t getStringWidth(const String &text);
 
 // Specifies relative to which anchor point
 // the text is rendered. Available constants:
@@ -241,9 +258,10 @@ void setFont(const uint8_t* fontData);
 
 ## Ui Library (OLEDDisplayUi)
 
-The Ui Library is used to provide a basic set of Ui elements called, `Frames` and `Overlays`. A `Frame` is used to provide
-information the default behaviour is to display a `Frame` for a defined time and than move to the next. The library also provides an `Indicator` that will be updated accordingly. An `Overlay` on the other hand is a pieces of information (e.g. a clock) that is displayed always at the same position.
-
+The Ui Library is used to provide a basic set of user interface elements called `Frames` and `Overlays`. A `Frame` is used to provide
+information to the user. The default behaviour is to display a `Frame` for a defined time and than move to the next `Frame`. The library also
+provides an `Indicator` element that will be updated accordingly. An `Overlay` on the other hand is a piece of information (e.g. a clock) that
+is always displayed at the same position.
 
 ```C++
 /**
@@ -321,12 +339,12 @@ void setIndicatorDirection(IndicatorDirection dir);
 /**
  * Set the symbol to indicate an active frame in the indicator bar.
  */
-void setActiveSymbol(const char* symbol);
+void setActiveSymbol(const uint8_t* symbol);
 
 /**
  * Set the symbol to indicate an inactive frame in the indicator bar.
  */
-void setInactiveSymbol(const char* symbol);
+void setInactiveSymbol(const uint8_t* symbol);
 
 /**
  * Configure what animation is used to transition from one frame to another
@@ -354,7 +372,7 @@ void setLoadingDrawFunction(LoadingDrawFunction loadingDrawFunction);
  */
 void runLoadingProcess(LoadingStage* stages, uint8_t stagesCount);
 
-// Manuell Controll
+// Manual control
 void nextFrame();
 void previousFrame();
 
@@ -364,7 +382,7 @@ void previousFrame();
 void switchToFrame(uint8_t frame);
 
 /**
- * Transition to frame `frame`, when the `frame` number is bigger than the current
+ * Transition to frame `frame`. When the `frame` number is bigger than the current
  * frame the forward animation will be used, otherwise the backwards animation is used.
  */
 void transitionToFrame(uint8_t frame);
@@ -384,8 +402,8 @@ int8_t update();
 ![DemoFrame1](https://github.com/squix78/esp8266-oled-ssd1306/raw/master/resources/DemoFrame1.jpg)
 
 This frame shows three things:
- * How to draw an xbm image
- * How to draw a static text which is not moved by the frame transition
+ * How to draw an XMB image
+ * How to draw static text which is not moved by the frame transition
  * The active/inactive frame indicators
 
 ### Frame 2
