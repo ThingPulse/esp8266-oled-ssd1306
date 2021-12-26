@@ -100,7 +100,7 @@ struct OLEDDisplayUiState {
   TransitionRelationship transitionFrameRelationship;
 
   std::vector<uint32_t>     notifyingFrames;
-  bool          isIndicatorDrawn;
+  bool          isIndicatorDrawen;
 
   // Normal = 1, Inverse = -1;
   int8_t        frameTransitionDirection;
