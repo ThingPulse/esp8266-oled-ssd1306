@@ -32,6 +32,8 @@
 #ifndef OLEDDISPLAY_h
 #define OLEDDISPLAY_h
 
+#include <cstdarg>
+
 #ifdef ARDUINO
 #include <Arduino.h>
 #elif __MBED__
