@@ -42,6 +42,7 @@
 
 #include "OLEDDisplay.h"
 #include <vector>
+#include <algorithm>
 
 //#define DEBUG_OLEDDISPLAYUI(...) Serial.printf( __VA_ARGS__ )
 
