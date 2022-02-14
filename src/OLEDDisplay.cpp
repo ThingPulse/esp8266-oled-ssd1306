@@ -553,13 +553,14 @@ void OLEDDisplay::drawIco16x16(int16_t xMove, int16_t yMove, const uint8_t *ico,
   }
 }
 
-void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, const char* text, uint16_t textLength, uint16_t textWidth, bool utf8) {
+uint16_t OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, const char* text, uint16_t textLength, uint16_t textWidth, bool utf8) {
   uint8_t textHeight       = pgm_read_byte(fontData + HEIGHT_POS);
   uint8_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t sizeOfJumpTable = pgm_read_byte(fontData + CHAR_NUM_POS)  * JUMPTABLE_BYTES;
 
   uint16_t cursorX         = 0;
   uint16_t cursorY         = 0;
+  uint16_t charCount       = 0;
 
   switch (textAlignment) {
     case TEXT_ALIGN_CENTER_BOTH:
@@ -576,14 +577,15 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, const char* t
   }
 
   // Don't draw anything if it is not on the screen.
-  if (xMove + textWidth  < 0 || xMove > this->width() ) {return;}
-  if (yMove + textHeight < 0 || yMove > this->height()) {return;}
+  if (xMove + textWidth  < 0 || xMove >= this->width() ) {return 0;}
+  if (yMove + textHeight < 0 || yMove >= this->height()) {return 0;}
 
   for (uint16_t j = 0; j < textLength; j++) {
     int16_t xPos = xMove + cursorX;
     int16_t yPos = yMove + cursorY;
     if (xPos > this->width())
       break; // no need to continue
+    charCount++;
 
     uint8_t code;
     if (utf8) {
@@ -611,6 +613,7 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, const char* t
       cursorX += currentCharWidth;
     }
   }
+  return charCount;
 }
 
 
