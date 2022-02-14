@@ -255,7 +255,7 @@ class OLEDDisplay : public Stream {
 
     // Returns the width of the const char* with the current
     // font settings
-    uint16_t getStringWidth(const char* text, uint16_t length);
+    uint16_t getStringWidth(const char* text, uint16_t length, bool utf8 = false);
 
     // Convencience method for the const char version
     uint16_t getStringWidth(const String &text);
@@ -382,7 +382,7 @@ class OLEDDisplay : public Stream {
 
     void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
-    void drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth);
+    void drawStringInternal(int16_t xMove, int16_t yMove, const char* text, uint16_t textLength, uint16_t textWidth, bool utf8);
 
 	FontTableLookupFunction fontTableLookupFunction;
 };

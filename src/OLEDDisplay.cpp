@@ -553,7 +553,7 @@ void OLEDDisplay::drawIco16x16(int16_t xMove, int16_t yMove, const uint8_t *ico,
   }
 }
 
-void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, uint16_t textLength, uint16_t textWidth) {
+void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, const char* text, uint16_t textLength, uint16_t textWidth, bool utf8) {
   uint8_t textHeight       = pgm_read_byte(fontData + HEIGHT_POS);
   uint8_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t sizeOfJumpTable = pgm_read_byte(fontData + CHAR_NUM_POS)  * JUMPTABLE_BYTES;
@@ -585,7 +585,13 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, u
     if (xPos > this->width())
       break; // no need to continue
 
-    uint8_t code = text[j];
+    uint8_t code;
+    if (utf8) {
+      code = (this->fontTableLookupFunction)(text[j]);
+      if (code == 0)
+        continue;
+    } else
+      code = text[j];
     if (code >= firstChar) {
       uint8_t charCode = code - firstChar;
 
@@ -612,7 +618,11 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, const String &strUser
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
 
   // char* text must be freed!
-  char* text = utf8ascii(strUser);
+  char* text = strdup(strUser.c_str());
+  if (!text) {
+    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][drawString] Can't allocate char array.\n");
+    return;
+  }
 
   uint16_t yOffset = 0;
   // If the string should be centered vertically too
@@ -631,7 +641,7 @@ void OLEDDisplay::drawString(int16_t xMove, int16_t yMove, const String &strUser
   char* textPart = strtok(text,"\n");
   while (textPart != NULL) {
     uint16_t length = strlen(textPart);
-    drawStringInternal(xMove, yMove - yOffset + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length));
+    drawStringInternal(xMove, yMove - yOffset + (line++) * lineHeight, textPart, length, getStringWidth(textPart, length, true), true);
     textPart = strtok(NULL, "\n");
   }
   free(text);
@@ -650,7 +660,7 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
   uint16_t firstChar  = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
 
-  char* text = utf8ascii(strUser);
+  const char* text = strUser.c_str();
 
   uint16_t length = strlen(text);
   uint16_t lastDrawnPos = 0;
@@ -674,7 +684,7 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
         preferredBreakpoint = i;
         widthAtBreakpoint = strWidth;
       }
-      drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint);
+      drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint, true);
       lastDrawnPos = preferredBreakpoint;
       // It is possible that we did not draw all letters to i so we need
       // to account for the width of the chars from `i - preferredBreakpoint`
@@ -686,21 +696,26 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
 
   // Draw last part if needed
   if (lastDrawnPos < length) {
-    drawStringInternal(xMove, yMove + lineNumber * lineHeight , &text[lastDrawnPos], length - lastDrawnPos, getStringWidth(&text[lastDrawnPos], length - lastDrawnPos));
+    drawStringInternal(xMove, yMove + lineNumber * lineHeight , &text[lastDrawnPos], length - lastDrawnPos, getStringWidth(&text[lastDrawnPos], length - lastDrawnPos, true), true);
   }
 
-  free(text);
 }
 
-uint16_t OLEDDisplay::getStringWidth(const char* text, uint16_t length) {
+uint16_t OLEDDisplay::getStringWidth(const char* text, uint16_t length, bool utf8) {
   uint16_t firstChar        = pgm_read_byte(fontData + FIRST_CHAR_POS);
 
   uint16_t stringWidth = 0;
   uint16_t maxWidth = 0;
 
-  while (length--) {
-    stringWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[length] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
-    if (text[length] == 10) {
+  for (uint16_t i = 0; i < length; i++) {
+    char c = text[i];
+    if (utf8) {
+      c = (this->fontTableLookupFunction)(c);
+      if (c == 0)
+        continue;
+    }
+    stringWidth += pgm_read_byte(fontData + JUMPTABLE_START + (c - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
+    if (c == 10) {
       maxWidth = max(maxWidth, stringWidth);
       stringWidth = 0;
     }
@@ -710,10 +725,7 @@ uint16_t OLEDDisplay::getStringWidth(const char* text, uint16_t length) {
 }
 
 uint16_t OLEDDisplay::getStringWidth(const String &strUser) {
-  char* text = utf8ascii(strUser);
-  uint16_t length = strlen(text);
-  uint16_t width = getStringWidth(text, length);
-  free(text);
+  uint16_t width = getStringWidth(strUser.c_str(), strUser.length());
   return width;
 }
 
@@ -806,7 +818,7 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
       length++;
       // Draw string on line `line` from lastPos to length
       // Passing 0 as the lenght because we are in TEXT_ALIGN_LEFT
-      drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0);
+      drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0, false);
       // Remember last pos
       lastPos = i;
       // Reset length
@@ -818,7 +830,7 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   }
   // Draw the remaining string
   if (length > 0) {
-    drawStringInternal(xMove, yMove + line * lineHeight, &this->logBuffer[lastPos], length, 0);
+    drawStringInternal(xMove, yMove + line * lineHeight, &this->logBuffer[lastPos], length, 0, false);
   }
 }
 

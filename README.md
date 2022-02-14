@@ -240,7 +240,7 @@ void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, const String
 
 // Returns the width of the const char* with the current
 // font settings
-uint16_t getStringWidth(const char* text, uint16_t length);
+uint16_t getStringWidth(const char* text, uint16_t length, bool utf8 = false);
 
 // Convencience method for the const char version
 uint16_t getStringWidth(const String &text);
