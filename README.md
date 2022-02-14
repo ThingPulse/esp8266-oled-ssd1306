@@ -231,7 +231,8 @@ void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t 
 ## Text operations
 
 ``` C++
-void drawString(int16_t x, int16_t y, const String &text);
+// Draws a string at the given location, returns how many chars have been written
+uint16_t drawString(int16_t x, int16_t y, const String &text);
 
 // Draws a String with a maximum width at the given location.
 // If the given String is wider than the specified width

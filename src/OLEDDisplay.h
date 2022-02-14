@@ -242,8 +242,8 @@ class OLEDDisplay : public Stream {
 
     /* Text functions */
 
-    // Draws a string at the given location
-    void drawString(int16_t x, int16_t y, const String &text);
+    // Draws a string at the given location, returns how many chars have been written
+    uint16_t drawString(int16_t x, int16_t y, const String &text);
 
     // Draws a formatted string (like printf) at the given location
     void drawStringf(int16_t x, int16_t y, char* buffer, String format, ... );
