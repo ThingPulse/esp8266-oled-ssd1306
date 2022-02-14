@@ -577,7 +577,7 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, u
 
   // Don't draw anything if it is not on the screen.
   if (xMove + textWidth  < 0 || xMove > this->width() ) {return;}
-  if (yMove + textHeight < 0 || yMove > this->width() ) {return;}
+  if (yMove + textHeight < 0 || yMove > this->height()) {return;}
 
   for (uint16_t j = 0; j < textLength; j++) {
     int16_t xPos = xMove + cursorX;
