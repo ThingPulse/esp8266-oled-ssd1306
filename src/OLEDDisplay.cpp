@@ -582,6 +582,8 @@ void OLEDDisplay::drawStringInternal(int16_t xMove, int16_t yMove, char* text, u
   for (uint16_t j = 0; j < textLength; j++) {
     int16_t xPos = xMove + cursorX;
     int16_t yPos = yMove + cursorY;
+    if (xPos > this->width())
+      break; // no need to continue
 
     uint8_t code = text[j];
     if (code >= firstChar) {
