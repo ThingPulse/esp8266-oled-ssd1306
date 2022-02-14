@@ -661,8 +661,8 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
   for (uint16_t i = 0; i < length; i++) {
     strWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[i] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
 
-    // Always try to break on a space or dash
-    if (text[i] == ' ' || text[i]== '-') {
+    // Always try to break on a space, dash or slash
+    if (text[i] == ' ' || text[i]== '-' || text[i] == '/') {
       preferredBreakpoint = i + 1;
       widthAtBreakpoint = strWidth;
     }
