@@ -661,7 +661,7 @@ void OLEDDisplay::drawStringf( int16_t x, int16_t y, char* buffer, String format
   drawString( x, y, buffer );
 }
 
-void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineWidth, const String &strUser) {
+uint16_t OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxLineWidth, const String &strUser) {
   uint16_t firstChar  = pgm_read_byte(fontData + FIRST_CHAR_POS);
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
 
@@ -674,6 +674,8 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
 
   uint16_t preferredBreakpoint = 0;
   uint16_t widthAtBreakpoint = 0;
+  uint16_t firstLineChars = 0;
+  uint16_t drawStringResult = 1; // later tested for 0 == error, so initialize to 1
 
   for (uint16_t i = 0; i < length; i++) {
     strWidth += pgm_read_byte(fontData + JUMPTABLE_START + (text[i] - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
@@ -689,21 +691,28 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
         preferredBreakpoint = i;
         widthAtBreakpoint = strWidth;
       }
-      drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint, true);
+      drawStringResult = drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint, true);
+      if (firstLineChars == 0)
+        firstLineChars = preferredBreakpoint;
       lastDrawnPos = preferredBreakpoint;
       // It is possible that we did not draw all letters to i so we need
       // to account for the width of the chars from `i - preferredBreakpoint`
       // by calculating the width we did not draw yet.
       strWidth = strWidth - widthAtBreakpoint;
       preferredBreakpoint = 0;
+      if (drawStringResult == 0) // we are past the display already?
+        break;
     }
   }
 
   // Draw last part if needed
-  if (lastDrawnPos < length) {
-    drawStringInternal(xMove, yMove + lineNumber * lineHeight , &text[lastDrawnPos], length - lastDrawnPos, getStringWidth(&text[lastDrawnPos], length - lastDrawnPos, true), true);
+  if (drawStringResult != 0 && lastDrawnPos < length) {
+    drawStringResult = drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], length - lastDrawnPos, getStringWidth(&text[lastDrawnPos], length - lastDrawnPos, true), true);
   }
 
+  if (drawStringResult == 0 || (yMove + lineNumber * lineHeight) >= this->height()) // text did not fit on screen
+    return firstLineChars;
+  return 0; // everything was drawn
 }
 
 uint16_t OLEDDisplay::getStringWidth(const char* text, uint16_t length, bool utf8) {

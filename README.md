@@ -237,7 +237,9 @@ uint16_t drawString(int16_t x, int16_t y, const String &text);
 // Draws a String with a maximum width at the given location.
 // If the given String is wider than the specified width
 // The text will be wrapped to the next line at a space or dash
-void drawStringMaxWidth(int16_t x, int16_t y, int16_t maxLineWidth, const String &text);
+// returns 0 if everything fits on the screen or the numbers of characters in the
+// first line if not
+uint16_t drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, const String &text);
 
 // Returns the width of the const char* with the current
 // font settings
