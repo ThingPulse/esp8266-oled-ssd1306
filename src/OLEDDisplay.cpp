@@ -663,7 +663,7 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
 
     // Always try to break on a space or dash
     if (text[i] == ' ' || text[i]== '-') {
-      preferredBreakpoint = i;
+      preferredBreakpoint = i + 1;
       widthAtBreakpoint = strWidth;
     }
 
@@ -673,7 +673,7 @@ void OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t maxL
         widthAtBreakpoint = strWidth;
       }
       drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], preferredBreakpoint - lastDrawnPos, widthAtBreakpoint);
-      lastDrawnPos = preferredBreakpoint + 1;
+      lastDrawnPos = preferredBreakpoint;
       // It is possible that we did not draw all letters to i so we need
       // to account for the width of the chars from `i - preferredBreakpoint`
       // by calculating the width we did not draw yet.
