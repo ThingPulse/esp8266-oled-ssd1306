@@ -125,8 +125,10 @@ or for the SH1106:
 #include <SPI.h>
 #include "SH1106Spi.h"
 
-SH1106Spi display(D0, D2);  // RES, DC
+SH1106Spi display(D0, D2, CS);  // RES, DC, CS
 ```
+
+In case the CS pin is not used (hard wired to ground), pass CS as -1.
 
 ## API
 
