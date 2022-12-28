@@ -52,8 +52,9 @@ class SH1106Spi : public OLEDDisplay {
 
     bool connect(){
       pinMode(_dc, OUTPUT);
-      if (_cs != (uint8_t) -1)
+      if (_cs != (uint8_t) -1) {
         pinMode(_cs, OUTPUT);
+      }  
       pinMode(_rst, OUTPUT);
 
       SPI.begin ();
