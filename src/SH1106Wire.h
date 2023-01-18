@@ -129,6 +129,12 @@ class SH1106Wire : public OLEDDisplay {
         // Calculate the colum offset
         uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
         uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
+        
+        if (geometry == GEOMETRY_128_128) {
+          // we have an SH1107 if the geometry is GEOMETRY_128_128
+          minBoundXp2H = (minBoundX) & 0x0F;
+          minBoundXp2L = 0x10 | ((minBoundX) >> 4 );
+        }
 
         byte k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
