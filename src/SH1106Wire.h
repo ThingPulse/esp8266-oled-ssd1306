@@ -48,6 +48,7 @@ class SH1106Wire : public OLEDDisplay {
       bool                _doI2cAutoInit = false;
       TwoWire*            _wire = NULL;
       int                 _frequency;
+      uint8_t             _subtype = 6;
 
   public:
     /**
@@ -130,8 +131,8 @@ class SH1106Wire : public OLEDDisplay {
         uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
         uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
         
-        if (geometry == GEOMETRY_128_128) {
-          // we have an SH1107 if the geometry is GEOMETRY_128_128
+        if (_subtype == 7) {
+          // we have an SH1107
           minBoundXp2H = (minBoundX) & 0x0F;
           minBoundXp2L = 0x10 | ((minBoundX) >> 4 );
         }
@@ -183,6 +184,10 @@ class SH1106Wire : public OLEDDisplay {
 
     void setI2cAutoInit(bool doI2cAutoInit) {
       _doI2cAutoInit = doI2cAutoInit;
+    }
+
+    void setSubtype(uint8_t subtype) {
+      _subtype = subtype;
     }
 
   private:

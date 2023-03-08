@@ -42,6 +42,7 @@
 
 #define SSD1306_DETECTED 1
 #define SH1106_DETECTED 2
+#define SH1107_DETECTED 3
 #define UNKNOWN_DETECTED 0
 
 
@@ -110,7 +111,7 @@ class AutoOLEDWire : public OLEDDisplay {
     void display(void) {
       initI2cIfNeccesary();
       int x_offset = 0;
-      if (this->_detected != SH1106_DETECTED) {
+      if (this->_detected == SSD1306_DETECTED) {
         x_offset = (128 - this->width()) / 2;
       }
       #ifdef OLEDDISPLAY_DOUBLE_BUFFER
@@ -123,7 +124,7 @@ class AutoOLEDWire : public OLEDDisplay {
 
         // Calculate the Y bounding box of changes
         // and copy buffer[pos] to buffer_back[pos];
-        if (this->_detected != SH1106_DETECTED) {
+        if (this->_detected == SSD1306_DETECTED) {
           for (y = 0; y < (this->height() / 8); y++) {
             for (x = 0; x < this->width(); x++) {
              uint16_t pos = x + y * this->width();
@@ -161,7 +162,7 @@ class AutoOLEDWire : public OLEDDisplay {
 
         byte k = 0;
 
-        if (this->_detected != SH1106_DETECTED) {
+        if (this->_detected == SSD1306_DETECTED) {
           sendCommand(COLUMNADDR);
           sendCommand(x_offset + minBoundX);
           sendCommand(x_offset + maxBoundX);
@@ -191,8 +192,8 @@ class AutoOLEDWire : public OLEDDisplay {
           uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
           uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
 
-          if (geometry == GEOMETRY_128_128) {
-            // we have an SH1107 if the geometry is GEOMETRY_128_128
+          if (this->_detected == SH1107_DETECTED) {
+            // we have an SH1107
             minBoundXp2H = (minBoundX) & 0x0F;
             minBoundXp2L = 0x10 | ((minBoundX) >> 4 );
           }
@@ -225,7 +226,7 @@ class AutoOLEDWire : public OLEDDisplay {
           _wire->endTransmission();
         }
       #else
-        if (this->_detected != SH1106_DETECTED) {
+        if (this->_detected == SSD1306_DETECTED) {
           sendCommand(COLUMNADDR);
           sendCommand(x_offset);
           sendCommand(x_offset + (this->width() - 1));
@@ -275,7 +276,7 @@ class AutoOLEDWire : public OLEDDisplay {
 		return 0;
 	}
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
-      if (this->_detected != SH1106_DETECTED) {
+      if (this->_detected == SSD1306_DETECTED) {
         initI2cIfNeccesary();
       }
       _wire->beginTransmission(_address);
