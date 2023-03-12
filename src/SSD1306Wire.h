@@ -39,6 +39,11 @@
 #define _min	min
 #define _max	max
 #endif
+#if defined(ARDUINO_ARCH_ESP32)
+#define I2C_MAX_TRANSFER_BYTE 128 /** ESP32 can Transfer 128 bytes */
+#else
+#define I2C_MAX_TRANSFER_BYTE 17
+#endif
 //--------------------------------------
 
 class SSD1306Wire : public OLEDDisplay {
@@ -147,7 +152,7 @@ class SSD1306Wire : public OLEDDisplay {
 
             _wire->write(buffer[x + y * this->width()]);
             k++;
-            if (k == 16)  {
+            if (k == (I2C_MAX_TRANSFER_BYTE - 1))  {
               _wire->endTransmission();
               k = 0;
             }
@@ -170,7 +175,7 @@ class SSD1306Wire : public OLEDDisplay {
         for (uint16_t i=0; i < displayBufferSize; i++) {
           _wire->beginTransmission(this->_address);
           _wire->write(0x40);
-          for (uint8_t x = 0; x < 16; x++) {
+          for (uint8_t x = 0; x < (I2C_MAX_TRANSFER_BYTE - 1); x++) {
             _wire->write(buffer[i]);
             i++;
           }
