@@ -61,10 +61,10 @@ class SSD1306Wire : public OLEDDisplay {
      * Create and initialize the Display using Wire library
      *
      * Beware for retro-compatibility default values are provided for all parameters see below.
-     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to 
+     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to
      * ensure -1 value are specified for all 3 parameters. This can be usefull to control TwoWire with multiple
      * device on the same bus.
-     * 
+     *
      * @param _address I2C Display address
      * @param _sda I2C SDA pin number, default to -1 to skip Wire begin call
      * @param _scl I2C SCL pin number, default to -1 (only SDA = -1 is considered to skip Wire begin call)
@@ -142,7 +142,7 @@ class SSD1306Wire : public OLEDDisplay {
         sendCommand(minBoundY);
         sendCommand(maxBoundY);
 
-        byte k = 0;
+        uint8_t k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
           for (x = minBoundX; x <= maxBoundX; x++) {
             if (k == 0) {

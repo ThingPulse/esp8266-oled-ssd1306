@@ -90,7 +90,7 @@ class SH1106Brzo : public OLEDDisplay {
        // holdes true for all values of pos
        if (minBoundY == UINT8_MAX) return;
 
-       byte k = 0;
+       uint8_t k = 0;
        uint8_t sendBuffer[17];
        sendBuffer[0] = 0x40;
 
