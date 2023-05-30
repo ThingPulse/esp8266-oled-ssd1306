@@ -32,7 +32,39 @@
 #ifndef OLEDDISPLAY_h
 #define OLEDDISPLAY_h
 
-#ifdef ARDUINO
+#ifdef ESP_PLATFORM
+
+#include <stdint.h>
+#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+#include <cstring>
+#include <string>
+
+
+#define delay(x) vTaskDelay(pdMS_TO_TICKS(x))
+#define yield() taskYIELD()
+
+/*
+ * This is a little Arduino String emulation to keep the OLEDDisplay
+ * library code in common between Arduino and mbed-os
+ */
+class String {
+public:
+  String(const char *s) : _str(s){};
+  int length() const { return strlen(_str); };
+  const char *c_str() const { return _str; };
+  void toCharArray(char *buf, unsigned int bufsize,
+                   unsigned int index = 0) const {
+    memcpy(buf, _str + index, std::min(bufsize, strlen(_str)));
+  };
+
+private:
+  const char *_str;
+};
+
+#elif ARDUINO
 #include <Arduino.h>
 #elif __MBED__
 #define pgm_read_byte(addr)   (*(const unsigned char *)(addr))
@@ -152,7 +184,9 @@ typedef char (*FontTableLookupFunction)(const uint8_t ch);
 char DefaultFontTableLookup(const uint8_t ch);
 
 
-#ifdef ARDUINO
+#ifdef ESP_PLATFORM
+class OLEDDisplay {
+#elif ARDUINO
 class OLEDDisplay : public Print  {
 #elif __MBED__
 class OLEDDisplay : public Stream {

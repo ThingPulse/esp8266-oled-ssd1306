@@ -31,6 +31,14 @@
 
 #include "OLEDDisplayUi.h"
 
+#ifdef ESP_PLATFORM
+#include "esp_timer.h"
+#include <math.h>
+#include <stdint.h>
+
+#define PI M_PI
+#endif
+
 void LoadingDrawDefault(OLEDDisplay *display, LoadingStage* stage, uint8_t progress) {
       display->setTextAlignment(TEXT_ALIGN_CENTER);
       display->setFont(ArialMT_Plain_10);
@@ -226,7 +234,9 @@ OLEDDisplayUiState* OLEDDisplayUi::getUiState(){
 }
 
 int16_t OLEDDisplayUi::update(){
-#ifdef ARDUINO
+#ifdef ESP_PLATFORM
+  int64_t frameStart = esp_timer_get_time();
+#elif ARDUINO
   unsigned long frameStart = millis();
 #elif __MBED__
 	Timer t;
@@ -243,7 +253,9 @@ int16_t OLEDDisplayUi::update(){
     this->state.lastUpdate = frameStart;
     this->tick();
   }
-#ifdef ARDUINO
+#ifdef ESP_PLATFORM
+  return this->updateInterval - (esp_timer_get_time() - frameStart)/1000;
+#elif ARDUINO
   return this->updateInterval - (millis() - frameStart);
 #elif __MBED__
   return this->updateInterval - (t.read_ms() - frameStart);
