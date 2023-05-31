@@ -367,6 +367,10 @@ class OLEDDisplay : public Stream {
 #ifdef __MBED__
 	int _putc(int c);
 	int _getc() { return -1; };
+#elif ESP_PLATFORM
+  // Functions of the Arduino `Print` class since it is not part of the ESP-IDF framework
+  size_t println(uint8_t c);
+  size_t println(const char *str);
 #endif
 
 

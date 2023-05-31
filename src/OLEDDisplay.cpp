@@ -957,6 +957,13 @@ int OLEDDisplay::_putc(int c) {
 
 	return this->write((uint8_t)c);
 }
+#elif ESP_PLATFORM
+size_t OLEDDisplay::println(uint8_t c) {
+	return write(c);
+}
+size_t OLEDDisplay::println(const char *str) {
+	return write(*str);
+}
 #endif
 
 // Private functions
