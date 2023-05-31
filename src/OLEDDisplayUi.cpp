@@ -235,7 +235,7 @@ OLEDDisplayUiState* OLEDDisplayUi::getUiState(){
 
 int16_t OLEDDisplayUi::update(){
 #ifdef ESP_PLATFORM
-  int64_t frameStart = esp_timer_get_time();
+  int64_t frameStart = esp_timer_get_time()/1000;
 #elif ARDUINO
   unsigned long frameStart = millis();
 #elif __MBED__
@@ -254,7 +254,7 @@ int16_t OLEDDisplayUi::update(){
     this->tick();
   }
 #ifdef ESP_PLATFORM
-  return this->updateInterval - (esp_timer_get_time() - frameStart)/1000;
+  return this->updateInterval - (esp_timer_get_time()/1000 - frameStart);
 #elif ARDUINO
   return this->updateInterval - (millis() - frameStart);
 #elif __MBED__
