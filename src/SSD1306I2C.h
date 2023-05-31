@@ -55,12 +55,13 @@ class SSD1306I2C : public OLEDDisplay {
 public:
 #ifdef __MBED__
     SSD1306I2C(uint8_t address, PinName sda, PinName scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+      this->_address = address << 1;  // convert from 7 to 8 bit for mbed.
 #elif ESP_PLATFORM
     SSD1306I2C(uint8_t address, gpio_num_t sda, gpio_num_t scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+      this->_address = address;
 #endif
       setGeometry(g);
 
-      this->_address = address << 1;  // convert from 7 to 8 bit for mbed.
       this->_sda = sda;
       this->_scl = scl;
 

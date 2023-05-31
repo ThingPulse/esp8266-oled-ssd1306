@@ -18,8 +18,8 @@ void app_main()
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
   display.setTextAlignment(TEXT_ALIGN_LEFT);
-  char buffer[12];
-  display.drawStringf(0, 24, buffer, "ESP-IDF %s", IDF_VER);
+  char buffer[16];
+  display.drawStringf(28, 24, buffer, "ESP-IDF %s", IDF_VER);
   display.display();
 }
 
