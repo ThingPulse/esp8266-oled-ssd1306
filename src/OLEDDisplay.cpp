@@ -959,10 +959,12 @@ int OLEDDisplay::_putc(int c) {
 }
 #elif ESP_PLATFORM
 size_t OLEDDisplay::println(uint8_t c) {
-	return write(c);
+	write(c);
+  return write('\n');
 }
 size_t OLEDDisplay::println(const char *str) {
-	return write(*str);
+  write(str);
+	return write('\n');
 }
 #endif
 
