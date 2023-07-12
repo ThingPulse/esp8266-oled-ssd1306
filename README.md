@@ -402,7 +402,7 @@ OLEDDisplayUiState* getUiState();
 int8_t update();
 ```
 
-## Creating and using a Bitmap
+## Creating and using XBM bitmaps
 
 If you want to display your own images with this library, the best way to do this is using a bitmap.
 
@@ -410,7 +410,7 @@ There are two options to convert an image to a compatible bitmap:
 1. **Using Gimp.**
    In this case exporting the bitmap in an 1-bit XBM format is sufficient.
 2. **Using a converter website.**
-   You could also use a converter website like [this one](https://javl.github.io/image2cpp/). The uploaded image should have the same dimension as the screen (e.g. 128x64). The following output settings should be set:
+   You could also use online converter services like e.g. [https://javl.github.io/image2cpp/](https://javl.github.io/image2cpp/). The uploaded image should have the same dimension as the screen (e.g. 128x64). The following output settings should be set:
     - Draw Mode: Horizontal - 1 bit per pixel
     - Swap bits in byte: swap checkbox should be checked.
 
