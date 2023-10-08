@@ -396,13 +396,13 @@ void OLEDDisplayUi::drawFrame(){
 
        // Probe each frameFunction for the indicator drawn state
        this->enableIndicator();
-       this->state.transitionFrameRelationship = OUTGOING;
+       this->state.transitionFrameRelationship = TransitionRelationship_OUTGOING;
        //Since we're IN_TRANSITION, draw the old frame in a sliding-out position
        (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, x, y); 
        drawnCurrentFrame = this->state.isIndicatorDrawn;
 
        this->enableIndicator();
-       this->state.transitionFrameRelationship = INCOMING;
+       this->state.transitionFrameRelationship = TransitionRelationship_INCOMING;
        //Since we're IN_TRANSITION, draw the mew frame in a sliding-in position
        (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
        // tell the consumer of this API that the frame that's coming into focus
@@ -433,7 +433,7 @@ void OLEDDisplayUi::drawFrame(){
       // And set indicatorDrawState to "not known yet"
       this->indicatorDrawState = 0;
       this->enableIndicator();
-      this->state.transitionFrameRelationship = NONE;
+      this->state.transitionFrameRelationship = TransitionRelationship_NONE;
       //Since we're not transitioning, just draw the current frame at the origin
       (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0); 
       // tell the consumer of this API that the frame that's coming into focus
