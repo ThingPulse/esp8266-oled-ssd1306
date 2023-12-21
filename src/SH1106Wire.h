@@ -86,7 +86,7 @@ class SH1106Wire : public OLEDDisplay {
     }
 
     bool connect() {
-#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH_ESP8266)
       _wire->begin();
 #else
       // On ESP32 arduino, -1 means 'don't change pins', someone else has called begin for us.
