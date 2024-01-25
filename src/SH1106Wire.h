@@ -34,6 +34,12 @@
 #include "OLEDDisplay.h"
 #include <Wire.h>
 
+#if defined(ARDUINO_ARCH_ESP32)
+#define I2C_OLED_TRANSFER_BYTE 64 /** ESP32 can Transfer Max 128 bytes */
+#else
+#define I2C_OLED_TRANSFER_BYTE 16
+#endif
+
 #define SH1106_SET_PUMP_VOLTAGE 0X30
 #define SH1106_SET_PUMP_MODE 0XAD
 #define SH1106_PUMP_ON 0X8B
@@ -54,10 +60,10 @@ class SH1106Wire : public OLEDDisplay {
      * Create and initialize the Display using Wire library
      *
      * Beware for retro-compatibility default values are provided for all parameters see below.
-     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to 
+     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to
      * ensure -1 value are specified for all 3 parameters. This can be usefull to control TwoWire with multiple
      * device on the same bus.
-     * 
+     *
      * @param _address I2C Display address
      * @param _sda I2C SDA pin number, default to -1 to skip Wire begin call
      * @param _scl I2C SCL pin number, default to -1 (only SDA = -1 is considered to skip Wire begin call)
@@ -80,7 +86,7 @@ class SH1106Wire : public OLEDDisplay {
     }
 
     bool connect() {
-#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH8266)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH_ESP8266)
       _wire->begin();
 #else
       // On ESP32 arduino, -1 means 'don't change pins', someone else has called begin for us.
@@ -130,7 +136,7 @@ class SH1106Wire : public OLEDDisplay {
         uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
         uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
 
-        byte k = 0;
+        uint8_t k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
           sendCommand(0xB0 + y);
           sendCommand(minBoundXp2H);
@@ -142,7 +148,7 @@ class SH1106Wire : public OLEDDisplay {
             }
             _wire->write(buffer[x + y * displayWidth]);
             k++;
-            if (k == 16)  {
+            if (k == I2C_OLED_TRANSFER_BYTE)  {
               _wire->endTransmission();
               k = 0;
             }
@@ -163,10 +169,10 @@ class SH1106Wire : public OLEDDisplay {
           sendCommand(0xB0+y);
           sendCommand(0x02);
           sendCommand(0x10);
-          for( uint8_t x=0; x<8; x++) {
+          for( uint8_t x=0; x<(128/I2C_OLED_TRANSFER_BYTE); x++) {
             _wire->beginTransmission(_address);
             _wire->write(0x40);
-            for (uint8_t k = 0; k < 16; k++) {
+            for (uint8_t k = 0; k < I2C_OLED_TRANSFER_BYTE; k++) {
               _wire->write(*p++);
             }
             _wire->endTransmission();

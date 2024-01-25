@@ -32,7 +32,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install --upgrade platformio
     - name: Install library dependencies
-      run: pio lib -g install "paulstoffregen/Time@^1.6"
+      run: pio pkg install -g -l "paulstoffregen/Time@^1.6"
     - name: Run PlatformIO
       run: pio ci --lib="." --board=nodemcuv2 --board=d1_mini --board=esp-wrover-kit --board=esp32doit-devkit-v1
       env:

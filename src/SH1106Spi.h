@@ -38,17 +38,23 @@ class SH1106Spi : public OLEDDisplay {
   private:
       uint8_t             _rst;
       uint8_t             _dc;
+      uint8_t             _cs;
 
   public:
+    /* pass _cs as -1 to indicate "do not use CS pin", for cases where it is hard wired low */
     SH1106Spi(uint8_t _rst, uint8_t _dc, uint8_t _cs, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
         setGeometry(g);
 
       this->_rst = _rst;
       this->_dc  = _dc;
+      this->_cs  = _cs;
     }
 
     bool connect(){
       pinMode(_dc, OUTPUT);
+      if (_cs != (uint8_t) -1) {
+        pinMode(_cs, OUTPUT);
+      }  
       pinMode(_rst, OUTPUT);
 
       SPI.begin ();
@@ -102,10 +108,13 @@ class SH1106Spi : public OLEDDisplay {
          sendCommand(0xB0 + y);
          sendCommand(minBoundXp2H);
          sendCommand(minBoundXp2L);
+         set_CS(HIGH);
          digitalWrite(_dc, HIGH);   // data mode
+         set_CS(LOW);
          for (x = minBoundX; x <= maxBoundX; x++) {
            SPI.transfer(buffer[x + y * displayWidth]);
          }
+         set_CS(HIGH);
          yield();
        }
      #else
@@ -113,10 +122,13 @@ class SH1106Spi : public OLEDDisplay {
         sendCommand(0xB0 + y);
         sendCommand(0x02);
         sendCommand(0x10);
+        set_CS(HIGH);
         digitalWrite(_dc, HIGH);   // data mode
+        set_CS(LOW);
         for( uint8_t x=0; x < displayWidth; x++) {
           SPI.transfer(buffer[x + y * displayWidth]);
         }
+        set_CS(HIGH);
         yield();
       }
      #endif
@@ -126,9 +138,17 @@ class SH1106Spi : public OLEDDisplay {
 	int getBufferOffset(void) {
 		return 0;
 	}
+    inline void set_CS(bool level) {
+      if (_cs != (uint8_t) -1) {
+        digitalWrite(_cs, level);
+      }
+    };
     inline void sendCommand(uint8_t com) __attribute__((always_inline)){
+      set_CS(HIGH);
       digitalWrite(_dc, LOW);
+      set_CS(LOW);
       SPI.transfer(com);
+      set_CS(HIGH);
     }
 };
 

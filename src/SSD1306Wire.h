@@ -39,6 +39,11 @@
 #define _min	min
 #define _max	max
 #endif
+#if defined(ARDUINO_ARCH_ESP32)
+#define I2C_MAX_TRANSFER_BYTE 128 /** ESP32 can Transfer 128 bytes */
+#else
+#define I2C_MAX_TRANSFER_BYTE 17
+#endif
 //--------------------------------------
 
 class SSD1306Wire : public OLEDDisplay {
@@ -56,10 +61,10 @@ class SSD1306Wire : public OLEDDisplay {
      * Create and initialize the Display using Wire library
      *
      * Beware for retro-compatibility default values are provided for all parameters see below.
-     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to 
+     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to
      * ensure -1 value are specified for all 3 parameters. This can be usefull to control TwoWire with multiple
      * device on the same bus.
-     * 
+     *
      * @param _address I2C Display address
      * @param _sda I2C SDA pin number, default to -1 to skip Wire begin call
      * @param _scl I2C SCL pin number, default to -1 (only SDA = -1 is considered to skip Wire begin call)
@@ -137,7 +142,7 @@ class SSD1306Wire : public OLEDDisplay {
         sendCommand(minBoundY);
         sendCommand(maxBoundY);
 
-        byte k = 0;
+        uint8_t k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
           for (x = minBoundX; x <= maxBoundX; x++) {
             if (k == 0) {
@@ -147,7 +152,7 @@ class SSD1306Wire : public OLEDDisplay {
 
             _wire->write(buffer[x + y * this->width()]);
             k++;
-            if (k == 16)  {
+            if (k == (I2C_MAX_TRANSFER_BYTE - 1))  {
               _wire->endTransmission();
               k = 0;
             }
@@ -170,7 +175,7 @@ class SSD1306Wire : public OLEDDisplay {
         for (uint16_t i=0; i < displayBufferSize; i++) {
           _wire->beginTransmission(this->_address);
           _wire->write(0x40);
-          for (uint8_t x = 0; x < 16; x++) {
+          for (uint8_t x = 0; x < (I2C_MAX_TRANSFER_BYTE - 1); x++) {
             _wire->write(buffer[i]);
             i++;
           }
