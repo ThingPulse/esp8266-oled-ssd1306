@@ -32,7 +32,6 @@
  /*
   * TODO Helmut
   * - test/finish dislplay.printf() on mbed-os
-  * - Finish _putc with drawLogBuffer when running display
   */
 
 #include "OLEDDisplay.h"
@@ -42,6 +41,7 @@ OLEDDisplay::OLEDDisplay() {
 	displayWidth = 128;
 	displayHeight = 64;
 	displayBufferSize = displayWidth * displayHeight / 8;
+  inhibitDrawLogBuffer = false;
 	color = WHITE;
 	geometry = GEOMETRY_128_64;
 	textAlignment = TEXT_ALIGN_LEFT;
@@ -877,72 +877,10 @@ bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
 }
 
 size_t OLEDDisplay::write(uint8_t c) {
-  if (this->logBufferSize > 0) {
-    // Don't waste space on \r\n line endings, dropping \r
-    if (c == 13) return 1;
-
-    // convert UTF-8 character to font table index
-    c = (this->fontTableLookupFunction)(c);
-    // drop unknown character
-    if (c == 0) return 1;
-
-    bool maxLineNotReached = this->logBufferLine < this->logBufferMaxLines;
-    bool bufferNotFull = this->logBufferFilled < this->logBufferSize;
-
-    // Can we write to the buffer?
-    if (bufferNotFull && maxLineNotReached) {
-      this->logBuffer[logBufferFilled] = c;
-      this->logBufferFilled++;
-      // Keep track of lines written
-      if (c == 10) this->logBufferLine++;
-    } else {
-      // Max line number is reached
-      if (!maxLineNotReached) this->logBufferLine--;
-
-      // Find the end of the first line
-      uint16_t firstLineEnd = 0;
-      for (uint16_t i=0;i<this->logBufferFilled;i++) {
-        if (this->logBuffer[i] == 10){
-          // Include last char too
-          firstLineEnd = i + 1;
-          break;
-        }
-      }
-      // If there was a line ending
-      if (firstLineEnd > 0) {
-        // Calculate the new logBufferFilled value
-        this->logBufferFilled = logBufferFilled - firstLineEnd;
-        // Now we move the lines infront of the buffer
-        memcpy(this->logBuffer, &this->logBuffer[firstLineEnd], logBufferFilled);
-      } else {
-        // Let's reuse the buffer if it was full
-        if (!bufferNotFull) {
-          this->logBufferFilled = 0;
-        }// else {
-        //  Nothing to do here
-        //}
-      }
-      write(c);
-    }
-  }
-  // We are always writing all uint8_t to the buffer
-  return 1;
-}
-
-size_t OLEDDisplay::write(const char* str) {
-  if (str == NULL) return 0;
-  size_t length = strlen(str);
-  for (size_t i = 0; i < length; i++) {
-    write(str[i]);
-  }
-  return length;
-}
-
-#ifdef __MBED__
-int OLEDDisplay::_putc(int c) {
-
-	if (!fontData)
+  if (!fontData)
 		return 1;
+    
+  // Create a logBuffer if there isn't one
 	if (!logBufferSize) {
 		uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
 		uint16_t lines =  this->displayHeight / textHeight;
@@ -955,6 +893,78 @@ int OLEDDisplay::_putc(int c) {
 		setLogBuffer(lines, chars);
 	}
 
+  // Don't waste space on \r\n line endings, dropping \r
+  if (c == 13) return 1;
+
+  // convert UTF-8 character to font table index
+  c = (this->fontTableLookupFunction)(c);
+  // drop unknown character
+  if (c == 0) return 1;
+
+  bool maxLineNotReached = this->logBufferLine < this->logBufferMaxLines;
+  bool bufferNotFull = this->logBufferFilled < this->logBufferSize;
+
+  // Can we write to the buffer?
+  if (bufferNotFull && maxLineNotReached) {
+    this->logBuffer[logBufferFilled] = c;
+    this->logBufferFilled++;
+    // Keep track of lines written
+    if (c == 10) this->logBufferLine++;
+  } else {
+    // Max line number is reached
+    if (!maxLineNotReached) this->logBufferLine--;
+
+    // Find the end of the first line
+    uint16_t firstLineEnd = 0;
+    for (uint16_t i=0;i<this->logBufferFilled;i++) {
+      if (this->logBuffer[i] == 10){
+        // Include last char too
+        firstLineEnd = i + 1;
+        break;
+      }
+    }
+    // If there was a line ending
+    if (firstLineEnd > 0) {
+      // Calculate the new logBufferFilled value
+      this->logBufferFilled = logBufferFilled - firstLineEnd;
+      // Now we move the lines infront of the buffer
+      memcpy(this->logBuffer, &this->logBuffer[firstLineEnd], logBufferFilled);
+    } else {
+      // Let's reuse the buffer if it was full
+      if (!bufferNotFull) {
+        this->logBufferFilled = 0;
+      }// else {
+      //  Nothing to do here
+      //}
+    }
+    write(c);
+  }
+  if (!this->inhibitDrawLogBuffer) {
+    clear();
+    drawLogBuffer(0, 0);
+    display();
+  }
+  // We are always writing all uint8_t to the buffer
+  return 1;
+}
+
+size_t OLEDDisplay::write(const char* str) {
+  if (str == NULL) return 0;
+  size_t length = strlen(str);
+  // If we write a string, only do the drawLogBuffer at the end, not every time we write a char
+  this->inhibitDrawLogBuffer = true;
+  for (size_t i = 0; i < length; i++) {
+    write(str[i]);
+  }
+  this->inhibitDrawLogBuffer = false;
+  clear();
+  drawLogBuffer(0, 0);
+  display();
+  return length;
+}
+
+#ifdef __MBED__
+int OLEDDisplay::_putc(int c) {
 	return this->write((uint8_t)c);
 }
 #endif
