@@ -884,7 +884,7 @@ size_t OLEDDisplay::write(uint8_t c) {
 	if (!logBufferSize) {
 		uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
 		uint16_t lines =  this->displayHeight / textHeight;
-		uint16_t chars =   2 * (this->displayWidth / textHeight);
+		uint16_t chars =   3 * (this->displayWidth / textHeight);
 
 		if (this->displayHeight % textHeight)
 			lines++;
