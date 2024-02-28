@@ -3,7 +3,7 @@
 [![PlatformIO Registry](https://badges.registry.platformio.org/packages/thingpulse/library/ESP8266%20and%20ESP32%20OLED%20driver%20for%20SSD1306%20displays.svg)](https://registry.platformio.org/libraries/thingpulse/ESP8266%20and%20ESP32%20OLED%20driver%20for%20SSD1306%20displays)
 [![Build Status](https://github.com/ThingPulse/esp8266-oled-ssd1306/actions/workflows/main.yml/badge.svg)](https://github.com/ThingPulse/esp8266-oled-ssd1306/actions)
 
-This is a driver for SSD1306 128x64, 128x32, 64x48 and 64x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
+This is a driver for SSD1306 and SH1106 128x64, 128x32, 64x48 and 64x32 OLED displays running on the Arduino/ESP8266 & ESP32 and mbed-os platforms.
 Can be used with either the I2C or SPI version of the display.
 
 This library drives the OLED display included in the [ThingPulse IoT starter kit](https://thingpulse.com/product/esp8266-iot-electronics-starter-kit-weatherstation-planespotter-worldclock/) aka classic kit aka weather station kit.
