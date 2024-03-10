@@ -829,25 +829,27 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   uint16_t line     = 0;
   uint16_t lastPos  = 0;
 
+  // If the lineHeight and the display height are not cleanly divisible, we need
+  // to start off the screen when the buffer has logBufferMaxLines so that the
+  // first line, and not the last line, drops off.
+  uint16_t shiftUp = (this->logBufferLine == this->logBufferMaxLines) ? displayHeight % lineHeight : 0;
+
   for (uint16_t i=0;i<this->logBufferFilled;i++){
+    length++;
     // Everytime we have a \n print
     if (this->logBuffer[i] == 10) {
-      length++;
       // Draw string on line `line` from lastPos to length
       // Passing 0 as the lenght because we are in TEXT_ALIGN_LEFT
-      drawStringInternal(xMove, yMove + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0, false);
+      drawStringInternal(xMove, yMove - shiftUp + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0, false);
       // Remember last pos
       lastPos = i;
       // Reset length
       length = 0;
-    } else {
-      // Count chars until next linebreak
-      length++;
     }
   }
   // Draw the remaining string
   if (length > 0) {
-    drawStringInternal(xMove, yMove + line * lineHeight, &this->logBuffer[lastPos], length, 0, false);
+    drawStringInternal(xMove, yMove - shiftUp + line * lineHeight, &this->logBuffer[lastPos], length, 0, false);
   }
 }
 
