@@ -271,6 +271,9 @@ class OLEDDisplay : public Stream {
     // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
     void setFont(const uint8_t *fontData);
 
+    // Set the current font when supplied as a char* instead of a uint8_t*
+    void setFont(const char *fontData);
+
     // Set the function that will convert utf-8 to font table index
     void setFontTableLookupFunction(FontTableLookupFunction function);
 
