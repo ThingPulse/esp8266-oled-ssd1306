@@ -364,6 +364,7 @@ class OLEDDisplay : public Stream {
     uint16_t   logBufferLine;
     uint16_t   logBufferMaxLines;
     char      *logBuffer;
+    bool      inhibitDrawLogBuffer;
 
 
 	// the header size of the buffer used, e.g. for the SPI command header
