@@ -861,6 +861,13 @@ uint16_t OLEDDisplay::getHeight(void) {
   return displayHeight;
 }
 
+void OLEDDisplay::cls() {
+  clear();
+  this->logBufferFilled = 0;
+  this->logBufferLine = 0;
+  display();
+}
+
 bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
   if (logBuffer != NULL) free(logBuffer);
   uint16_t size = lines * chars;

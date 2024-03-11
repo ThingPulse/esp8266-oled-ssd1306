@@ -262,6 +262,25 @@ void setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment);
 void setFont(const uint8_t* fontData);
 ```
 
+## Arduino `Print` functionality
+
+Because this class has been "derived" from Arduino's `Print` class, you can use the functions it provides. In plain language, this means that you can use `print`, `println` and `printf` to the display. Internally, a buffer holds the text that was printed to the display previously (that would still fit on the display) and every time you print something, this buffer is put on the screen, using the functions from the previous section.
+
+What that means is that printing using `print` and "manually" putting things on the display are somewhat mutually exclusive: as soon as you print, everything that was on the display already is gone and only what you put there before with `print`, `println` or `printf` remains. Still, using `print` is a very simple way to put something on the display quickly.
+
+One extra function is provided: `cls()`
+```cpp
+// cls() will clear the display immediately and empty the logBuffer, meaning
+// the next print statement will print at the top of the display again.
+// cls() should not be confused with clear(), which only clears the internal
+// graphics buffer, which can then be shown on the display with display().
+void cls();
+```
+
+&nbsp;
+
+<hr>
+
 ## Ui Library (OLEDDisplayUi)
 
 The Ui Library is used to provide a basic set of user interface elements called `Frames` and `Overlays`. A `Frame` is used to provide
