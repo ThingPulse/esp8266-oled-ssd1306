@@ -870,11 +870,12 @@ void OLEDDisplay::cls() {
 
 bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
   if (logBuffer != NULL) free(logBuffer);
-  uint16_t size = lines * chars;
+  uint16_t size = lines * (chars + 1);  // +1 is for \n
   if (size > 0) {
     this->logBufferLine     = 0;      // Lines printed
     this->logBufferFilled   = 0;      // Nothing stored yet
     this->logBufferMaxLines = lines;  // Lines max printable
+    this->logBufferLineLen  = chars;  // Chars per line
     this->logBufferSize     = size;   // Total number of characters the buffer can hold
     this->logBuffer         = (char *) malloc(size * sizeof(uint8_t));
     if(!this->logBuffer) {
@@ -893,12 +894,10 @@ size_t OLEDDisplay::write(uint8_t c) {
 	if (!logBufferSize) {
 		uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
 		uint16_t lines =  this->displayHeight / textHeight;
-		uint16_t chars =   3 * (this->displayWidth / textHeight);
+		uint16_t chars =   5 * (this->displayWidth / textHeight);
 
 		if (this->displayHeight % textHeight)
 			lines++;
-		if (this->displayWidth % textHeight)
-			chars++;
 		setLogBuffer(lines, chars);
 	}
 
@@ -910,50 +909,59 @@ size_t OLEDDisplay::write(uint8_t c) {
   // drop unknown character
   if (c == 0) return 1;
 
-  bool maxLineNotReached = this->logBufferLine < this->logBufferMaxLines;
-  bool bufferNotFull = this->logBufferFilled < this->logBufferSize;
+  bool maxLineReached = this->logBufferLine >= this->logBufferMaxLines;
+  bool bufferFull = this->logBufferFilled >= this->logBufferSize;
 
-  // Can we write to the buffer?
-  if (bufferNotFull && maxLineNotReached) {
-    this->logBuffer[logBufferFilled] = c;
-    this->logBufferFilled++;
-    // Keep track of lines written
-    if (c == 10) this->logBufferLine++;
-  } else {
-    // Max line number is reached
-    if (!maxLineNotReached) this->logBufferLine--;
-
-    // Find the end of the first line
+  // Can we write to the buffer? If not, make space.
+  if (bufferFull || maxLineReached) {
+    // See if we can chop off the first line
     uint16_t firstLineEnd = 0;
-    for (uint16_t i=0;i<this->logBufferFilled;i++) {
+    for (uint16_t i = 0; i < this->logBufferFilled; i++) {
       if (this->logBuffer[i] == 10){
         // Include last char too
         firstLineEnd = i + 1;
+        // Calculate the new logBufferFilled value
+        this->logBufferFilled = logBufferFilled - firstLineEnd;
+        // Now move other lines to front of the buffer
+        memcpy(this->logBuffer, &this->logBuffer[firstLineEnd], logBufferFilled);
+        // And voila, buffer one line shorter
+        this->logBufferLine--;
         break;
       }
     }
-    // If there was a line ending
-    if (firstLineEnd > 0) {
-      // Calculate the new logBufferFilled value
-      this->logBufferFilled = logBufferFilled - firstLineEnd;
-      // Now we move the lines infront of the buffer
-      memcpy(this->logBuffer, &this->logBuffer[firstLineEnd], logBufferFilled);
-    } else {
-      // Let's reuse the buffer if it was full
-      if (!bufferNotFull) {
-        this->logBufferFilled = 0;
-      }// else {
-      //  Nothing to do here
-      //}
+    // In we can't take off first line, we just empty the buffer
+    if (!firstLineEnd) {
+      this->logBufferFilled = 0;
+      this->logBufferLine = 0;
     }
-    write(c);
   }
+
+  // So now we know for sure we have space in the buffer
+
+  // Find the length of the last line
+  uint16_t lastLineLen= 0;
+  for (uint16_t i = 0; i < this->logBufferFilled; i++) {
+    lastLineLen++;
+    if (this->logBuffer[i] == 10) lastLineLen = 0;
+  }
+  // if last line is max length, ignore anything but linebreaks
+  if (lastLineLen >= this->logBufferLineLen) {
+    if (c != 10) return 1;
+  }
+
+  // Write to buffer
+  this->logBuffer[this->logBufferFilled++] = c;
+  // Keep track of lines written
+  if (c == 10) this->logBufferLine++;
+
+  // Draw to screen unless we're writing a whole string at a time
   if (!this->inhibitDrawLogBuffer) {
     clear();
     drawLogBuffer(0, 0);
     display();
   }
-  // We are always writing all uint8_t to the buffer
+
+  // We are always claim we printed it all
   return 1;
 }
 

@@ -376,6 +376,7 @@ class OLEDDisplay : public Stream {
     uint16_t   logBufferFilled;
     uint16_t   logBufferLine;
     uint16_t   logBufferMaxLines;
+    uint16_t   logBufferLineLen;
     char      *logBuffer;
     bool      inhibitDrawLogBuffer;
 
