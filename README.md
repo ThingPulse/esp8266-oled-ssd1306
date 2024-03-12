@@ -275,6 +275,8 @@ One extra function is provided: `cls()`
 // cls() should not be confused with clear(), which only clears the internal
 // graphics buffer, which can then be shown on the display with display().
 void cls();
+
+> _Note that printing to the display, contrary to what you might expect, does not wrap your lines, so everything on a line that doesn't fit on the screen is cut off._
 ```
 
 &nbsp;
