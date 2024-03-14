@@ -755,7 +755,7 @@ void OLEDDisplay::setFont(const uint8_t *fontData) {
 }
 
 void OLEDDisplay::setFont(const char *fontData) {
-  this->fontData = static_cast<const uint8_t*>(reinterpret_cast<const void*>(fontData));
+  setFont(static_cast<const uint8_t*>(reinterpret_cast<const void*>(fontData)));
 }
 
 void OLEDDisplay::displayOn(void) {
