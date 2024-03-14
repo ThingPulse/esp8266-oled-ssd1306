@@ -752,6 +752,8 @@ void OLEDDisplay::setTextAlignment(OLEDDISPLAY_TEXT_ALIGNMENT textAlignment) {
 
 void OLEDDisplay::setFont(const uint8_t *fontData) {
   this->fontData = fontData;
+  // New font, so must recalculate. Whatever was there is gone at next print.
+  setLogBuffer();
 }
 
 void OLEDDisplay::displayOn(void) {
@@ -832,7 +834,7 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   // If the lineHeight and the display height are not cleanly divisible, we need
   // to start off the screen when the buffer has logBufferMaxLines so that the
   // first line, and not the last line, drops off.
-  uint16_t shiftUp = (this->logBufferLine == this->logBufferMaxLines) ? displayHeight % lineHeight : 0;
+  uint16_t shiftUp = (this->logBufferLine == this->logBufferMaxLines) ? (lineHeight - (displayHeight % lineHeight)) % lineHeight : 0;
 
   for (uint16_t i=0;i<this->logBufferFilled;i++){
     length++;
@@ -868,21 +870,39 @@ void OLEDDisplay::cls() {
   display();
 }
 
-bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars){
-  if (logBuffer != NULL) free(logBuffer);
+bool OLEDDisplay::setLogBuffer(){
+  // don't know how big we need it without a font set.
+  if (!fontData)
+		return false;
+  
+  // we're always starting over
+  if (logBuffer != NULL)
+    free(logBuffer);
+
+  // figure out how big it needs to be
+  uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
+  if (!textHeight)
+    return false;  // Prevent division by zero crashes
+  uint16_t lines =  this->displayHeight / textHeight + (this->displayHeight % textHeight ? 1 : 0);
+  uint16_t chars =   5 * (this->displayWidth / textHeight);
   uint16_t size = lines * (chars + 1);  // +1 is for \n
-  if (size > 0) {
-    this->logBufferLine     = 0;      // Lines printed
-    this->logBufferFilled   = 0;      // Nothing stored yet
-    this->logBufferMaxLines = lines;  // Lines max printable
-    this->logBufferLineLen  = chars;  // Chars per line
-    this->logBufferSize     = size;   // Total number of characters the buffer can hold
-    this->logBuffer         = (char *) malloc(size * sizeof(uint8_t));
-    if(!this->logBuffer) {
-      DEBUG_OLEDDISPLAY("[OLEDDISPLAY][setLogBuffer] Not enough memory to create log buffer\n");
-      return false;
-    }
+
+  // Something weird must have happened
+  if (size == 0) 
+    return false;
+
+  // All good, initialize logBuffer
+  this->logBufferLine     = 0;      // Lines printed
+  this->logBufferFilled   = 0;      // Nothing stored yet
+  this->logBufferMaxLines = lines;  // Lines max printable
+  this->logBufferLineLen  = chars;  // Chars per line
+  this->logBufferSize     = size;   // Total number of characters the buffer can hold
+  this->logBuffer         = (char *) malloc(size * sizeof(uint8_t));
+  if(!this->logBuffer) {
+    DEBUG_OLEDDISPLAY("[OLEDDISPLAY][setLogBuffer] Not enough memory to create log buffer\n");
+    return false;
   }
+
   return true;
 }
 
@@ -892,13 +912,9 @@ size_t OLEDDisplay::write(uint8_t c) {
     
   // Create a logBuffer if there isn't one
 	if (!logBufferSize) {
-		uint8_t textHeight = pgm_read_byte(fontData + HEIGHT_POS);
-		uint16_t lines =  this->displayHeight / textHeight;
-		uint16_t chars =   5 * (this->displayWidth / textHeight);
-
-		if (this->displayHeight % textHeight)
-			lines++;
-		setLogBuffer(lines, chars);
+    // Give up if we can't create a logBuffer somehow
+		if (!setLogBuffer())
+      return 1;
 	}
 
   // Don't waste space on \r\n line endings, dropping \r
@@ -961,7 +977,7 @@ size_t OLEDDisplay::write(uint8_t c) {
     display();
   }
 
-  // We are always claim we printed it all
+  // We always claim we printed it all
   return 1;
 }
 

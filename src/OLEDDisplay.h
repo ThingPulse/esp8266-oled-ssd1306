@@ -323,11 +323,9 @@ class OLEDDisplay : public Stream {
     // graphics buffer, which can then be shown on the display with display().
     void cls();
 
-    // This will define the lines and characters you can print to the screen.
-    // When you exeed the buffer size (lines * chars) the output may be
-    // truncated due to the size constraint. (Automatically called with the
-    // correct parameters when you first print to the display.)
-    bool setLogBuffer(uint16_t lines, uint16_t chars);
+    // (re)creates the logBuffer that printing uses to remember what was on the
+    // screen already 
+    bool setLogBuffer();
 
     // Draw the log buffer at position (x, y)
     //
