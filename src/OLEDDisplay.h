@@ -323,9 +323,8 @@ class OLEDDisplay : public Stream {
     // graphics buffer, which can then be shown on the display with display().
     void cls();
 
-    // (re)creates the logBuffer that printing uses to remember what was on the
-    // screen already 
-    bool setLogBuffer();
+    // Replaced by setLogBuffer() , which is protected
+    bool setLogBuffer(uint16_t lines, uint16_t chars);
 
     // Draw the log buffer at position (x, y)
     //
@@ -398,6 +397,13 @@ class OLEDDisplay : public Stream {
     void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     uint16_t drawStringInternal(int16_t xMove, int16_t yMove, const char* text, uint16_t textLength, uint16_t textWidth, bool utf8);
+
+    // (re)creates the logBuffer that printing uses to remember what was on the
+    // screen already 
+    bool setLogBuffer();
+
+    // Draws the contents of the logBuffer to the screen
+    void drawLogBuffer();
 
 	FontTableLookupFunction fontTableLookupFunction;
 };

@@ -822,6 +822,10 @@ void OLEDDisplay::clear(void) {
 }
 
 void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
+  Serial.println("[deprecated] Print functionality now handles buffer management automatically. This is a no-op.");
+}
+
+void OLEDDisplay::drawLogBuffer() {
   uint16_t lineHeight = pgm_read_byte(fontData + HEIGHT_POS);
   // Always align left
   setTextAlignment(TEXT_ALIGN_LEFT);
@@ -842,7 +846,7 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
     if (this->logBuffer[i] == 10) {
       // Draw string on line `line` from lastPos to length
       // Passing 0 as the lenght because we are in TEXT_ALIGN_LEFT
-      drawStringInternal(xMove, yMove - shiftUp + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0, false);
+      drawStringInternal(0, 0 - shiftUp + (line++) * lineHeight, &this->logBuffer[lastPos], length, 0, false);
       // Remember last pos
       lastPos = i;
       // Reset length
@@ -851,7 +855,7 @@ void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
   }
   // Draw the remaining string
   if (length > 0) {
-    drawStringInternal(xMove, yMove - shiftUp + line * lineHeight, &this->logBuffer[lastPos], length, 0, false);
+    drawStringInternal(0, 0 - shiftUp + line * lineHeight, &this->logBuffer[lastPos], length, 0, false);
   }
 }
 
@@ -868,6 +872,10 @@ void OLEDDisplay::cls() {
   this->logBufferFilled = 0;
   this->logBufferLine = 0;
   display();
+}
+
+bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars) {
+  Serial.println("[deprecated] Print functionality now handles buffer management automatically. This is a no-op.");
 }
 
 bool OLEDDisplay::setLogBuffer(){
@@ -973,7 +981,7 @@ size_t OLEDDisplay::write(uint8_t c) {
   // Draw to screen unless we're writing a whole string at a time
   if (!this->inhibitDrawLogBuffer) {
     clear();
-    drawLogBuffer(0, 0);
+    drawLogBuffer();
     display();
   }
 
@@ -991,7 +999,7 @@ size_t OLEDDisplay::write(const char* str) {
   }
   this->inhibitDrawLogBuffer = false;
   clear();
-  drawLogBuffer(0, 0);
+  drawLogBuffer();
   display();
   return length;
 }
