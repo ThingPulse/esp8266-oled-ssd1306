@@ -876,6 +876,7 @@ void OLEDDisplay::cls() {
 
 bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars) {
   Serial.println("[deprecated] Print functionality now handles buffer management automatically. This is a no-op.");
+  return true;
 }
 
 bool OLEDDisplay::setLogBuffer(){
