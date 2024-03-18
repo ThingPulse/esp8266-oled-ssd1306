@@ -32,6 +32,8 @@
 #ifndef OLEDDISPLAY_h
 #define OLEDDISPLAY_h
 
+#include <cstdarg>
+
 #ifdef ARDUINO
 #include <Arduino.h>
 #elif __MBED__
@@ -140,7 +142,8 @@ enum OLEDDISPLAY_GEOMETRY {
   GEOMETRY_128_32   = 1,
   GEOMETRY_64_48    = 2,
   GEOMETRY_64_32    = 3,
-  GEOMETRY_RAWMODE  = 4
+  GEOMETRY_RAWMODE  = 4,
+  GEOMETRY_128_128  = 5
 };
 
 enum HW_I2C {
@@ -296,8 +299,8 @@ class OLEDDisplay : public Stream {
     // normal brightness & contrast:  contrast = 100
     void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
 
-    // Convenience method to access
-    void setBrightness(uint8_t);
+    // Convenience method to access 
+    virtual void setBrightness(uint8_t);
 
     // Reset display rotation or mirroring
     void resetOrientation();
@@ -355,6 +358,9 @@ class OLEDDisplay : public Stream {
     uint8_t            *buffer_back;
     #endif
 
+    // Set the correct height, width and buffer for the geometry
+    void setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width = 0, uint16_t height = 0);
+
   protected:
 
     OLEDDISPLAY_GEOMETRY geometry;
@@ -362,9 +368,6 @@ class OLEDDisplay : public Stream {
     uint16_t  displayWidth;
     uint16_t  displayHeight;
     uint16_t  displayBufferSize;
-
-    // Set the correct height, width and buffer for the geometry
-    void setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width = 0, uint16_t height = 0);
 
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment;
     OLEDDISPLAY_COLOR            color;
@@ -392,7 +395,7 @@ class OLEDDisplay : public Stream {
     virtual bool connect() { return false; };
 
     // Send all the init commands
-    void sendInitCommands();
+    virtual void sendInitCommands();
 
     // converts utf8 characters to extended ascii
     char* utf8ascii(const String &s);

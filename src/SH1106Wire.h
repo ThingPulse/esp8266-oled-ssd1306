@@ -54,6 +54,7 @@ class SH1106Wire : public OLEDDisplay {
       bool                _doI2cAutoInit = false;
       TwoWire*            _wire = NULL;
       int                 _frequency;
+      uint8_t             _subtype = 6;
 
   public:
     /**
@@ -77,7 +78,7 @@ class SH1106Wire : public OLEDDisplay {
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
-#if !defined(ARDUINO_ARCH_ESP32)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARCH_RP2040)
       this->_wire = &Wire;
 #else
       this->_wire = (_i2cBus==I2C_ONE) ? &Wire : &Wire1;
@@ -117,10 +118,10 @@ class SH1106Wire : public OLEDDisplay {
           for (x = 0; x < displayWidth; x++) {
            uint16_t pos = x + y * displayWidth;
            if (buffer[pos] != buffer_back[pos]) {
-             minBoundY = _min(minBoundY, y);
-             maxBoundY = _max(maxBoundY, y);
-             minBoundX = _min(minBoundX, x);
-             maxBoundX = _max(maxBoundX, x);
+             minBoundY = std::min(minBoundY, y);
+             maxBoundY = std::max(maxBoundY, y);
+             minBoundX = std::min(minBoundX, x);
+             maxBoundX = std::max(maxBoundX, x);
            }
            buffer_back[pos] = buffer[pos];
          }
@@ -135,6 +136,12 @@ class SH1106Wire : public OLEDDisplay {
         // Calculate the colum offset
         uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
         uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
+        
+        if (_subtype == 7) {
+          // we have an SH1107
+          minBoundXp2H = (minBoundX) & 0x0F;
+          minBoundXp2L = 0x10 | ((minBoundX) >> 4 );
+        }
 
         uint8_t k = 0;
         for (y = minBoundY; y <= maxBoundY; y++) {
@@ -183,6 +190,10 @@ class SH1106Wire : public OLEDDisplay {
 
     void setI2cAutoInit(bool doI2cAutoInit) {
       _doI2cAutoInit = doI2cAutoInit;
+    }
+
+    void setSubtype(uint8_t subtype) {
+      _subtype = subtype;
     }
 
   private:
