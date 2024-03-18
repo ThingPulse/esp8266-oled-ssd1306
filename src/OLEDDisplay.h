@@ -358,6 +358,9 @@ class OLEDDisplay : public Stream {
     uint8_t            *buffer_back;
     #endif
 
+    // Set the correct height, width and buffer for the geometry
+    void setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width = 0, uint16_t height = 0);
+
   protected:
 
     OLEDDISPLAY_GEOMETRY geometry;
@@ -365,9 +368,6 @@ class OLEDDisplay : public Stream {
     uint16_t  displayWidth;
     uint16_t  displayHeight;
     uint16_t  displayBufferSize;
-
-    // Set the correct height, width and buffer for the geometry
-    void setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width = 0, uint16_t height = 0);
 
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment;
     OLEDDISPLAY_COLOR            color;
