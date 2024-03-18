@@ -101,7 +101,7 @@ class SSD1306Brzo : public OLEDDisplay {
        sendCommand(minBoundY);
        sendCommand(maxBoundY);
 
-       byte k = 0;
+       uint8_t k = 0;
 
        int buflen = ( this->width() / 8 ) + 1;
 
