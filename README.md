@@ -31,6 +31,9 @@ The init sequence for the SSD1306 was inspired by Adafruit's library for the sam
 ## mbed-os
 This library has been adopted to support the ARM mbed-os environment. A copy of this library is available in mbed-os under the name OLED_SSD1306 by Helmut Tschemernjak. An alternate installation option is to copy the following files into your mbed-os project: OLEDDisplay.cpp OLEDDisplay.h OLEDDisplayFonts.h OLEDDisplayUi.cpp OLEDDisplayUi.h SSD1306I2C.h
 
+## ESP-IDF (Espressif IoT Development Framework)
+This library has been adopted to support Espressif IoT Development Framework (ESP-IDF). See [the example](#esp-idf-example) below and in the `examples\ESP-IDF` directory.
+
 ## Usage
 
 Check out the examples folder for a few comprehensive demonstrations how to use the library. Also check out the [ESP8266 Weather Station](https://github.com/ThingPulse/esp8266-weather-station) library which uses the OLED library to display beautiful weather information.
@@ -130,6 +133,33 @@ SH1106Spi display(D0, D2, CS);  // RES, DC, CS
 ```
 
 In case the CS pin is not used (hard wired to ground), pass CS as -1.
+
+
+### <a name="esp-idf-example"></a>ESP-IDF (Espressif IoT Development Framework) on PlatformIO
+
+`platformIO.ini` example:
+```
+[env:nodemcu-32s]
+platform = espressif32@^6.3.0
+board = nodemcu-32s
+framework = espidf
+lib_deps =
+    ;https://github.com/ThingPulse/esp8266-oled-ssd1306.git@^4.5.0 ; will works only with the new version of the library
+    ;ThingPulse/esp8266-oled-ssd1306^4.5.0 ; will works only with the new version of the library
+    https://github.com/osmanovv/esp-idf-oled.git#70c29beb4fa42d2b9045d1da110cf5d9b46fa166 ; my fork for testing purpose - remove
+```
+
+Then use `SSD1306I2C` implementation in your code:
+```C++
+#include <SSD1306I2C.h>
+
+static const uint8_t SSD1306_ADDRESS = 0x3C;
+static const gpio_num_t SDA = 21;
+static const gpio_num_t SCL = 22;
+
+SSD1306I2C display(SSD1306_ADDRESS, SDA, SCL);
+```
+
 
 ## API
 

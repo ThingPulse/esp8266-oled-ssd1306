@@ -21,7 +21,9 @@
         "email": "fabrice@weinberg.me"
     }
   ],
-  "frameworks": "arduino",
+  "frameworks": [
+    "arduino",
+    "espidf"],
   "platforms": [
     "espressif8266",
     "espressif32",
