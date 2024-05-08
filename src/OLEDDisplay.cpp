@@ -826,7 +826,9 @@ void OLEDDisplay::clear(void) {
 }
 
 void OLEDDisplay::drawLogBuffer(uint16_t xMove, uint16_t yMove) {
+#if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SERIAL)
   Serial.println("[deprecated] Print functionality now handles buffer management automatically. This is a no-op.");
+#endif
 }
 
 void OLEDDisplay::drawLogBuffer() {
@@ -879,7 +881,9 @@ void OLEDDisplay::cls() {
 }
 
 bool OLEDDisplay::setLogBuffer(uint16_t lines, uint16_t chars) {
+#if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SERIAL)
   Serial.println("[deprecated] Print functionality now handles buffer management automatically. This is a no-op.");
+#endif
   return true;
 }
 
