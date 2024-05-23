@@ -170,7 +170,7 @@ const uint8_t My_Font[] PROGMEM = {
         // Let's use the DOM to store everything for now
         
         static updateCaption(element, code) {
-          element.textContent = `Char #${code}`;
+          element.textContent = `Char #${code} [`+String.fromCharCode(code)+']';
         }
         
         // Add a pixel matrix to draw a new character
