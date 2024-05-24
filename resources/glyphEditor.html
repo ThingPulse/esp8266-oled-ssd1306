@@ -125,12 +125,22 @@ const uint8_t My_Font[] PROGMEM = {
           <td>Height:</td><td><input placeholder="Font height" type="number" id="height" value="13" max="64"/></td>
         </tr>
         <tr>
+          <td>NewWidth:</td><td><input placeholder="New Font width" type="number" id="newwidth" value="0"/></td>
+        </tr>
+        <tr>
+          <td>NewHeight:</td><td><input placeholder="New Font height" type="number" id="newheight" value="0" max="64"/></td>
+        </tr>
+        <tr>
           <td colspan="3"> </td>     <!--slightly improves layout-->
         </tr>
         <tr>
           <td colspan="2">
             <button id="create">Create</button>
-            <button id="shiftUp">Shift all up</button>
+            <br/>Shift all
+            <button id="shiftUp">Up</button>
+            <button id="shiftDown">Down</button>
+            <button id="shiftLeft">Left</button>
+            <button id="shiftRight">Right</button><br/>
             <button id="generate">Generate</button>
             <button id="savetoFile">Save To File</button>
           </td>
@@ -170,7 +180,7 @@ const uint8_t My_Font[] PROGMEM = {
         // Let's use the DOM to store everything for now
         
         static updateCaption(element, code) {
-          element.textContent = `Char #${code}`;
+          element.textContent = `Char #${code} [`+String.fromCharCode(code)+']';
         }
         
         // Add a pixel matrix to draw a new character
@@ -294,6 +304,16 @@ const uint8_t My_Font[] PROGMEM = {
         // generates the jump table and font data 
         generate() {
           // this.width -= 3;  // hack to narrow an existing font
+          var newheight = parseInt(document.getElementById('newheight').value);
+          if(newheight){
+            this.height = newheight;
+            this.bytesForHeight = (1 + ((this.height - 1) >> 3));
+          }
+          var newwidth = parseInt(document.getElementById('newwidth').value);
+          if(newwidth){
+             this.width = newwidth;	
+          }
+
           Font.emptyOutput();
           let chars = this.fontContainer.getElementsByTagName('table');
           let firstCharCode = parseInt(document.getElementById('code').value);
@@ -319,7 +339,9 @@ const uint8_t My_Font[] PROGMEM = {
               // Browse each row starting from the bottom one, going up, and accumulate pixels in
               // a string: this rotates the glyph
               // Beware, row 0 is table headers.
-              for(let r = rows.length-1; r >=1 ; r--) {
+          //for(let r = rows.length-1; r >=1 ; r--) {
+
+              for(let r = this.height; r >=1 ; r--) {
                 let pixelState = rows[r].children[col].className;
                 bits += (pixelState === 'on' ? '1': '0');           
               }
@@ -410,6 +432,28 @@ const uint8_t My_Font[] PROGMEM = {
         }
       });
       
+      document.getElementById('shiftDown').addEventListener('click', function() {
+        var chars = document.getElementById("chars");
+        var tables = chars.getElementsByTagName("table");
+        for(var i=0; i< tables.length; i++) {
+          shiftDown(tables[i]);
+        }
+      });
+      document.getElementById('shiftLeft').addEventListener('click', function() {
+        var chars = document.getElementById("chars");
+        var tables = chars.getElementsByTagName("table");
+        for(var i=0; i< tables.length; i++) {
+          shiftLeft(tables[i]);
+        }
+      });
+      document.getElementById('shiftRight').addEventListener('click', function() {
+        var chars = document.getElementById("chars");
+        var tables = chars.getElementsByTagName("table");
+        for(var i=0; i< tables.length; i++) {
+          shiftRight(tables[i]);
+        }
+      });
+      
       document.getElementById('generate').addEventListener('click', function() {
         font.generate();
       });
@@ -454,38 +498,18 @@ const uint8_t My_Font[] PROGMEM = {
 
           // Shift pixels to the left  
           case 'left':
-            pixels = currentContainer.getElementsByTagName('td');
-            for(p = 0; p < pixels.length; p++) {
-              if((p + 1) % font.width) {
-                pixels[p].className = pixels[p + 1].className;
-              } else {
-                pixels[p].className = '';
-              }
-            }
+            shiftLeft(currentContainer);
             break;
           
           // Shift pixels to the right
           case 'right':
-            pixels = currentContainer.getElementsByTagName('td');
-            for(p = pixels.length-1; p >=0 ; p--) {
-              if(p % font.width) {
-                pixels[p].className = pixels[p - 1].className;
-              } else {
-                pixels[p].className = '';
-              }
-            }
+            shiftRight(currentContainer);
             break;
 
           // Shift pixels down
           case 'down':
-            pixels = currentContainer.getElementsByTagName('td');
-            for(p = pixels.length-1; p >=0 ; p--) {
-              if(p >= font.width) {
-                pixels[p].className = pixels[p - font.width].className;
-              } else {
-                pixels[p].className = '';
-              }
-            }            break;
+            shiftDown(currentContainer);
+			break;
 
           // Shift pixels up
           case 'up':
@@ -531,6 +555,37 @@ const uint8_t My_Font[] PROGMEM = {
             pixels[p].className = '';
           }
         }  
+      }
+      function shiftDown(container) {
+        var pixels = container.getElementsByTagName('td');
+        for(p = pixels.length-1; p >=0 ; p--) {
+          if(p >= font.width) {
+           pixels[p].className = pixels[p - font.width].className;
+          } else {
+           pixels[p].className = '';
+          }
+        } 
+      }
+      function shiftLeft(container) {
+        var pixels = container.getElementsByTagName('td');
+        for(p = 0; p < pixels.length; p++) {
+          if((p + 1) % font.width) {
+             pixels[p].className = pixels[p + 1].className;
+          } else {
+             pixels[p].className = '';
+          }
+        }
+      }
+      
+      function shiftRight(container) {
+        var pixels = container.getElementsByTagName('td');
+        for(p = pixels.length-1; p >=0 ; p--) {
+          if(p % font.width) {
+            pixels[p].className = pixels[p - 1].className;
+          } else {
+            pixels[p].className = '';
+          }
+        }
       }
       
       document.getElementById('chars').addEventListener('mouseover', function(e) {
