@@ -32,7 +32,9 @@
 #ifndef OLEDDISPLAYUI_h
 #define OLEDDISPLAYUI_h
 
-#ifdef ARDUINO
+#ifdef ESP_PLATFORM
+#include <stdint.h>
+#elif ARDUINO
 #include <Arduino.h>
 #elif __MBED__
 #include <mbed.h>

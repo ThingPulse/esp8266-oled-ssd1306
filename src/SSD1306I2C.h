@@ -31,32 +31,53 @@
 #define SSD1306I2C_h
 
 
-#ifdef __MBED__
-
 #include "OLEDDisplay.h"
+
+#ifdef __MBED__
 #include <mbed.h>
 
 #ifndef UINT8_MAX
  #define UINT8_MAX 0xff
 #endif
+#elif ESP_PLATFORM
+#include <algorithm>
+#include "driver/gpio.h"
+#include "driver/i2c.h"
+
+#define I2C_MASTER_NUM              0                          /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
+#define I2C_MASTER_FREQ_HZ          400000                     /*!< I2C master clock frequency */
+#define I2C_MASTER_TX_BUF_DISABLE   0                          /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUF_DISABLE   0                          /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_TIMEOUT_MS       1000
+#endif
 
 class SSD1306I2C : public OLEDDisplay {
 public:
-    SSD1306I2C(uint8_t _address, PinName _sda, PinName _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+#ifdef __MBED__
+    SSD1306I2C(uint8_t address, PinName sda, PinName scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+      this->_address = address << 1;  // convert from 7 to 8 bit for mbed.
+#elif ESP_PLATFORM
+    SSD1306I2C(uint8_t address, gpio_num_t sda, gpio_num_t scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+      this->_address = address;
+#endif
       setGeometry(g);
 
-      this->_address = _address << 1;  // convert from 7 to 8 bit for mbed.
-      this->_sda = _sda;
-      this->_scl = _scl;
-	  _i2c = new I2C(_sda, _scl);
+      this->_sda = sda;
+      this->_scl = scl;
+
+#ifdef __MBED__
+	  _i2c = new I2C(sda, scl);
+#endif
     }
 
     bool connect() {
 		// mbed supports 100k and 400k some device maybe 1000k
 #ifdef TARGET_STM32L4
 	  _i2c->frequency(1000000);
-#else
+#elif __MBED__
 	  _i2c->frequency(400000);
+#elif ESP_PLATFORM
+    return (i2c_master_init(_sda, _scl) == ESP_OK);
 #endif
       return true;
     }
@@ -106,7 +127,11 @@ public:
 			uint8_t save = *start;
 			
 			*start = 0x40; // control
+#ifdef __MBED__
 			_i2c->write(_address, (char *)start, (maxBoundX-minBoundX) + 1 + 1);
+#elif ESP_PLATFORM
+      ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, _address, start, (maxBoundX - minBoundX) + 1 + 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+#endif
 			*start = save;
 		}
 #else
@@ -125,7 +150,11 @@ public:
         }
 
 		buffer[-1] = 0x40; // control
-		_i2c->write(_address, (char *)&buffer[-1], displayBufferSize + 1);
+#ifdef __MBED__
+			_i2c->write(_address, (char *)&buffer[-1], displayBufferSize + 1);
+#elif ESP_PLATFORM
+      ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, _address, &buffer[-1], displayBufferSize + 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+#endif
 #endif
     }
 
@@ -135,18 +164,49 @@ private:
 	}
 
     inline void sendCommand(uint8_t command) __attribute__((always_inline)) {
-		char _data[2];
+		uint8_t _data[2];
 	  	_data[0] = 0x80; // control
 	  	_data[1] = command;
-	  	_i2c->write(_address, _data, sizeof(_data));
+#ifdef __MBED__
+			_i2c->write(_address, _data, sizeof(_data));
+#elif ESP_PLATFORM
+      ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, _address, _data, sizeof(_data), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+#endif
     }
 
+#ifdef __MBED__
 	uint8_t             _address;
 	PinName             _sda;
 	PinName             _scl;
 	I2C *_i2c;
+#elif ESP_PLATFORM
+
+  /**
+   * @brief i2c master initialization
+   */
+  static esp_err_t i2c_master_init(gpio_num_t sda, gpio_num_t scl)
+  {
+    uint8_t i2c_master_port = I2C_MASTER_NUM;
+
+    i2c_config_t conf = {};
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = sda;
+    conf.scl_io_num = scl;
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
+
+    i2c_param_config(i2c_master_port, &conf);
+
+    return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+  }
+
+  uint8_t _address;
+  gpio_num_t _sda;
+  gpio_num_t _scl;
+#endif
 };
 
-#endif
+
 
 #endif

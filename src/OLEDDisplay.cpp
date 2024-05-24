@@ -733,12 +733,12 @@ uint16_t OLEDDisplay::getStringWidth(const char* text, uint16_t length, bool utf
     }
     stringWidth += pgm_read_byte(fontData + JUMPTABLE_START + (c - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
     if (c == 10) {
-      maxWidth = max(maxWidth, stringWidth);
+      maxWidth = std::max(maxWidth, stringWidth);
       stringWidth = 0;
     }
   }
 
-  return max(maxWidth, stringWidth);
+  return std::max(maxWidth, stringWidth);
 }
 
 uint16_t OLEDDisplay::getStringWidth(const String &strUser) {
@@ -1016,6 +1016,15 @@ size_t OLEDDisplay::write(const char* str) {
 #ifdef __MBED__
 int OLEDDisplay::_putc(int c) {
 	return this->write((uint8_t)c);
+}
+#elif ESP_PLATFORM
+size_t OLEDDisplay::println(uint8_t c) {
+	write(c);
+  return write('\n');
+}
+size_t OLEDDisplay::println(const char *str) {
+  write(str);
+	return write('\n');
 }
 #endif
 
