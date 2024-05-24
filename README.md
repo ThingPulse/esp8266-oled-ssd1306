@@ -489,4 +489,5 @@ This shows the code working on the SPI version of the display. See demo code for
  * [Scan I2C](https://github.com/hallard/Scan-I2C-WiFi) (by @hallard)
  * [ThingPulse Weather Station](https://github.com/ThingPulse/esp8266-weather-station)
  * [Meshtastic](https://www.meshtastic.org/) - an open source GPS communicator mesh radio
+ * [OpenMQTTGateway](https://docs.openmqttgateway.com) - OpenMQTTGateway aims to unify various technologies and protocols into a single firmware. This reduces the need for multiple physical bridges and streamlines diverse technologies under the widely-used MQTT protocol.
  * Yours?
