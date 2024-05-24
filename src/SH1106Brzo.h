@@ -47,12 +47,12 @@ class SH1106Brzo : public OLEDDisplay {
       uint8_t             _scl;
 
   public:
-	SH1106Brzo(uint8_t _address, uint8_t _sda, uint8_t _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+	SH1106Brzo(uint8_t address, uint8_t sda, uint8_t scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
 		setGeometry(g);
 
-      this->_address = _address;
-      this->_sda = _sda;
-      this->_scl = _scl;
+      this->_address = address;
+      this->_sda = sda;
+      this->_scl = scl;
     }
 
     bool connect(){
