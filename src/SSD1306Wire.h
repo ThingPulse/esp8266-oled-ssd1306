@@ -53,7 +53,7 @@ class SSD1306Wire : public OLEDDisplay {
       int                 _scl;
       bool                _doI2cAutoInit = false;
       TwoWire*            _wire = NULL;
-      int                 _frequency;
+      long                _frequency;
 
   public:
 
@@ -72,7 +72,7 @@ class SSD1306Wire : public OLEDDisplay {
      * @param _i2cBus on ESP32 with 2 I2C HW buses, I2C_ONE for 1st Bus, I2C_TWO fot 2nd bus, default I2C_ONE
      * @param _frequency for Frequency by default Let's use ~700khz if ESP8266 is in 160Mhz mode, this will be limited to ~400khz if the ESP8266 in 80Mhz mode
      */
-    SSD1306Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64, HW_I2C _i2cBus = I2C_ONE, int _frequency = 700000) {
+    SSD1306Wire(uint8_t address, int sda = -1, int scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64, HW_I2C i2cBus = I2C_ONE, long  frequency = 700000) {
       setGeometry(g);
 
       this->_address = _address;
@@ -81,7 +81,7 @@ class SSD1306Wire : public OLEDDisplay {
 #if !defined(ARDUINO_ARCH_ESP32)
       this->_wire = &Wire;
 #else
-      this->_wire = (_i2cBus==I2C_ONE) ? &Wire : &Wire1;
+      this->_wire = (i2cBus == I2C_ONE) ? &Wire : &Wire1;
 #endif
       this->_frequency = _frequency;
     }

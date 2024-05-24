@@ -42,12 +42,12 @@ class SH1106Spi : public OLEDDisplay {
 
   public:
     /* pass _cs as -1 to indicate "do not use CS pin", for cases where it is hard wired low */
-    SH1106Spi(uint8_t _rst, uint8_t _dc, uint8_t _cs, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+    SH1106Spi(uint8_t rst, uint8_t dc, uint8_t cs, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
         setGeometry(g);
 
-      this->_rst = _rst;
-      this->_dc  = _dc;
-      this->_cs  = _cs;
+      this->_rst = rst;
+      this->_dc  = dc;
+      this->_cs  = cs;
     }
 
     bool connect(){
