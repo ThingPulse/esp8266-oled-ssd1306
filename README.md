@@ -490,4 +490,5 @@ This shows the code working on the SPI version of the display. See demo code for
  * [ThingPulse Weather Station](https://github.com/ThingPulse/esp8266-weather-station)
  * [Meshtastic](https://www.meshtastic.org/) - an open source GPS communicator mesh radio
  * [OpenMQTTGateway](https://docs.openmqttgateway.com) - OpenMQTTGateway aims to unify various technologies and protocols into a single firmware. This reduces the need for multiple physical bridges and streamlines diverse technologies under the widely-used MQTT protocol.
+ * [OpenAstroTracker](https://openastrotech.com) - Open source hardware and software for Astrophotography. The firmware for the mounts supports displays and uses this library to drive them.
  * Yours?
