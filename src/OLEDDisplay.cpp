@@ -683,6 +683,18 @@ uint16_t OLEDDisplay::drawStringMaxWidth(int16_t xMove, int16_t yMove, uint16_t 
       continue;
     strWidth += pgm_read_byte(fontData + JUMPTABLE_START + (c - firstChar) * JUMPTABLE_BYTES + JUMPTABLE_WIDTH);
 
+    // Always break on newline
+    if (text[i] == '\n') {
+      drawStringResult = drawStringInternal(xMove, yMove + (lineNumber++) * lineHeight , &text[lastDrawnPos], i - lastDrawnPos, strWidth, true);
+      if (firstLineChars == 0)
+        firstLineChars = i;
+        
+      lastDrawnPos = i + 1;
+      strWidth = 0;
+      if (drawStringResult == 0) // we are past the display already?
+        break;
+    }
+
     // Always try to break on a space, dash or slash
     if (text[i] == ' ' || text[i]== '-' || text[i] == '/') {
       preferredBreakpoint = i + 1;
