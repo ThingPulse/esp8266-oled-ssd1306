@@ -13,20 +13,20 @@ jobs:
         example: [examples/SSD1306UiDemo, examples/SSD1306SimpleDemo, examples/SSD1306DrawingDemo, examples/SSD1306OTADemo, examples/SSD1306ClockDemo, examples/SSD1306TwoScreenDemo]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
     - name: Cache pip
-      uses: actions/cache@v3
+      uses: actions/cache@v2
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: ${{ runner.os }}-pip-
     - name: Cache PlatformIO
-      uses: actions/cache@v3
+      uses: actions/cache@v2
       with:
         path: ~/.platformio
         key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v2
     - name: Install PlatformIO
       run: |
         python -m pip install --upgrade pip
