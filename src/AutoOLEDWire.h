@@ -39,6 +39,13 @@
 #define _min	min
 #define _max	max
 #endif
+#if defined(ARDUINO_ARCH_ESP32)
+#define I2C_MAX_TRANSFER_BYTE 128 /** ESP32 can Transfer 128 bytes */
+#define I2C_OLED_TRANSFER_BYTE 64
+#else
+#define I2C_MAX_TRANSFER_BYTE 17
+#define I2C_OLED_TRANSFER_BYTE 16
+#endif
 
 #define SSD1306_DETECTED 1
 #define SH1106_DETECTED 2
@@ -85,7 +92,7 @@ class AutoOLEDWire : public OLEDDisplay {
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
-#if !defined(ARDUINO_ARCH_ESP32)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARCH_RP2040)
       this->_wire = &Wire;
 #else
       this->_wire = (_i2cBus==I2C_ONE) ? &Wire : &Wire1;
@@ -114,7 +121,7 @@ class AutoOLEDWire : public OLEDDisplay {
       if (this->_detected == SSD1306_DETECTED) {
         x_offset = (128 - this->width()) / 2;
       }
-      #ifdef OLEDDISPLAY_DOUBLE_BUFFER
+#ifdef OLEDDISPLAY_DOUBLE_BUFFER
         uint8_t minBoundY = UINT8_MAX;
         uint8_t maxBoundY = 0;
 
@@ -160,7 +167,7 @@ class AutoOLEDWire : public OLEDDisplay {
 
         if (minBoundY == UINT8_MAX) return;
 
-        byte k = 0;
+        uint8_t k = 0;
 
         if (this->_detected == SSD1306_DETECTED) {
           sendCommand(COLUMNADDR);
@@ -180,7 +187,7 @@ class AutoOLEDWire : public OLEDDisplay {
   
               _wire->write(buffer[x + y * this->width()]);
               k++;
-              if (k == 16)  {
+              if (k == (I2C_MAX_TRANSFER_BYTE - 1)) {
                 _wire->endTransmission();
                 k = 0;
               }
@@ -209,7 +216,7 @@ class AutoOLEDWire : public OLEDDisplay {
               }
               _wire->write(buffer[x + y * displayWidth]);
               k++;
-              if (k == 16)  {
+              if (k == I2C_OLED_TRANSFER_BYTE)  {
                 _wire->endTransmission();
                 k = 0;
               }
@@ -225,7 +232,7 @@ class AutoOLEDWire : public OLEDDisplay {
         if (k != 0) {
           _wire->endTransmission();
         }
-      #else
+#else
         if (this->_detected == SSD1306_DETECTED) {
           sendCommand(COLUMNADDR);
           sendCommand(x_offset);
@@ -237,7 +244,7 @@ class AutoOLEDWire : public OLEDDisplay {
           for (uint16_t i=0; i < displayBufferSize; i++) {
             _wire->beginTransmission(this->_address);
             _wire->write(0x40);
-            for (uint8_t x = 0; x < 16; x++) {
+            for (uint8_t x = 0; x < (I2C_MAX_TRANSFER_BYTE - 1); x++) {
               _wire->write(buffer[i]);
               i++;
             }
@@ -250,17 +257,17 @@ class AutoOLEDWire : public OLEDDisplay {
             sendCommand(0xB0+y);
             sendCommand(0x02);
             sendCommand(0x10);
-            for( uint8_t x=0; x<8; x++) {
+            for( uint8_t x=0; x<(128/I2C_OLED_TRANSFER_BYTE); x++) {
               _wire->beginTransmission(_address);
               _wire->write(0x40);
-              for (uint8_t k = 0; k < 16; k++) {
+              for (uint8_t k = 0; k < I2C_OLED_TRANSFER_BYTE; k++) {
                 _wire->write(*p++);
               }
               _wire->endTransmission();
             }
           }
         }
-      #endif
+#endif
     }
 
     void setI2cAutoInit(bool doI2cAutoInit) {
