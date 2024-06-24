@@ -75,9 +75,9 @@ enum FrameState {
 };
 
 enum TransitionRelationship {
-  NONE,
-  INCOMING,
-  OUTGOING,
+  TransitionRelationship_NONE,
+  TransitionRelationship_INCOMING,
+  TransitionRelationship_OUTGOING,
 };
 
 const uint8_t ANIMATION_activeSymbol[] PROGMEM = {
