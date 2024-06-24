@@ -43,6 +43,7 @@
 #include "OLEDDisplay.h"
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 //#define DEBUG_OLEDDISPLAYUI(...) Serial.printf( __VA_ARGS__ )
 
@@ -118,7 +119,7 @@ struct LoadingStage {
   void (*callback)();
 };
 
-typedef void (*FrameCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y);
+typedef std::function<void(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y)> FrameCallback;
 typedef void (*OverlayCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state);
 typedef void (*LoadingDrawFunction)(OLEDDisplay *display, LoadingStage* stage, uint8_t progress);
 typedef void (*FrameNotificationCallback)(uint32_t FrameNumber, void* UI);
