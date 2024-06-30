@@ -271,6 +271,9 @@ class OLEDDisplay : public Stream {
     // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
     void setFont(const uint8_t *fontData);
 
+    // Set the current font when supplied as a char* instead of a uint8_t*
+    void setFont(const char *fontData);
+
     // Set the function that will convert utf-8 to font table index
     void setFontTableLookupFunction(FontTableLookupFunction function);
 
@@ -311,14 +314,24 @@ class OLEDDisplay : public Stream {
     // Clear the local pixel buffer
     void clear(void);
 
-    // Log buffer implementation
+    // Print class device
 
-    // This will define the lines and characters you can
-    // print to the screen. When you exeed the buffer size (lines * chars)
-    // the output may be truncated due to the size constraint.
+    // Because this display class is "derived" from Arduino's Print class,
+    // various function that work on it also work here. These functions include
+    // print, println and printf. 
+
+    // cls() will clear the display immediately and empty the logBuffer, meaning
+    // the next print statement will print at the top of the display again.
+    // cls() should not be confused with clear(), which only clears the internal
+    // graphics buffer, which can then be shown on the display with display().
+    void cls();
+
+    // Replaced by setLogBuffer() , which is protected
     bool setLogBuffer(uint16_t lines, uint16_t chars);
 
     // Draw the log buffer at position (x, y)
+    //
+    // (Automatically called with you use print, println or printf)
     void drawLogBuffer(uint16_t x, uint16_t y);
 
     // Get screen geometry
@@ -363,7 +376,9 @@ class OLEDDisplay : public Stream {
     uint16_t   logBufferFilled;
     uint16_t   logBufferLine;
     uint16_t   logBufferMaxLines;
+    uint16_t   logBufferLineLen;
     char      *logBuffer;
+    bool      inhibitDrawLogBuffer;
 
 
 	// the header size of the buffer used, e.g. for the SPI command header
@@ -385,6 +400,13 @@ class OLEDDisplay : public Stream {
     void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const uint8_t *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
     uint16_t drawStringInternal(int16_t xMove, int16_t yMove, const char* text, uint16_t textLength, uint16_t textWidth, bool utf8);
+
+    // (re)creates the logBuffer that printing uses to remember what was on the
+    // screen already 
+    bool setLogBuffer();
+
+    // Draws the contents of the logBuffer to the screen
+    void drawLogBuffer();
 
 	FontTableLookupFunction fontTableLookupFunction;
 };

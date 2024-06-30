@@ -42,13 +42,13 @@
 
 class SSD1306I2C : public OLEDDisplay {
 public:
-    SSD1306I2C(uint8_t _address, PinName _sda, PinName _scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
+    SSD1306I2C(uint8_t address, PinName sda, PinName scl, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64) {
       setGeometry(g);
 
-      this->_address = _address << 1;  // convert from 7 to 8 bit for mbed.
-      this->_sda = _sda;
-      this->_scl = _scl;
-	  _i2c = new I2C(_sda, _scl);
+      this->_address = address << 1;  // convert from 7 to 8 bit for mbed.
+      this->_sda = sda;
+      this->_scl = scl;
+	  _i2c = new I2C(sda, scl);
     }
 
     bool connect() {
