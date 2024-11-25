@@ -146,7 +146,7 @@ void OLEDDisplayUi::setFrames(FrameCallback* frameFunctions, uint8_t frameCount)
 }
 
 // -/----- Overlays ------\-
-void OLEDDisplayUi::setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount){
+void OLEDDisplayUi::setOverlays(OverlayCallback* overlayFunctions, uint8_t* overlayCount){
   this->overlayFunctions = overlayFunctions;
   this->overlayCount     = overlayCount;
 }
@@ -460,9 +460,7 @@ void OLEDDisplayUi::drawIndicator() {
 }
 
 void OLEDDisplayUi::drawOverlays() {
- for (uint8_t i=0;i<this->overlayCount;i++){
-    (this->overlayFunctions[i])(this->display, &this->state);
- }
+  this->overlayFunctions[this->overlayCount[this->state.currentFrame]](this->display, &this->state);
 }
 
 uint8_t OLEDDisplayUi::getNextFrameNumber(){
