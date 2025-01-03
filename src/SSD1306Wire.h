@@ -80,6 +80,8 @@ class SSD1306Wire : public OLEDDisplay {
       this->_scl = _scl;
 #if !defined(ARDUINO_ARCH_ESP32)
       this->_wire = &Wire;
+#elif defined(CONFIG_IDF_TARGET_ESP32C6)
+      this->_wire = &Wire;
 #else
       this->_wire = (_i2cBus==I2C_ONE) ? &Wire : &Wire1;
 #endif
