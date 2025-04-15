@@ -198,7 +198,7 @@ class SH1106Wire : public OLEDDisplay {
 
     void initI2cIfNeccesary() {
       if (_doI2cAutoInit) {
-#ifdef ARDUINO_ARCH_AVR
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH_ESP8266)
         _wire->begin();
 #else
         _wire->begin(this->_sda, this->_scl);
