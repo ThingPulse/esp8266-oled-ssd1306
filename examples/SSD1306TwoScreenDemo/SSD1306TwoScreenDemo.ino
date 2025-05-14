@@ -34,6 +34,12 @@
 #include "images.h"
 
 // Initialize the OLED display using Wire library
+//
+// GOTCHA!
+//
+// Pay attention if you work with ESP32 as some have two I2C buses.
+// You need to set the 'i2cBus' constructor parameter accordingly.
+// See https://github.com/ThingPulse/esp8266-oled-ssd1306/issues/387#issuecomment-2874437238 for a discussion.
 SSD1306Wire  display(0x3c, 0, 14);
 SSD1306Wire  display2(0x3c, 5, 4);
 
