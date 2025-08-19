@@ -41,7 +41,8 @@ OLEDDisplay::OLEDDisplay() {
 
 	displayWidth = 128;
 	displayHeight = 64;
-	displayBufferSize = displayWidth * displayHeight / 8;
+  maxDisplayHeight = ((displayHeight + 7) / 8) * 8;
+	displayBufferSize = displayWidth * maxDisplayHeight / 8;
 	color = WHITE;
 	geometry = GEOMETRY_128_64;
 	textAlignment = TEXT_ALIGN_LEFT;
@@ -1001,7 +1002,8 @@ void OLEDDisplay::setGeometry(OLEDDISPLAY_GEOMETRY g, uint16_t width, uint16_t h
       this->displayHeight = height > 0 ? height : 64;
       break;
   }
-  this->displayBufferSize = displayWidth * displayHeight / 8;
+  maxDisplayHeight = ((displayHeight + 7) / 8) * 8;
+  this->displayBufferSize = displayWidth * maxDisplayHeight / 8;
 }
 
 void OLEDDisplay::sendInitCommands(void) {

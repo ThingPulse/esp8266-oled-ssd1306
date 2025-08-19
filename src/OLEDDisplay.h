@@ -354,6 +354,7 @@ class OLEDDisplay : public Stream {
 
     uint16_t  displayWidth;
     uint16_t  displayHeight;
+    uint16_t  maxDisplayHeight;
     uint16_t  displayBufferSize;
 
     OLEDDISPLAY_TEXT_ALIGNMENT   textAlignment;
