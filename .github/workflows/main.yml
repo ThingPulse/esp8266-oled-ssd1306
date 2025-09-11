@@ -30,7 +30,7 @@ jobs:
     - name: Install PlatformIO
       run: |
         python -m pip install --upgrade pip
-        pip install --upgrade platformio
+        pip install --upgrade platformio intelhex
     - name: Install library dependencies
       run: pio pkg install -g -l "paulstoffregen/Time@^1.6"
     - name: Run PlatformIO
