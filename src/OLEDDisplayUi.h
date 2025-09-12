@@ -141,7 +141,7 @@ class OLEDDisplayUi {
 
     // Values for Overlays
     OverlayCallback*    overlayFunctions;
-    uint8_t             overlayCount;
+    uint8_t*             overlayCount;
 
     // Will the Indicator be drawn
     // 3 Not drawn in both frames
@@ -275,7 +275,7 @@ class OLEDDisplayUi {
     /**
      * Add overlays drawing functions that are draw independent of the Frames
      */
-    void setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount);
+    void setOverlays(OverlayCallback *overlayFunctions, uint8_t* overlayCount);
 
 
     // Loading animation
