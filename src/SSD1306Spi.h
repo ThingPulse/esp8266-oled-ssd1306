@@ -45,6 +45,8 @@ class SSD1306Spi : public OLEDDisplay {
       uint8_t             _rst;
       uint8_t             _dc;
       uint8_t             _cs;
+      uint8_t             _h_offset = 0;
+
 
   public:
     /* pass _cs as -1 to indicate "do not use CS pin", for cases where it is hard wired low */
@@ -54,6 +56,10 @@ class SSD1306Spi : public OLEDDisplay {
       this->_rst = _rst;
       this->_dc  = _dc;
       this->_cs  = _cs;
+    }
+
+    void setHorizontalOffset(uint8_t h_offset) {
+      _h_offset = h_offset;
     }
 
     bool connect(){
@@ -107,8 +113,8 @@ class SSD1306Spi : public OLEDDisplay {
        if (minBoundY == UINT8_MAX) return;
 
        sendCommand(COLUMNADDR);
-       sendCommand(minBoundX);
-       sendCommand(maxBoundX);
+       sendCommand(minBoundX + _h_offset);
+       sendCommand(maxBoundX + _h_offset);
 
        sendCommand(PAGEADDR);
        sendCommand(minBoundY);
