@@ -788,7 +788,7 @@ void OLEDDisplay::setContrast(uint8_t contrast, uint8_t precharge, uint8_t comde
   // Set to false to preserve invertDisplay() state
   if (forceNormal) {
     sendCommand(NORMALDISPLAY);
-  } 
+  }
   sendCommand(DISPLAYON);
 }
 
