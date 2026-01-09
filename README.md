@@ -169,14 +169,10 @@ void normalDisplay(void);
 // Set display contrast
 // really low brightness & contrast: contrast = 10, precharge = 5, comdetect = 0
 // normal brightness & contrast:  contrast = 100
-// forceNormal = true - forces normal display mode (default)
-//              false - preserves current display mode (normal/inverted)
-void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64, bool forceNormal = true);
+void setContrast(uint8_t contrast, uint8_t precharge = 241, uint8_t comdetect = 64);
 
-// Convenience method to access setContrast with simplified parameters
-// forceNormal = true - forces normal display mode (default)
-//              false - preserves current display mode (normal/inverted)
-void setBrightness(uint8_t, bool forceNormal = true);
+// Convenience method to access setContrast with only brightness parameter
+void setBrightness(uint8_t);
 
 // Turn the display upside down
 void flipScreenVertically();

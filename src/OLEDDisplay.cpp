@@ -776,7 +776,7 @@ void OLEDDisplay::normalDisplay(void) {
   sendCommand(NORMALDISPLAY);
 }
 
-void OLEDDisplay::setContrast(uint8_t contrast, uint8_t precharge, uint8_t comdetect, bool forceNormal) {
+void OLEDDisplay::setContrast(uint8_t contrast, uint8_t precharge, uint8_t comdetect) {
   sendCommand(SETPRECHARGE); //0xD9
   sendCommand(precharge); //0xF1 default, to lower the contrast, put 1-1F
   sendCommand(SETCONTRAST);
@@ -784,15 +784,10 @@ void OLEDDisplay::setContrast(uint8_t contrast, uint8_t precharge, uint8_t comde
   sendCommand(SETVCOMDETECT); //0xDB, (additionally needed to lower the contrast)
   sendCommand(comdetect);	//0x40 default, to lower the contrast, put 0
   sendCommand(DISPLAYALLON_RESUME);
-  // Only force normal display if requested (default: true for backwards compatibility)
-  // Set to false to preserve invertDisplay() state
-  if (forceNormal) {
-    sendCommand(NORMALDISPLAY);
-  }
   sendCommand(DISPLAYON);
 }
 
-void OLEDDisplay::setBrightness(uint8_t brightness, bool forceNormal) {
+void OLEDDisplay::setBrightness(uint8_t brightness) {
   uint8_t contrast = brightness;
   if (brightness < 128) {
     // Magic values to get a smooth/ step-free transition
@@ -807,7 +802,7 @@ void OLEDDisplay::setBrightness(uint8_t brightness, bool forceNormal) {
   }
   uint8_t comdetect = brightness / 8;
 
-  setContrast(contrast, precharge, comdetect, forceNormal);
+  setContrast(contrast, precharge, comdetect);
 }
 
 void OLEDDisplay::resetOrientation() {
