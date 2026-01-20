@@ -42,6 +42,8 @@
 
 #include "OLEDDisplay.h"
 
+#include <stdlib.h>
+
 //#define DEBUG_OLEDDISPLAYUI(...) Serial.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_OLEDDISPLAYUI
@@ -108,6 +110,7 @@ struct LoadingStage {
 
 typedef void (*FrameCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y);
 typedef void (*OverlayCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state);
+typedef void (*FixedOverlayCallback)(OLEDDisplay *display,  OLEDDisplayUiState* state, int16_t x, int16_t y);
 typedef void (*LoadingDrawFunction)(OLEDDisplay *display, LoadingStage* stage, uint8_t progress);
 
 class OLEDDisplayUi {
@@ -143,6 +146,10 @@ class OLEDDisplayUi {
     OverlayCallback*    overlayFunctions;
     uint8_t             overlayCount;
 
+    uint8_t*            fixedOverlayFrames;
+    uint8_t             fixedOverlayFramesCount;
+    FixedOverlayCallback fixedOverlayCallback;
+
     // Will the Indicator be drawn
     // 3 Not drawn in both frames
     // 2 Drawn this frame but not next
@@ -166,12 +173,14 @@ class OLEDDisplayUi {
     void                drawIndicator();
     void                drawFrame();
     void                drawOverlays();
+    void                drawFixedOverlay(int16_t x, int16_t y, int16_t x1, int16_t y1);
     void                tick();
     void                resetState();
 
   public:
 
     OLEDDisplayUi(OLEDDisplay *display);
+    ~OLEDDisplayUi();
 
     /**
      * Initialise the display
@@ -273,10 +282,24 @@ class OLEDDisplayUi {
     // Overlay
 
     /**
-     * Add overlays drawing functions that are draw independent of the Frames
+     * Add fixed overlay drawing functions that are draw independent of the Frames
      */
     void setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount);
 
+    /**
+     * Set the list of frames with no fixed overlay
+     */
+    void setFixedOverlayFrames(const uint8_t* fixedOverlayFramesList, int fixedOverlayFramesCount);
+
+    /**
+     * Set the list of frames with no fixed overlay
+     */
+    void setFixedOverlayFrames(const FrameCallback*  fixedOverlayFramesList, int fixedOverlayFramesCount);
+
+    /**
+     * Set fixed overlay drawing function that will be drawn on fixed overlay frames only
+     */
+    void setFixedOverlay(FixedOverlayCallback fixedOverlayCallback);
 
     // Loading animation
     /**
