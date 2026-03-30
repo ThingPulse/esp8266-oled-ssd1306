@@ -130,8 +130,10 @@ public:
     }
 
 private:
+	// Reserve 1 byte before the framebuffer so display() can safely write the
+	// I2C control byte (0x40) to buffer[-1] without accessing unallocated memory.
 	int getBufferOffset(void) {
-		return 0;
+		return 1;
 	}
 
     inline void sendCommand(uint8_t command) __attribute__((always_inline)) {
