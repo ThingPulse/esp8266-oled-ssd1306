@@ -102,7 +102,7 @@ class SH1106Wire : public OLEDDisplay {
 
     void display(void) {
       initI2cIfNeccesary();
-      #ifdef OLEDDISPLAY_DOUBLE_BUFFER
+      #if defined(OLEDDISPLAY_DOUBLE_BUFFER)
         uint8_t minBoundY = UINT8_MAX;
         uint8_t maxBoundY = 0;
 
@@ -111,8 +111,8 @@ class SH1106Wire : public OLEDDisplay {
 
         uint8_t x, y;
 
-        // Calculate the Y bounding box of changes
-        // and copy buffer[pos] to buffer_back[pos];
+        // Calculate the bounding box of changes. Do not update buffer_back yet:
+        // if an I2C transfer fails, the same dirty region must be retried.
         for (y = 0; y < (displayHeight / 8); y++) {
           for (x = 0; x < displayWidth; x++) {
            uint16_t pos = x + y * displayWidth;
@@ -122,7 +122,6 @@ class SH1106Wire : public OLEDDisplay {
              minBoundX = _min(minBoundX, x);
              maxBoundX = _max(maxBoundX, x);
            }
-           buffer_back[pos] = buffer[pos];
          }
          yield();
         }
@@ -136,47 +135,52 @@ class SH1106Wire : public OLEDDisplay {
         uint8_t minBoundXp2H = (minBoundX + 2) & 0x0F;
         uint8_t minBoundXp2L = 0x10 | ((minBoundX + 2) >> 4 );
 
-        uint8_t k = 0;
+        bool txOk = true;
         for (y = minBoundY; y <= maxBoundY; y++) {
-          sendCommand(0xB0 + y);
-          sendCommand(minBoundXp2H);
-          sendCommand(minBoundXp2L);
-          for (x = minBoundX; x <= maxBoundX; x++) {
-            if (k == 0) {
-              _wire->beginTransmission(_address);
-              _wire->write(0x40);
-            }
-            _wire->write(buffer[x + y * displayWidth]);
-            k++;
-            if (k == I2C_OLED_TRANSFER_BYTE)  {
-              _wire->endTransmission();
-              k = 0;
-            }
+          // Both sendCommandChecked calls always execute (left operands of &&), ensuring both address
+          // commands are sent to the display. pageOk becomes false if either command fails.
+          bool pageOk = sendCommandChecked(0xB0 + y);
+          pageOk = sendCommandChecked(minBoundXp2H) && pageOk;
+          pageOk = sendCommandChecked(minBoundXp2L) && pageOk;
+          if (!pageOk) {
+            txOk = false;
+            yield();
+            continue;
           }
-          if (k != 0)  {
-            _wire->endTransmission();
-            k = 0;
+          for (x = minBoundX; x <= maxBoundX;) {
+            uint8_t chunkSize = _min((uint16_t)I2C_OLED_TRANSFER_BYTE, (uint16_t)(maxBoundX - x + 1));
+            if (!sendDataChunk(&buffer[x + y * displayWidth], chunkSize)) {
+              txOk = false;
+              break;
+            }
+            x += chunkSize;
           }
           yield();
         }
 
-        if (k != 0) {
-          _wire->endTransmission();
+        if (txOk) {
+          uint16_t changedWidth = maxBoundX - minBoundX + 1;
+          for (y = minBoundY; y <= maxBoundY; y++) {
+            uint16_t pos = minBoundX + y * displayWidth;
+            memcpy(&buffer_back[pos], &buffer[pos], changedWidth);
+          }
         }
       #else
         uint8_t * p = &buffer[0];
-        for (uint8_t y=0; y<8; y++) {
-          sendCommand(0xB0+y);
-          sendCommand(0x02);
-          sendCommand(0x10);
-          for( uint8_t x=0; x<(128/I2C_OLED_TRANSFER_BYTE); x++) {
-            _wire->beginTransmission(_address);
-            _wire->write(0x40);
-            for (uint8_t k = 0; k < I2C_OLED_TRANSFER_BYTE; k++) {
-              _wire->write(*p++);
+        bool txOk = true;
+        for (uint8_t y=0; y<(displayHeight / 8); y++) {
+          bool pageOk = sendCommandChecked(0xB0 + y);
+          pageOk = sendCommandChecked(0x02) && pageOk;
+          pageOk = sendCommandChecked(0x10) && pageOk;
+          if (!pageOk) txOk = false;
+          for(uint16_t x=0; x<(displayWidth / I2C_OLED_TRANSFER_BYTE); x++) {
+            if (pageOk && !sendDataChunk(p, I2C_OLED_TRANSFER_BYTE)) {
+              txOk = false;
+              pageOk = false;
             }
-            _wire->endTransmission();
+            p += I2C_OLED_TRANSFER_BYTE;
           }
+          yield();
         }
       #endif
     }
@@ -190,10 +194,29 @@ class SH1106Wire : public OLEDDisplay {
 		return 0;
 	}
     inline void sendCommand(uint8_t command) __attribute__((always_inline)){
+      sendCommandChecked(command);
+    }
+
+    bool sendCommandChecked(uint8_t command) {
+      for (uint8_t attempt = 0; attempt < 2; attempt++) {
+        _wire->beginTransmission(_address);
+        _wire->write(0x80);
+        _wire->write(command);
+        if (_wire->endTransmission() == 0) return true;
+        yield();
+      }
+      return false;
+    }
+
+    // Note: sendDataChunk does not retry on I2C failure (unlike sendCommandChecked which retries twice).
+    // Rationale: Command retries are low-cost/high-value (reset display address state); data retries would
+    // require recalculating page/column address, making them impractical. The caller (display()) tracks
+    // txOk to skip buffer_back sync if any chunk fails, allowing the dirty region to be retried on the next call.
+    bool sendDataChunk(const uint8_t *data, uint8_t length) {
       _wire->beginTransmission(_address);
-      _wire->write(0x80);
-      _wire->write(command);
-      _wire->endTransmission();
+      _wire->write(0x40);
+      _wire->write(data, length);
+      return _wire->endTransmission() == 0;
     }
 
     void initI2cIfNeccesary() {
