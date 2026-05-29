@@ -51,6 +51,9 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   frameCount = 0;
   nextFrameNumber = -1;
   overlayCount = 0;
+  fixedOverlayFramesCount =0 ;
+  fixedOverlayFrames = nullptr;
+  fixedOverlayCallback = nullptr;
   indicatorDrawState = 1;
   loadingDrawFunction = LoadingDrawDefault;
   updateInterval = 33;
@@ -66,6 +69,10 @@ OLEDDisplayUi::OLEDDisplayUi(OLEDDisplay *display) {
   autoTransition = true;
   setTimePerFrame(5000);
   setTimePerTransition(500);
+}
+
+OLEDDisplayUi::~OLEDDisplayUi() {
+  if(fixedOverlayFramesCount>0) free(fixedOverlayFrames);
 }
 
 void OLEDDisplayUi::init() {
@@ -146,9 +153,47 @@ void OLEDDisplayUi::setFrames(FrameCallback* frameFunctions, uint8_t frameCount)
 }
 
 // -/----- Overlays ------\-
-void OLEDDisplayUi::setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount){
+void OLEDDisplayUi::setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount) {
   this->overlayFunctions = overlayFunctions;
   this->overlayCount     = overlayCount;
+}
+
+void OLEDDisplayUi::setFixedOverlay(FixedOverlayCallback fixedOverlayCallback) {
+  this->fixedOverlayCallback = fixedOverlayCallback;
+}
+
+void OLEDDisplayUi::setFixedOverlayFrames(const uint8_t* fixedOverlayFramesList, int fixedOverlayFramesCount) {
+  this->fixedOverlayFrames = (uint8_t*)calloc(fixedOverlayFramesCount, sizeof(int8_t));
+  if(this->fixedOverlayFrames != nullptr) {
+    this->fixedOverlayFramesCount = fixedOverlayFramesCount;
+  }
+  memcpy((void*) this->fixedOverlayFrames, (void*) fixedOverlayFramesList, fixedOverlayFramesCount * sizeof(int8_t));
+}
+
+void OLEDDisplayUi::setFixedOverlayFrames(const FrameCallback*  fixedOverlayFramesList, int fixedOverlayFramesCount) {
+  this->fixedOverlayFrames = (uint8_t*)calloc(fixedOverlayFramesCount, sizeof(int8_t));
+  if(this->fixedOverlayFrames != nullptr) {
+    this->fixedOverlayFramesCount = fixedOverlayFramesCount;
+    uint8_t foundFrameNo=0;
+    for(uint8_t noOverlayFrameNo = 0; noOverlayFrameNo < fixedOverlayFramesCount; noOverlayFrameNo++) {
+      for(uint8_t frameNo = 0; frameNo < frameCount; frameNo++) {
+        if(fixedOverlayFramesList[noOverlayFrameNo] == frameFunctions[frameNo])
+        {
+          this->fixedOverlayFrames[foundFrameNo++] = frameNo;
+          break;
+        }
+      }
+    }
+    if(foundFrameNo != fixedOverlayFramesCount) {
+      this->fixedOverlayFramesCount = 0;
+      this->fixedOverlayFrames = (uint8_t*)realloc(this->fixedOverlayFrames, foundFrameNo * sizeof(int8_t));
+      {
+        if(this->fixedOverlayFrames != nullptr) {
+          this->fixedOverlayFramesCount = foundFrameNo;
+        }
+      }
+    }
+  }
 }
 
 // -/----- Loading Process -----\-
@@ -297,6 +342,36 @@ void OLEDDisplayUi::resetState() {
   this->state.isIndicatorDrawn = true;
 }
 
+void OLEDDisplayUi::drawFixedOverlay(int16_t x, int16_t y, int16_t x1, int16_t y1){
+  if(fixedOverlayCallback == nullptr) return;
+
+  bool currentFrameHasFixedOverlay = false;
+  bool nextFrameHasFixedOverlay = false;
+
+  for(int i = 0; i < fixedOverlayFramesCount; i++) {
+    if(this->state.currentFrame == fixedOverlayFrames[i]) {
+      currentFrameHasFixedOverlay = true;
+    }
+    if(this->getNextFrameNumber() == fixedOverlayFrames[i]) {
+      nextFrameHasFixedOverlay = true;
+    }
+  }
+  if(!currentFrameHasFixedOverlay && !nextFrameHasFixedOverlay) return;
+
+  if((currentFrameHasFixedOverlay && nextFrameHasFixedOverlay) || (this->state.frameState==FIXED && currentFrameHasFixedOverlay)) {
+    (this->fixedOverlayCallback)(this->display, &this->state, 0, 0);
+    return;
+  }
+  if(currentFrameHasFixedOverlay && this->state.frameState!=FIXED) {
+    (this->fixedOverlayCallback)(this->display, &this->state, x, y);
+    return;
+  }
+  if(nextFrameHasFixedOverlay && this->state.frameState!=FIXED) {
+    (this->fixedOverlayCallback)(this->display, &this->state, x1, y1);
+    return;
+  }
+}
+
 void OLEDDisplayUi::drawFrame(){
   switch (this->state.frameState){
      case IN_TRANSITION: {
@@ -348,6 +423,9 @@ void OLEDDisplayUi::drawFrame(){
        this->enableIndicator();
        (this->frameFunctions[this->getNextFrameNumber()])(this->display, &this->state, x1, y1);
 
+        // Draw fixed overlay
+        this->drawFixedOverlay(x, y, x1, y1);
+
        // Build up the indicatorDrawState
        if (drawnCurrentFrame && !this->state.isIndicatorDrawn) {
          // Drawn now but not next
@@ -372,6 +450,7 @@ void OLEDDisplayUi::drawFrame(){
       this->indicatorDrawState = 0;
       this->enableIndicator();
       (this->frameFunctions[this->state.currentFrame])(this->display, &this->state, 0, 0);
+      this->drawFixedOverlay(0, 0, 0, 0);
       break;
   }
 }
@@ -467,5 +546,6 @@ void OLEDDisplayUi::drawOverlays() {
 
 uint8_t OLEDDisplayUi::getNextFrameNumber(){
   if (this->nextFrameNumber != -1) return this->nextFrameNumber;
+  if(this->frameCount == 0) return(-1);
   return (this->state.currentFrame + this->frameCount + this->state.frameTransitionDirection) % this->frameCount;
 }
