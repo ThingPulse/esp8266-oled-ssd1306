@@ -72,24 +72,27 @@ bool OLEDDisplay::allocateBuffer() {
 
   if(this->buffer==NULL) {
     this->buffer = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + BufferOffset);
-    this->buffer += BufferOffset;
 
-    if(!this->buffer) {
+    if(this->buffer==NULL) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create display\n");
       return false;
     }
+
+    this->buffer += BufferOffset;
   }
 
   #ifdef OLEDDISPLAY_DOUBLE_BUFFER
   if(this->buffer_back==NULL) {
     this->buffer_back = (uint8_t*) malloc((sizeof(uint8_t) * displayBufferSize) + BufferOffset);
-    this->buffer_back += BufferOffset;
 
-    if(!this->buffer_back) {
+    if(this->buffer_back==NULL) {
       DEBUG_OLEDDISPLAY("[OLEDDISPLAY][init] Not enough memory to create back buffer\n");
       free(this->buffer - BufferOffset);
+      this->buffer = NULL;
       return false;
     }
+
+    this->buffer_back += BufferOffset;
   }
   #endif
 
